@@ -176,7 +176,7 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
             <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
             <div class="rank-info">
               <div class="rank-name">${p.name}</div>
-              <div class="rank-sub">${style.rol} ${typeof p.pac === 'number' ? '· '+p.pac+' PAC' : ''}</div>
+              <div class="rank-sub">${style.rol}${style.rol === 'Recepcion' && typeof p.pac === 'number' ? ' · '+p.pac+' PAC' : ''}</div>
             </div>
             <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
             <div class="rank-com">${fmt(p.total)}</div>
