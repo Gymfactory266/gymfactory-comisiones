@@ -1,4 +1,3 @@
-Gym Factory Comisiones
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -276,17 +275,23 @@ async function loadData() {
     // Row 13 = Bono suplementos
 
     const getVal = (row, col) => {
-      try { return rows[row].c[col]?.v || 0; } catch(e) { return 0; }
+      try { return parseFloat(rows[row].c[col]?.v) || 0; } catch(e) { return 0; }
     };
     const getTxt = (row, col) => {
       try { return rows[row].c[col]?.v || ''; } catch(e) { return ''; }
     };
 
+    // Row 0 = headers, rows 1-6 = Massiel/Sara/Camila/Luis/Diego/Javiera
+    // Row 8 = Total equipo (index 8)
+    // Row 10 = Bono pac (index 10)
+    // Row 11 = PAC siguiente bono (index 11)
+    // Row 13 = Bono suplementos (index 13) - may not exist, use row 10 structure
+
     const people = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = people.map((name, i) => ({
       name,
       com: getVal(i+1, 1),
-      pac: getVal(i+1, 2) || '-',
+      pac: rows[i+1]?.c[2]?.v !== null && rows[i+1]?.c[2]?.v !== undefined && rows[i+1]?.c[2]?.v !== '-' ? getVal(i+1, 2) : '-',
       bonoPac: getVal(i+1, 3),
       bonoSupl: getVal(i+1, 4),
       total: getVal(i+1, 5),
@@ -296,6 +301,7 @@ async function loadData() {
     const totalPac = getVal(8, 2);
     const bonoPacVal = getVal(10, 1);
     const pacSiguiente = getTxt(11, 1);
+    // Bono suplementos is in row 13 (0-indexed)
     const bonoSuplVal = getVal(13, 1);
 
     renderDashboard(data, totalEquipoCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal);
