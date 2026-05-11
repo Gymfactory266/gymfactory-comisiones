@@ -140,11 +140,11 @@ async function loadData() {
     // index 11 = empty row 13
     // index 12 = "Bono suplementos" (sheet row 14) - if exists
 
-    const totalPac = rows[7] ? getV(rows[7], 2) : 0;
-    const totalCom = rows[7] ? getV(rows[7], 1) : 0;
-    const bonoPacVal = rows[9] ? getV(rows[9], 1) : 0;
-    const pacSiguiente = rows[10] ? getTxt(rows[10], 1) : '';
-    const bonoSuplVal = rows[12] ? getV(rows[12], 1) : 0;
+    const totalPac = rows[6] ? getV(rows[6], 2) : 0;
+    const totalCom = rows[6] ? getV(rows[6], 1) : 0;
+    const bonoPacVal = rows[7] ? getV(rows[7], 1) : 0;
+    const pacSiguiente = rows[8] ? getTxt(rows[8], 0) : '';
+    const bonoSuplVal = rows[9] ? getV(rows[9], 1) : 0;
 
     renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal);
   } catch(e) {
