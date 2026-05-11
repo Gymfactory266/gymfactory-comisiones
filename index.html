@@ -145,14 +145,15 @@ async function loadData() {
     const bonoPacVal = rows[7] ? getV(rows[7], 1) : 0;
     const pacSiguiente = rows[8] ? getTxt(rows[8], 0) : '';
     const bonoSuplVal = rows[9] ? getV(rows[9], 1) : 0;
+    const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
 
-    renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal);
+    renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
 }
 
-function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSupl) {
+function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
   const pacPct = Math.min(Math.round(totalPac/70*100), 100);
@@ -198,10 +199,35 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
 
       <div class="card">
         <div class="card-title">Bono suplementos del equipo</div>
-        <div class="bonus-row"><span>$541k-$750k → $10.000</span><span>${bonoSupl>=10000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>$750k-$1M → $20.000</span><span>${bonoSupl>=20000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>Sobre $1M → $35.000</span><span>${bonoSupl>=35000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Sigan vendiendo suplementos para superar el baseline</div>`}
+        <div class="prog-wrap">
+          <div class="prog-labels">
+            <span>${fmt(ventasSupl)} vendidos</span>
+            <span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span>
+          </div>
+          <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
+        </div>
+        <div class="bonus-row">
+          <span>$541k-$750k → $10.000</span>
+          <span style="display:flex;gap:8px;align-items:center">
+            ${ventasSupl>0&&ventasSupl<541827?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(541827-ventasSupl)}</span>`:''}
+            ${ventasSupl>=541827?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
+          </span>
+        </div>
+        <div class="bonus-row">
+          <span>$750k-$1M → $20.000</span>
+          <span style="display:flex;gap:8px;align-items:center">
+            ${ventasSupl>=541827&&ventasSupl<750000?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(750000-ventasSupl)}</span>`:''}
+            ${ventasSupl>=750000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
+          </span>
+        </div>
+        <div class="bonus-row">
+          <span>Sobre $1M → $35.000</span>
+          <span style="display:flex;gap:8px;align-items:center">
+            ${ventasSupl>=750000&&ventasSupl<1000000?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(1000000-ventasSupl)}</span>`:''}
+            ${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
+          </span>
+        </div>
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Llevan ${fmt(ventasSupl)} de $541.827 para el primer bono · Faltan ${fmt(Math.max(0,541827-ventasSupl))}</div>`}
       </div>
 
       <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
