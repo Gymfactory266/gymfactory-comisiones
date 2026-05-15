@@ -106,17 +106,23 @@ async function loadData() {
   try {
     const res = await fetch(URL);
     const text = await res.text();
-    // Extract JSON from Google's response
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
     if (!match) throw new Error('No se pudo leer la respuesta de Google Sheets');
     const json = JSON.parse(match[1]);
     const rows = json.table.rows;
 
-    // rows[0] = Massiel, [1]=Sara, [2]=Camila, [3]=Luis, [4]=Diego, [5]=Javiera
-    // rows[7] = Total equipo
-    // rows[9] = Bono pac
-    // rows[10] = PAC siguiente bono
-    // rows[12] = Bono suplementos (if exists)
+    // gviz devuelve filas SIN contar el header
+    // index 0 = Massiel (fila 2)
+    // index 1 = Sara (fila 3)
+    // index 2 = Camila (fila 4)
+    // index 3 = Luis (fila 5)
+    // index 4 = Diego (fila 6)
+    // index 5 = Javiera (fila 7)
+    // index 6 = vacía (fila 8)
+    // index 7 = Total equipo (fila 9)
+    // index 8 = vacía (fila 10)
+    // index 9 = Bono pac (fila 11)
+    // index 10 = PAC para siguiente bono (fila 12)
 
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = names.map((name, i) => ({
@@ -128,24 +134,13 @@ async function loadData() {
       total: getV(rows[i], 5),
     }));
 
-    const totalRow = rows[7]; // "Total equipo" row (0-indexed, row 8 in sheet = index 7 after header removed? Let's check)
-    // Actually gviz returns rows WITHOUT the header row counted separately
-    // Row 0 in gviz = first data row = Massiel (sheet row 2)
-    // So: index 0=Massiel, 1=Sara, 2=Camila, 3=Luis, 4=Diego, 5=Javiera
-    // index 6 = empty row 8
-    // index 7 = "Total equipo" (sheet row 9)
-    // index 8 = empty row 10
-    // index 9 = "Bono pac" (sheet row 11)
-    // index 10 = "PAC para siguiente bono" (sheet row 12)
-    // index 11 = empty row 13
-    // index 12 = "Bono suplementos" (sheet row 14) - if exists
-
-    const totalPac = rows[6] ? getV(rows[6], 2) : 0;
-    const totalCom = rows[6] ? getV(rows[6], 1) : 0;
-    const bonoPacVal = rows[7] ? getV(rows[7], 1) : 0;
-    const pacSiguiente = rows[8] ? getTxt(rows[8], 0) : '';
-    const bonoSuplVal = rows[9] ? getV(rows[9], 1) : 0;
-    const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
+    // CORRECCIÓN: Total equipo está en index 7 (fila 9 del sheet)
+    const totalPac = rows[7] ? getV(rows[7], 2) : 0;
+    const totalCom = rows[7] ? getV(rows[7], 1) : 0;
+    const bonoPacVal = rows[9] ? getV(rows[9], 1) : 0;
+    const pacSiguiente = rows[10] ? getTxt(rows[10], 1) : '';
+    const bonoSuplVal = rows[11] ? getV(rows[11], 1) : 0;
+    const ventasSuplReales = rows[12] ? getV(rows[12], 1) : 0;
 
     renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
   } catch(e) {
