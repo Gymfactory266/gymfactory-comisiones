@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Factory · Comisiones</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --red: #C0392B; --red-dark: #922B21; --red-light: #FDECEA;
+    --black: #0D0D0D; --dark: #1A1A1A; --gray: #2C2C2C;
+    --white: #FFFFFF; --green: #1D9E75; --amber: #EF9F27;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
+  
+  /* LOGIN */
+  .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .login-box { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; }
+  .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); letter-spacing: 2px; margin-bottom: 4px; }
+  .login-sub { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 32px; }
+  .login-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 6px; display: block; }
+  .login-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 16px; transition: border-color 0.2s; }
+  .login-input:focus { outline: none; border-color: var(--red); }
+  .login-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; transition: opacity 0.2s; }
+  .login-btn:hover { opacity: 0.9; }
+  .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .login-error { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #e74c3c; margin-top: 12px; display: none; }
+
+  /* HEADER */
+  .header { background: var(--red); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; line-height: 1; }
+  .header p { font-size: 0.75rem; opacity: 0.8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .header-right { text-align: right; font-size: 0.75rem; opacity: 0.8; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .logout-btn { background: rgba(0,0,0,0.2); border: none; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+  .logout-btn:hover { background: rgba(0,0,0,0.4); }
+
+  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { background: var(--red-light); color: var(--red-dark); border-radius: 12px; padding: 1.25rem; margin: 1.5rem; font-size: 0.9rem; line-height: 1.6; }
+  .content { padding: 1.25rem; max-width: 600px; margin: 0 auto; }
+  .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: var(--dark); border-radius: 12px; padding: 1rem; border: 1px solid var(--gray); }
+  .metric-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; }
+  .metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.75rem; letter-spacing: 0.03em; }
+  .green { color: var(--green); } .red { color: var(--red); } .amber { color: var(--amber); } .white { color: var(--white); }
+  .card { background: var(--dark); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid var(--gray); }
+  .card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 1rem; font-weight: 600; }
+  .ranking-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray); cursor: pointer; }
+  .ranking-row:last-child { border-bottom: none; }
+  .rank-medal { font-size: 1.25rem; min-width: 28px; text-align: center; }
+  .rank-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; flex-shrink: 0; }
+  .rank-info { min-width: 80px; }
+  .rank-name { font-weight: 600; font-size: 0.95rem; }
+  .rank-sub { font-size: 0.72rem; color: #666; margin-top: 1px; }
+  .rank-bar-wrap { flex: 1; margin: 0 8px; }
+  .rank-bar-bg { background: var(--gray); border-radius: 4px; height: 6px; overflow: hidden; }
+  .rank-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+  .rank-com { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green); min-width: 75px; text-align: right; }
+  .rank-chevron { font-size: 0.8rem; color: #555; transition: transform 0.2s; margin-left: 4px; }
+  .rank-chevron.open { transform: rotate(180deg); }
+  .detalle-persona { display: none; background: #111; border-radius: 12px; padding: 1rem; margin: 8px 0 4px 0; border: 1px solid var(--gray); }
+  .detalle-persona.open { display: block; }
+  .detalle-titulo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 10px; font-weight: 600; }
+  .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .detalle-item { background: var(--gray); border-radius: 8px; padding: 10px 12px; }
+  .detalle-item-label { font-size: 0.68rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .detalle-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
+  .detalle-item-com { font-size: 0.75rem; color: var(--green); margin-top: 2px; }
+  .detalle-supl { margin-top: 8px; }
+  .detalle-supl-titulo { font-size: 0.68rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; }
+  .supl-tag { display: inline-block; background: rgba(255,255,255,0.06); border: 1px solid var(--gray); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: #aaa; margin: 3px 3px 3px 0; }
+  .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
+  .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
+  .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
+  .prog-wrap { margin-bottom: 1rem; }
+  .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
+  .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 6px; background: var(--red); transition: width 1s ease; }
+  .bonus-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray); font-size: 0.85rem; }
+  .bonus-row:last-child { border-bottom: none; }
+  .badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+  .badge-ok { background: rgba(29,158,117,0.2); color: var(--green); }
+  .badge-no { background: var(--gray); color: #666; }
+  .badge-warn { background: rgba(239,159,39,0.2); color: var(--amber); }
+  .alert-box { background: rgba(239,159,39,0.1); border: 1px solid rgba(239,159,39,0.3); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--amber); margin-top: 0.75rem; line-height: 1.5; }
+  .ok-box { background: rgba(29,158,117,0.1); border: 1px solid rgba(29,158,117,0.3); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--green); margin-top: 0.75rem; line-height: 1.5; }
+  .refresh-btn { display: block; width: 100%; margin-top: 1rem; background: var(--gray); color: #aaa; border: none; border-radius: 12px; padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
+  .refresh-btn:hover { background: #333; color: var(--white); }
+  .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
+  .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">Gym Factory</div>
+    <div class="login-sub">Control de comisiones</div>
+    <label class="login-label">Correo electrónico</label>
+    <input type="email" id="login-email" class="login-input" placeholder="tu@correo.com">
+    <label class="login-label">Contraseña</label>
+    <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error">Correo o contraseña incorrectos</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="app-screen" style="display:none">
+  <div class="header">
+    <div>
+      <h1>Gym Factory</h1>
+      <p>Control de comisiones</p>
+    </div>
+    <div class="header-right">
+      <div id="hdr-date"></div>
+      <div>Mayo 2026</div>
+      <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+  <div id="main">
+    <div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Cargando datos...</p></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
+const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
+
+const PERSONAS = {
+  Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)', rol: 'Recepcion' },
+  Sara:    { color: '#1D9E75', bg: 'rgba(29,158,117,0.2)', rol: 'Recepcion' },
+  Camila:  { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)', rol: 'Recepcion' },
+  Luis:    { color: '#7F77DD', bg: 'rgba(127,119,221,0.2)', rol: 'Profesor/PT' },
+  Diego:   { color: '#D85A30', bg: 'rgba(216,90,48,0.2)', rol: 'Profesor/PT' },
+  Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
+};
+
+const COM_PLANES = {
+  pacMensual: 2000, pacEstudiante: 1500,
+  semestralTarjeta: 4000, semestralTransf: 6000,
+  anualTarjeta: 6000, anualTransf: 8000,
+};
+
+const medals = ['🥇','🥈','🥉'];
+const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
+
+document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+
+// Permitir login con Enter
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  err.style.display = 'none';
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  
+  if (error) {
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+  } else {
+    showApp();
+  }
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  loadData();
+}
+
+// Verificar si ya hay sesión activa
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) showApp();
+});
+
+function getV(row, col) {
+  try {
+    const v = row.c[col]?.v;
+    if (v === null || v === undefined) return 0;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string' && v !== '-') return parseFloat(v) || 0;
+    return 0;
+  } catch(e) { return 0; }
+}
+
+function getTxt(row, col) {
+  try { return row.c[col]?.v || ''; } catch(e) { return ''; }
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(URL_SHEET);
+    const text = await res.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
+    if (!match) throw new Error('No se pudo leer la respuesta de Google Sheets');
+    const json = JSON.parse(match[1]);
+    const rows = json.table.rows;
+
+    const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
+    const data = names.map((name, i) => ({
+      name,
+      com: getV(rows[i], 1),
+      pac: rows[i].c[2]?.v === '-' || rows[i].c[2]?.v === null ? '-' : getV(rows[i], 2),
+      bonoPac: getV(rows[i], 3),
+      bonoSupl: getV(rows[i], 4),
+      total: getV(rows[i], 5),
+      suplTexto: getTxt(rows[i], 6),
+      pacMensual:       getV(rows[i], 7),
+      pacEstudiante:    getV(rows[i], 8),
+      semestralTarjeta: getV(rows[i], 9),
+      semestralTransf:  getV(rows[i], 10),
+      anualTarjeta:     getV(rows[i], 11),
+      anualTransf:      getV(rows[i], 12),
+    }));
+
+    const totalPac = rows[7] ? getV(rows[7], 2) : 0;
+    const totalCom = rows[7] ? getV(rows[7], 1) : 0;
+    const bonoPacVal = rows[9] ? getV(rows[9], 1) : 0;
+    const pacSiguiente = rows[10] ? getTxt(rows[10], 1) : '';
+    const bonoSuplVal = rows[11] ? getV(rows[11], 1) : 0;
+    const ventasSuplReales = rows[12] ? getV(rows[12], 1) : 0;
+
+    renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
+  } catch(e) {
+    document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
+  }
+}
+
+function buildDetalle(p) {
+  const style = PERSONAS[p.name] || {color:'#888'};
+  const planes = [
+    { label: 'PAC Mensual',       val: p.pacMensual,       com: COM_PLANES.pacMensual },
+    { label: 'PAC Estudiante',    val: p.pacEstudiante,    com: COM_PLANES.pacEstudiante },
+    { label: 'Semestral Tarjeta', val: p.semestralTarjeta, com: COM_PLANES.semestralTarjeta },
+    { label: 'Semestral Transf.', val: p.semestralTransf,  com: COM_PLANES.semestralTransf },
+    { label: 'Anual Tarjeta',     val: p.anualTarjeta,     com: COM_PLANES.anualTarjeta },
+    { label: 'Anual Transf.',     val: p.anualTransf,      com: COM_PLANES.anualTransf },
+  ].filter(pl => pl.val > 0);
+
+  const planesHtml = planes.length > 0 ? `
+    <div class="detalle-titulo">Planes vendidos</div>
+    <div class="detalle-grid">
+      ${planes.map(pl => `
+        <div class="detalle-item">
+          <div class="detalle-item-label">${pl.label}</div>
+          <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
+          <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin planes vendidos este mes</div>';
+
+  const suplHtml = p.suplTexto ? `
+    <div class="detalle-supl">
+      <div class="detalle-supl-titulo">Suplementos vendidos</div>
+      ${p.suplTexto.split(',').map(s => `<span class="supl-tag">${s.trim()}</span>`).join('')}
+    </div>
+  ` : '';
+
+  return `
+    <div class="detalle-persona" id="detalle-${p.name}">
+      ${planesHtml}
+      ${suplHtml}
+      <div class="detalle-total">
+        <div class="detalle-total-label">Total comisiones</div>
+        <div class="detalle-total-val">${fmt(p.total)}</div>
+      </div>
+    </div>`;
+}
+
+function toggleDetalle(name) {
+  const el = document.getElementById(`detalle-${name}`);
+  const chev = document.getElementById(`chev-${name}`);
+  if (!el) return;
+  el.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
+
+function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
+  const sorted = [...data].sort((a,b) => b.total - a.total);
+  const maxCom = Math.max(...data.map(d => d.total), 1);
+  const pacPct = Math.min(Math.round(totalPac/70*100), 100);
+
+  document.getElementById('main').innerHTML = `
+    <div class="content">
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Comisiones equipo</div><div class="metric-val white">${fmt(totalCom)}</div></div>
+        <div class="metric"><div class="metric-label">PAC nuevos</div><div class="metric-val amber">${totalPac}</div></div>
+        <div class="metric"><div class="metric-label">Bono PAC</div><div class="metric-val ${bonoPac>0?'green':'red'}">${fmt(bonoPac)}</div></div>
+        <div class="metric"><div class="metric-label">Bono suplementos</div><div class="metric-val ${bonoSupl>0?'green':'red'}">${fmt(bonoSupl)}</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Ranking comisiones · ${new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'})}</div>
+        <p class="hint">Toca una persona para ver el detalle</p>
+        ${sorted.map((p, i) => {
+          const pct = Math.round(p.total/maxCom*100)||0;
+          const style = PERSONAS[p.name] || {color:'#888',bg:'rgba(136,136,136,0.15)',rol:'Equipo'};
+          return `
+            <div onclick="toggleDetalle('${p.name}')">
+              <div class="ranking-row">
+                <div class="rank-medal">${p.total>0?(medals[i]||`#${i+1}`):'-'}</div>
+                <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
+                <div class="rank-info">
+                  <div class="rank-name">${p.name}</div>
+                  <div class="rank-sub">${style.rol}${style.rol === 'Recepcion' && typeof p.pac === 'number' ? ' · '+p.pac+' PAC' : ''}</div>
+                </div>
+                <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
+                <div class="rank-com">${fmt(p.total)}</div>
+                <div class="rank-chevron" id="chev-${p.name}">▼</div>
+              </div>
+              ${buildDetalle(p)}
+            </div>`;
+        }).join('')}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Bono PAC del equipo</div>
+        <div class="prog-wrap">
+          <div class="prog-labels"><span>${totalPac} PAC nuevos</span><span>${pacPct}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${pacPct}%"></div></div>
+        </div>
+        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPac>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPac)+'</span>'}</span></div>
+        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPac>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPac)+'</span>'}</span></div>
+        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPac>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPac)+'</span>'}</span></div>
+        ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Bono suplementos del equipo</div>
+        <div class="prog-wrap">
+          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
+        </div>
+        <div class="bonus-row"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Llevan ${fmt(ventasSupl)} de $700.000 · Faltan ${fmt(Math.max(0,700000-ventasSupl))}</div>`}
+      </div>
+
+      <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
+    </div>
+    <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
+}
+
+function refresh() {
+  document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Actualizando...</p></div>';
+  loadData();
+}
+
+setInterval(loadData, 120000);
+</script>
+</body>
+</html>
