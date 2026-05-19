@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gym Factory · Comisiones</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
     --red: #C0392B; --red-dark: #922B21; --red-light: #FDECEA;
@@ -13,10 +14,28 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
+  
+  /* LOGIN */
+  .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  .login-box { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; }
+  .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); letter-spacing: 2px; margin-bottom: 4px; }
+  .login-sub { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 32px; }
+  .login-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 6px; display: block; }
+  .login-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 16px; transition: border-color 0.2s; }
+  .login-input:focus { outline: none; border-color: var(--red); }
+  .login-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; transition: opacity 0.2s; }
+  .login-btn:hover { opacity: 0.9; }
+  .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .login-error { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #e74c3c; margin-top: 12px; display: none; }
+
+  /* HEADER */
   .header { background: var(--red); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
   .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; line-height: 1; }
   .header p { font-size: 0.75rem; opacity: 0.8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .header-right { text-align: right; font-size: 0.75rem; opacity: 0.8; }
+  .header-right { text-align: right; font-size: 0.75rem; opacity: 0.8; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .logout-btn { background: rgba(0,0,0,0.2); border: none; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
+  .logout-btn:hover { background: rgba(0,0,0,0.4); }
+
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; }
   .spinner { width: 40px; height: 40px; border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -42,8 +61,6 @@
   .rank-com { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green); min-width: 75px; text-align: right; }
   .rank-chevron { font-size: 0.8rem; color: #555; transition: transform 0.2s; margin-left: 4px; }
   .rank-chevron.open { transform: rotate(180deg); }
-
-  /* DETALLE POR PERSONA */
   .detalle-persona { display: none; background: #111; border-radius: 12px; padding: 1rem; margin: 8px 0 4px 0; border: 1px solid var(--gray); }
   .detalle-persona.open { display: block; }
   .detalle-titulo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 10px; font-weight: 600; }
@@ -58,7 +75,6 @@
   .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
   .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
   .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
-
   .prog-wrap { margin-bottom: 1rem; }
   .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
   .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
@@ -78,22 +94,46 @@
 </style>
 </head>
 <body>
-<div class="header">
-  <div>
-    <h1>Gym Factory</h1>
-    <p>Control de comisiones</p>
-  </div>
-  <div class="header-right">
-    <div id="hdr-date"></div>
-    <div>Mayo 2026</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">Gym Factory</div>
+    <div class="login-sub">Control de comisiones</div>
+    <label class="login-label">Correo electrónico</label>
+    <input type="email" id="login-email" class="login-input" placeholder="tu@correo.com">
+    <label class="login-label">Contraseña</label>
+    <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-error" id="login-error">Correo o contraseña incorrectos</div>
   </div>
 </div>
-<div id="main">
-  <div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Cargando datos...</p></div>
+
+<!-- DASHBOARD -->
+<div id="app-screen" style="display:none">
+  <div class="header">
+    <div>
+      <h1>Gym Factory</h1>
+      <p>Control de comisiones</p>
+    </div>
+    <div class="header-right">
+      <div id="hdr-date"></div>
+      <div>Mayo 2026</div>
+      <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+  <div id="main">
+    <div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Cargando datos...</p></div>
+  </div>
 </div>
+
 <script>
+const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
-const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
+const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
 
 const PERSONAS = {
   Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)', rol: 'Recepcion' },
@@ -104,20 +144,60 @@ const PERSONAS = {
   Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
 };
 
-// Comisiones por plan
 const COM_PLANES = {
-  pacMensual:           2000,
-  pacEstudiante:        1500,
-  semestralTarjeta:     4000,
-  semestralTransf:      6000,
-  anualTarjeta:         6000,
-  anualTransf:          8000,
+  pacMensual: 2000, pacEstudiante: 1500,
+  semestralTarjeta: 4000, semestralTransf: 6000,
+  anualTarjeta: 6000, anualTransf: 8000,
 };
 
 const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
 
 document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+
+// Permitir login con Enter
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  
+  btn.disabled = true;
+  btn.textContent = 'Ingresando...';
+  err.style.display = 'none';
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  
+  if (error) {
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Ingresar';
+  } else {
+    showApp();
+  }
+}
+
+async function doLogout() {
+  await supabase.auth.signOut();
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  loadData();
+}
+
+// Verificar si ya hay sesión activa
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session) showApp();
+});
 
 function getV(row, col) {
   try {
@@ -135,7 +215,7 @@ function getTxt(row, col) {
 
 async function loadData() {
   try {
-    const res = await fetch(URL);
+    const res = await fetch(URL_SHEET);
     const text = await res.text();
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
     if (!match) throw new Error('No se pudo leer la respuesta de Google Sheets');
@@ -151,7 +231,6 @@ async function loadData() {
       bonoSupl: getV(rows[i], 4),
       total: getV(rows[i], 5),
       suplTexto: getTxt(rows[i], 6),
-      // Planes — columnas H(7) I(8) J(9) K(10) L(11) M(12)
       pacMensual:       getV(rows[i], 7),
       pacEstudiante:    getV(rows[i], 8),
       semestralTarjeta: getV(rows[i], 9),
@@ -176,12 +255,12 @@ async function loadData() {
 function buildDetalle(p) {
   const style = PERSONAS[p.name] || {color:'#888'};
   const planes = [
-    { label: 'PAC Mensual',      val: p.pacMensual,       com: COM_PLANES.pacMensual },
-    { label: 'PAC Estudiante',   val: p.pacEstudiante,    com: COM_PLANES.pacEstudiante },
-    { label: 'Semestral Tarjeta',val: p.semestralTarjeta, com: COM_PLANES.semestralTarjeta },
-    { label: 'Semestral Transf.',val: p.semestralTransf,  com: COM_PLANES.semestralTransf },
-    { label: 'Anual Tarjeta',    val: p.anualTarjeta,     com: COM_PLANES.anualTarjeta },
-    { label: 'Anual Transf.',    val: p.anualTransf,      com: COM_PLANES.anualTransf },
+    { label: 'PAC Mensual',       val: p.pacMensual,       com: COM_PLANES.pacMensual },
+    { label: 'PAC Estudiante',    val: p.pacEstudiante,    com: COM_PLANES.pacEstudiante },
+    { label: 'Semestral Tarjeta', val: p.semestralTarjeta, com: COM_PLANES.semestralTarjeta },
+    { label: 'Semestral Transf.', val: p.semestralTransf,  com: COM_PLANES.semestralTransf },
+    { label: 'Anual Tarjeta',     val: p.anualTarjeta,     com: COM_PLANES.anualTarjeta },
+    { label: 'Anual Transf.',     val: p.anualTransf,      com: COM_PLANES.anualTransf },
   ].filter(pl => pl.val > 0);
 
   const planesHtml = planes.length > 0 ? `
@@ -212,8 +291,7 @@ function buildDetalle(p) {
         <div class="detalle-total-label">Total comisiones</div>
         <div class="detalle-total-val">${fmt(p.total)}</div>
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 function toggleDetalle(name) {
@@ -277,34 +355,13 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
       <div class="card">
         <div class="card-title">Bono suplementos del equipo</div>
         <div class="prog-wrap">
-          <div class="prog-labels">
-            <span>${fmt(ventasSupl)} vendidos</span>
-            <span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span>
-          </div>
+          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
         </div>
-        <div class="bonus-row">
-          <span>$700k-$850k → $20.000</span>
-          <span style="display:flex;gap:8px;align-items:center">
-            ${ventasSupl>0&&ventasSupl<700000?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(700000-ventasSupl)}</span>`:''}
-            ${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
-          </span>
-        </div>
-        <div class="bonus-row">
-          <span>$850k-$1M → $30.000</span>
-          <span style="display:flex;gap:8px;align-items:center">
-            ${ventasSupl>=700000&&ventasSupl<850000?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(850000-ventasSupl)}</span>`:''}
-            ${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
-          </span>
-        </div>
-        <div class="bonus-row">
-          <span>Sobre $1M → $40.000</span>
-          <span style="display:flex;gap:8px;align-items:center">
-            ${ventasSupl>=850000&&ventasSupl<1000000?`<span style="font-size:0.75rem;color:#666">Faltan ${fmt(1000000-ventasSupl)}</span>`:''}
-            ${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}
-          </span>
-        </div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Llevan ${fmt(ventasSupl)} de $700.000 para el primer bono · Faltan ${fmt(Math.max(0,700000-ventasSupl))}</div>`}
+        <div class="bonus-row"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Llevan ${fmt(ventasSupl)} de $700.000 · Faltan ${fmt(Math.max(0,700000-ventasSupl))}</div>`}
       </div>
 
       <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
@@ -317,7 +374,6 @@ function refresh() {
   loadData();
 }
 
-loadData();
 setInterval(loadData, 120000);
 </script>
 </body>
