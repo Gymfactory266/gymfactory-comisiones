@@ -29,7 +29,7 @@
   .green { color: var(--green); } .red { color: var(--red); } .amber { color: var(--amber); } .white { color: var(--white); }
   .card { background: var(--dark); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid var(--gray); }
   .card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 1rem; font-weight: 600; }
-  .ranking-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray); }
+  .ranking-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray); cursor: pointer; }
   .ranking-row:last-child { border-bottom: none; }
   .rank-medal { font-size: 1.25rem; min-width: 28px; text-align: center; }
   .rank-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; flex-shrink: 0; }
@@ -40,6 +40,25 @@
   .rank-bar-bg { background: var(--gray); border-radius: 4px; height: 6px; overflow: hidden; }
   .rank-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
   .rank-com { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green); min-width: 75px; text-align: right; }
+  .rank-chevron { font-size: 0.8rem; color: #555; transition: transform 0.2s; margin-left: 4px; }
+  .rank-chevron.open { transform: rotate(180deg); }
+
+  /* DETALLE POR PERSONA */
+  .detalle-persona { display: none; background: #111; border-radius: 12px; padding: 1rem; margin: 8px 0 4px 0; border: 1px solid var(--gray); }
+  .detalle-persona.open { display: block; }
+  .detalle-titulo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 10px; font-weight: 600; }
+  .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .detalle-item { background: var(--gray); border-radius: 8px; padding: 10px 12px; }
+  .detalle-item-label { font-size: 0.68rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .detalle-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
+  .detalle-item-com { font-size: 0.75rem; color: var(--green); margin-top: 2px; }
+  .detalle-supl { margin-top: 8px; }
+  .detalle-supl-titulo { font-size: 0.68rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; }
+  .supl-tag { display: inline-block; background: rgba(255,255,255,0.06); border: 1px solid var(--gray); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: #aaa; margin: 3px 3px 3px 0; }
+  .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
+  .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
+  .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
+
   .prog-wrap { margin-bottom: 1rem; }
   .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
   .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
@@ -55,6 +74,7 @@
   .refresh-btn { display: block; width: 100%; margin-top: 1rem; background: var(--gray); color: #aaa; border: none; border-radius: 12px; padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
+  .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -83,6 +103,17 @@ const PERSONAS = {
   Diego:   { color: '#D85A30', bg: 'rgba(216,90,48,0.2)', rol: 'Profesor/PT' },
   Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
 };
+
+// Comisiones por plan
+const COM_PLANES = {
+  pacMensual:           2000,
+  pacEstudiante:        1500,
+  semestralTarjeta:     4000,
+  semestralTransf:      6000,
+  anualTarjeta:         6000,
+  anualTransf:          8000,
+};
+
 const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
 
@@ -111,19 +142,6 @@ async function loadData() {
     const json = JSON.parse(match[1]);
     const rows = json.table.rows;
 
-    // gviz devuelve filas SIN contar el header
-    // index 0 = Massiel (fila 2)
-    // index 1 = Sara (fila 3)
-    // index 2 = Camila (fila 4)
-    // index 3 = Luis (fila 5)
-    // index 4 = Diego (fila 6)
-    // index 5 = Javiera (fila 7)
-    // index 6 = vacía (fila 8)
-    // index 7 = Total equipo (fila 9)
-    // index 8 = vacía (fila 10)
-    // index 9 = Bono pac (fila 11)
-    // index 10 = PAC para siguiente bono (fila 12)
-
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = names.map((name, i) => ({
       name,
@@ -132,9 +150,16 @@ async function loadData() {
       bonoPac: getV(rows[i], 3),
       bonoSupl: getV(rows[i], 4),
       total: getV(rows[i], 5),
+      suplTexto: getTxt(rows[i], 6),
+      // Planes — columnas H(7) I(8) J(9) K(10) L(11) M(12)
+      pacMensual:       getV(rows[i], 7),
+      pacEstudiante:    getV(rows[i], 8),
+      semestralTarjeta: getV(rows[i], 9),
+      semestralTransf:  getV(rows[i], 10),
+      anualTarjeta:     getV(rows[i], 11),
+      anualTransf:      getV(rows[i], 12),
     }));
 
-    // CORRECCIÓN: Total equipo está en index 7 (fila 9 del sheet)
     const totalPac = rows[7] ? getV(rows[7], 2) : 0;
     const totalCom = rows[7] ? getV(rows[7], 1) : 0;
     const bonoPacVal = rows[9] ? getV(rows[9], 1) : 0;
@@ -146,6 +171,57 @@ async function loadData() {
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
+}
+
+function buildDetalle(p) {
+  const style = PERSONAS[p.name] || {color:'#888'};
+  const planes = [
+    { label: 'PAC Mensual',      val: p.pacMensual,       com: COM_PLANES.pacMensual },
+    { label: 'PAC Estudiante',   val: p.pacEstudiante,    com: COM_PLANES.pacEstudiante },
+    { label: 'Semestral Tarjeta',val: p.semestralTarjeta, com: COM_PLANES.semestralTarjeta },
+    { label: 'Semestral Transf.',val: p.semestralTransf,  com: COM_PLANES.semestralTransf },
+    { label: 'Anual Tarjeta',    val: p.anualTarjeta,     com: COM_PLANES.anualTarjeta },
+    { label: 'Anual Transf.',    val: p.anualTransf,      com: COM_PLANES.anualTransf },
+  ].filter(pl => pl.val > 0);
+
+  const planesHtml = planes.length > 0 ? `
+    <div class="detalle-titulo">Planes vendidos</div>
+    <div class="detalle-grid">
+      ${planes.map(pl => `
+        <div class="detalle-item">
+          <div class="detalle-item-label">${pl.label}</div>
+          <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
+          <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin planes vendidos este mes</div>';
+
+  const suplHtml = p.suplTexto ? `
+    <div class="detalle-supl">
+      <div class="detalle-supl-titulo">Suplementos vendidos</div>
+      ${p.suplTexto.split(',').map(s => `<span class="supl-tag">${s.trim()}</span>`).join('')}
+    </div>
+  ` : '';
+
+  return `
+    <div class="detalle-persona" id="detalle-${p.name}">
+      ${planesHtml}
+      ${suplHtml}
+      <div class="detalle-total">
+        <div class="detalle-total-label">Total comisiones</div>
+        <div class="detalle-total-val">${fmt(p.total)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleDetalle(name) {
+  const el = document.getElementById(`detalle-${name}`);
+  const chev = document.getElementById(`chev-${name}`);
+  if (!el) return;
+  el.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
 }
 
 function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
@@ -164,19 +240,25 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
 
       <div class="card">
         <div class="card-title">Ranking comisiones · ${new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'})}</div>
+        <p class="hint">Toca una persona para ver el detalle</p>
         ${sorted.map((p, i) => {
           const pct = Math.round(p.total/maxCom*100)||0;
           const style = PERSONAS[p.name] || {color:'#888',bg:'rgba(136,136,136,0.15)',rol:'Equipo'};
-          return `<div class="ranking-row">
-            <div class="rank-medal">${p.total>0?(medals[i]||`#${i+1}`):'-'}</div>
-            <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
-            <div class="rank-info">
-              <div class="rank-name">${p.name}</div>
-              <div class="rank-sub">${style.rol}${style.rol === 'Recepcion' && typeof p.pac === 'number' ? ' · '+p.pac+' PAC' : ''}</div>
-            </div>
-            <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
-            <div class="rank-com">${fmt(p.total)}</div>
-          </div>`;
+          return `
+            <div onclick="toggleDetalle('${p.name}')">
+              <div class="ranking-row">
+                <div class="rank-medal">${p.total>0?(medals[i]||`#${i+1}`):'-'}</div>
+                <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
+                <div class="rank-info">
+                  <div class="rank-name">${p.name}</div>
+                  <div class="rank-sub">${style.rol}${style.rol === 'Recepcion' && typeof p.pac === 'number' ? ' · '+p.pac+' PAC' : ''}</div>
+                </div>
+                <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
+                <div class="rank-com">${fmt(p.total)}</div>
+                <div class="rank-chevron" id="chev-${p.name}">▼</div>
+              </div>
+              ${buildDetalle(p)}
+            </div>`;
         }).join('')}
       </div>
 
