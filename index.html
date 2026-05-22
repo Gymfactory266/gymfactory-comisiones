@@ -233,17 +233,17 @@ async function loadData() {
       ventasSuplPersona: getV(rows[i], 16),
     }));
 
-    // Sin filas vacias — indices directos:
-    // idx7=fila8=Total, idx8=fila9=BonoPac, idx9=fila10=PacSig
-    // idx10=fila11=BonoSupl, idx11=fila12=VentasSupl, idx12=fila13=Faltan550k
-    const totalPacGrupal   = rows[7]  ? getV(rows[7], 2) : 0;
-    const totalCom         = rows[7]  ? getV(rows[7], 1) : 0;
-    const totalPacReal     = rows[7]  ? getV(rows[7], 14) : 0;
-    const bonoPacVal       = rows[8]  ? getV(rows[8], 1) : 0;
-    const pacSiguiente     = rows[9]  ? getTxt(rows[9], 1) : '';
-    const bonoSuplVal      = rows[10] ? getV(rows[10], 1) : 0;
-    const ventasSuplReales = rows[11] ? getV(rows[11], 1) : 0;
-    const suplFaltan550k   = rows[12] ? getV(rows[12], 1) : 0;
+    // Google Sheets no incluye encabezados en JSON — idx 0 = fila 2 = Massiel
+    // idx6=fila8=Total, idx7=fila9=BonoPac, idx8=fila10=PacSig
+    // idx9=fila11=BonoSupl, idx10=fila12=VentasSupl, idx11=fila13=Faltan550k
+    const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
+    const totalCom         = rows[6]  ? getV(rows[6], 1) : 0;
+    const totalPacReal     = rows[6]  ? getV(rows[6], 14) : 0;
+    const bonoPacVal       = rows[7]  ? getV(rows[7], 1) : 0;
+    const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
+    const bonoSuplVal      = rows[9]  ? getV(rows[9], 1) : 0;
+    const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
+    const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
 
     renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k);
   } catch(e) {
