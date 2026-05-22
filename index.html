@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gym Factory · Comisiones</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root {
     --red: #C0392B; --red-dark: #922B21; --red-light: #FDECEA;
@@ -130,7 +130,12 @@
 <script>
 const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let db;
+try {
+  db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch(e) {
+  console.error('Supabase init error:', e);
+}
 
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
