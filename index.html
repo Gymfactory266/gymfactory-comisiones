@@ -1,7 +1,7 @@
 <script>
 const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
-const sbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
@@ -39,7 +39,7 @@ async function doLogin() {
   btn.textContent = 'Ingresando...';
   err.style.display = 'none';
 
-  const { error } = await sbClient.auth.signInWithPassword({ email, password: pass });
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
   
   if (error) {
     err.style.display = 'block';
@@ -51,7 +51,7 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  await sbClient.auth.signOut();
+  await db.auth.signOut();
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-email').value = '';
@@ -64,7 +64,7 @@ function showApp() {
   loadData();
 }
 
-sbClient.auth.getSession().then(({ data: { session } }) => {
+db.auth.getSession().then(({ data: { session } }) => {
   if (session) showApp();
 });
 
