@@ -1,360 +1,342 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gym Factory · Comisiones</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<style>
-  :root {
-    --red: #C0392B; --red-dark: #922B21; --red-light: #FDECEA;
-    --black: #0D0D0D; --dark: #1A1A1A; --gray: #2C2C2C;
-    --white: #FFFFFF; --green: #1D9E75; --amber: #EF9F27;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
-  .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-  .login-box { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; }
-  .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); letter-spacing: 2px; margin-bottom: 4px; }
-  .login-sub { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 32px; }
-  .login-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 6px; display: block; }
-  .login-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 16px; transition: border-color 0.2s; }
-  .login-input:focus { outline: none; border-color: var(--red); }
-  .login-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; font-family: 'DM Sans', sans-serif; margin-top: 4px; transition: opacity 0.2s; }
-  .login-btn:hover { opacity: 0.9; }
-  .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .login-error { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #e74c3c; margin-top: 12px; display: none; }
-  .header { background: var(--red); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-  .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; line-height: 1; }
-  .header p { font-size: 0.75rem; opacity: 0.8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
-  .header-right { text-align: right; font-size: 0.75rem; opacity: 0.8; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .logout-btn { background: rgba(0,0,0,0.2); border: none; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
-  .logout-btn:hover { background: rgba(0,0,0,0.4); }
-  .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; }
-  .spinner { width: 40px; height: 40px; border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .error-box { background: var(--red-light); color: var(--red-dark); border-radius: 12px; padding: 1.25rem; margin: 1.5rem; font-size: 0.9rem; line-height: 1.6; }
-  .content { padding: 1.25rem; max-width: 600px; margin: 0 auto; }
-  .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.25rem; }
-  .metric { background: var(--dark); border-radius: 12px; padding: 1rem; border: 1px solid var(--gray); }
-  .metric-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 4px; }
-  .metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.75rem; letter-spacing: 0.03em; }
-  .green { color: var(--green); } .red { color: var(--red); } .amber { color: var(--amber); } .white { color: var(--white); }
-  .card { background: var(--dark); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid var(--gray); }
-  .card-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #666; margin-bottom: 1rem; font-weight: 600; }
-  .ranking-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray); cursor: pointer; }
-  .ranking-row:last-child { border-bottom: none; }
-  .rank-medal { font-size: 1.25rem; min-width: 28px; text-align: center; }
-  .rank-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1rem; flex-shrink: 0; }
-  .rank-info { min-width: 80px; }
-  .rank-name { font-weight: 600; font-size: 0.95rem; }
-  .rank-sub { font-size: 0.72rem; color: #666; margin-top: 1px; }
-  .rank-bar-wrap { flex: 1; margin: 0 8px; }
-  .rank-bar-bg { background: var(--gray); border-radius: 4px; height: 6px; overflow: hidden; }
-  .rank-bar-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
-  .rank-com { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green); min-width: 75px; text-align: right; }
-  .rank-chevron { font-size: 0.8rem; color: #555; transition: transform 0.2s; margin-left: 4px; }
-  .rank-chevron.open { transform: rotate(180deg); }
-  .detalle-persona { display: none; background: #111; border-radius: 12px; padding: 1rem; margin: 8px 0 4px 0; border: 1px solid var(--gray); }
-  .detalle-persona.open { display: block; }
-  .detalle-titulo { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; margin-bottom: 10px; font-weight: 600; }
-  .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-  .detalle-item { background: var(--gray); border-radius: 8px; padding: 10px 12px; }
-  .detalle-item-label { font-size: 0.68rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  .detalle-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
-  .detalle-item-com { font-size: 0.75rem; color: var(--green); margin-top: 2px; }
-  .detalle-supl { margin-top: 8px; }
-  .detalle-supl-titulo { font-size: 0.68rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; }
-  .supl-tag { display: inline-block; background: rgba(255,255,255,0.06); border: 1px solid var(--gray); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: #aaa; margin: 3px 3px 3px 0; }
-  .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
-  .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
-  .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
-  .detalle-info { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 10px; line-height: 1.6; }
-  .detalle-info span { color: var(--amber); font-weight: 600; }
-  .prog-wrap { margin-bottom: 1rem; }
-  .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
-  .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
-  .prog-fill { height: 100%; border-radius: 6px; background: var(--red); transition: width 1s ease; }
-  .bonus-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray); font-size: 0.85rem; }
-  .bonus-row:last-child { border-bottom: none; }
-  .badge { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
-  .badge-ok { background: rgba(29,158,117,0.2); color: var(--green); }
-  .badge-no { background: var(--gray); color: #666; }
-  .badge-warn { background: rgba(239,159,39,0.2); color: var(--amber); }
-  .alert-box { background: rgba(239,159,39,0.1); border: 1px solid rgba(239,159,39,0.3); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--amber); margin-top: 0.75rem; line-height: 1.5; }
-  .ok-box { background: rgba(29,158,117,0.1); border: 1px solid rgba(29,158,117,0.3); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.82rem; color: var(--green); margin-top: 0.75rem; line-height: 1.5; }
-  .refresh-btn { display: block; width: 100%; margin-top: 1rem; background: var(--gray); color: #aaa; border: none; border-radius: 12px; padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
-  .refresh-btn:hover { background: #333; color: var(--white); }
-  .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
-  .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
-  .mes-header { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 2px; text-align: center; margin-bottom: 1rem; }
-</style>
-</head>
-<body>
+// ============================================
+// GYM FACTORY - SISTEMA DE COMISIONES JUNIO+
+// ============================================
 
-<div id="login-screen" class="login-wrap">
-  <div class="login-box">
-    <div class="login-logo">Gym Factory</div>
-    <div class="login-sub">Control de comisiones</div>
-    <label class="login-label">Correo electronico</label>
-    <input type="email" id="login-email" class="login-input" placeholder="tu@correo.com">
-    <label class="login-label">Contrasena</label>
-    <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
-    <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
-  </div>
-</div>
+const CONFIG = {
+  PAC: ["Pac mensual", "Pac estudiante"],
+  SEMESTRALES: ["Semestral Tarjeta", "Semestral transferencia"],
+  ANUALES: ["Anual tarjeta", "Anual Transferencia"],
+  
+  COMISIONES: {
+    "Pac mensual": 2000,
+    "Pac estudiante": 1500,
+    "Semestral Tarjeta": 4000,
+    "Semestral transferencia": 6000,
+    "Anual tarjeta": 6000,
+    "Anual Transferencia": 8000,
+    "Creatina 4active 1kg": 3000,
+    "Creatina 4active 600gr": 2000,
+    "Creatina 4active 300gr": 1500,
+    "Creatina Inner 400gr": 1500,
+    "Creatina nutriversum 500gr": 1500,
+    "BPI HD ISO": 1500,
+    "Dragon Pharma 5lbs": 1500,
+    "PS Whey": 800,
+    "Whey 5lbs": 800,
+    "Isox Protein 900gr": 800,
+    "Hyde Nightmare": 1000,
+    "Pure Whey 900gr": 800,
+    "Puretech 900gr": 800,
+    "Carbox": 700,
+    "Beta Alanina": 600,
+    "Glutamina": 500,
+    "Cafeina": 500,
+    "Magnesio": 500,
+    "HCA": 500,
+    "Gorro": 1000,
+    "Toalla": 500,
+    "Inbody excento iva": 500,
+  },
 
-<div id="app-screen" style="display:none">
-  <div class="header">
-    <div>
-      <h1>Gym Factory</h1>
-      <p>Control de comisiones</p>
-    </div>
-    <div class="header-right">
-      <div id="hdr-date"></div>
-      <div id="hdr-mes"></div>
-      <button class="logout-btn" onclick="doLogout()">Cerrar sesion</button>
-    </div>
-  </div>
-  <div id="main">
-    <div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Cargando datos...</p></div>
-  </div>
-</div>
+  PRECIO_SUPL: {
+    "Creatina 4active 1kg": 25000,
+    "Creatina 4active 600gr": 15000,
+    "Creatina 4active 300gr": 10000,
+    "Creatina Inner 400gr": 10000,
+    "Creatina nutriversum 500gr": 10000,
+    "BPI HD ISO": 15000,
+    "Dragon Pharma 5lbs": 15000,
+    "PS Whey": 12000,
+    "Whey 5lbs": 12000,
+    "Isox Protein 900gr": 12000,
+    "Hyde Nightmare": 8000,
+    "Pure Whey 900gr": 12000,
+    "Puretech 900gr": 12000,
+    "Carbox": 8000,
+    "Beta Alanina": 6000,
+    "Glutamina": 6000,
+    "Cafeina": 5000,
+    "Magnesio": 5000,
+    "HCA": 5000,
+    "Gorro": 8000,
+    "Toalla": 5000,
+    "Inbody excento iva": 5000,
+  },
 
-<script>
-const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
-let db;
-try {
-  db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY);
-} catch(e) {
-  console.error('Supabase init error:', e);
-}
+  PERSONAS: {
+    Massiel: { tipo: "recepcion" },
+    Sara:    { tipo: "recepcion" },
+    Camila:  { tipo: "recepcion_part" },
+    Luis:    { tipo: "pt" },
+    Diego:   { tipo: "pt" },
+    Javiera: { tipo: "pt" },
+  },
 
-const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
-const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
+  BONO_GRUPAL_PAC: [
+    { min: 70, monto: 45000 },
+    { min: 60, monto: 30000 },
+    { min: 50, monto: 20000 },
+  ],
 
-const PERSONAS = {
-  Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)', rol: 'Recepcion' },
-  Sara:    { color: '#1D9E75', bg: 'rgba(29,158,117,0.2)', rol: 'Recepcion' },
-  Camila:  { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)', rol: 'Recepcion' },
-  Luis:    { color: '#7F77DD', bg: 'rgba(127,119,221,0.2)', rol: 'Profesor/PT' },
-  Diego:   { color: '#D85A30', bg: 'rgba(216,90,48,0.2)', rol: 'Profesor/PT' },
-  Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
+  BONO_GRUPAL_SUPL: [
+    { min: 1000000, monto: 40000 },
+    { min: 850000,  monto: 30000 },
+    { min: 700000,  monto: 20000 },
+  ],
 };
 
-const medals = ['🥇','🥈','🥉'];
-const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
+function calcularComisiones() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const hRespuestas = ss.getSheetByName("Respuestas de formulario 1");
+  const hComisiones = ss.getSheetByName("Comisiones");
 
-const ahora = new Date();
-document.getElementById('hdr-date').textContent = ahora.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
-document.getElementById('hdr-mes').textContent = ahora.toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+  const hoy = new Date();
+  const mesActual = hoy.getMonth() + 1;
+  const anioActual = hoy.getFullYear();
 
-document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
-document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  const datos = hRespuestas.getDataRange().getValues();
+  
+  const ventasMes = datos.filter((row, i) => {
+    if (i === 0 || !row[0]) return false;
+    let fecha;
+    if (row[0] instanceof Date) {
+      fecha = row[0];
+    } else {
+      const partes = String(row[0]).split(" ")[0].split("/");
+      if (partes.length < 3) return false;
+      fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+    }
+    return fecha.getMonth() + 1 === mesActual && fecha.getFullYear() === anioActual;
+  });
 
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  const btn = document.getElementById('login-btn');
-  const err = document.getElementById('login-error');
-  btn.disabled = true;
-  btn.textContent = 'Ingresando...';
-  err.style.display = 'none';
-  const { error } = await db.auth.signInWithPassword({ email, password: pass });
-  if (error) {
-    err.style.display = 'block';
-    btn.disabled = false;
-    btn.textContent = 'Ingresar';
-  } else {
-    showApp();
-  }
+  const ventas = {};
+  Object.keys(CONFIG.PERSONAS).forEach(nombre => {
+    ventas[nombre] = { pac: [], semestrales: [], anuales: [], suplementos: [] };
+  });
+
+  ventasMes.forEach(row => {
+    const persona = row[1];
+    const producto = row[2];
+    if (!persona || !producto || !ventas[persona]) return;
+    if (CONFIG.PAC.includes(producto)) {
+      ventas[persona].pac.push(producto);
+    } else if (CONFIG.SEMESTRALES.includes(producto)) {
+      ventas[persona].semestrales.push(producto);
+    } else if (CONFIG.ANUALES.includes(producto)) {
+      ventas[persona].anuales.push(producto);
+    } else if (CONFIG.COMISIONES[producto]) {
+      ventas[persona].suplementos.push(producto);
+    }
+  });
+
+  let totalVentasSupl = 0;
+  Object.keys(ventas).forEach(nombre => {
+    ventas[nombre].suplementos.forEach(p => {
+      totalVentasSupl += CONFIG.PRECIO_SUPL[p] || 0;
+    });
+  });
+
+  const resultados = {};
+  Object.keys(CONFIG.PERSONAS).forEach(nombre => {
+    const tipo = CONFIG.PERSONAS[nombre].tipo;
+    const v = ventas[nombre];
+    let comTotal = 0;
+    let pacParaGrupal = 0;
+    let detalle = {};
+
+    // === PAC ===
+    const totalPac = v.pac.length;
+    let pacPagados = 0;
+    let pacSobrantes = 0;
+
+    if (tipo === "recepcion_part") {
+      if (totalPac >= 5) {
+        pacPagados = 5 + Math.floor((totalPac - 5) / 3) * 3;
+        pacSobrantes = totalPac - pacPagados;
+      } else {
+        pacSobrantes = totalPac;
+      }
+    } else if (tipo === "recepcion") {
+      if (totalPac >= 10) {
+        pacPagados = 10 + Math.floor((totalPac - 10) / 5) * 5;
+        pacSobrantes = totalPac - pacPagados;
+      } else {
+        pacSobrantes = totalPac;
+      }
+    }
+
+    pacParaGrupal = pacPagados;
+
+    let comPacCompleto = 0;
+    v.pac.slice(0, pacPagados).forEach(p => comPacCompleto += CONFIG.COMISIONES[p]);
+    let comPacSobrante = 0;
+    v.pac.slice(pacPagados, pacPagados + pacSobrantes).forEach(p => comPacSobrante += CONFIG.COMISIONES[p] * 0.5);
+
+    comTotal += comPacCompleto + comPacSobrante;
+    detalle.pac = {
+      total: totalPac,
+      pagados: pacPagados,
+      sobrantes: pacSobrantes,
+      comision: comPacCompleto + comPacSobrante,
+      totalMensual: v.pac.filter(p => p === 'Pac mensual').length,
+      totalEstudiante: v.pac.filter(p => p === 'Pac estudiante').length
+    };
+
+    // === SEMESTRALES ===
+    if (tipo !== "pt") {
+      const totalSem = v.semestrales.length;
+      let semPagados = 0;
+      let semSobrantes = 0;
+
+      if (tipo === "recepcion_part") {
+        semPagados = totalSem;
+      } else {
+        if (totalSem >= 3) {
+          semPagados = 3 + Math.floor((totalSem - 3) / 2) * 2;
+          semSobrantes = totalSem - semPagados;
+        } else {
+          semSobrantes = totalSem;
+        }
+      }
+
+      let comSemCompleto = 0;
+      v.semestrales.slice(0, semPagados).forEach(p => comSemCompleto += CONFIG.COMISIONES[p]);
+      let comSemSobrante = 0;
+      v.semestrales.slice(semPagados, semPagados + semSobrantes).forEach(p => comSemSobrante += CONFIG.COMISIONES[p] * 0.5);
+
+      comTotal += comSemCompleto + comSemSobrante;
+      detalle.semestrales = {
+        total: totalSem,
+        pagados: semPagados,
+        sobrantes: semSobrantes,
+        comision: comSemCompleto + comSemSobrante,
+        totalTarjeta: v.semestrales.filter(p => p === 'Semestral Tarjeta').length,
+        totalTransf: v.semestrales.filter(p => p === 'Semestral transferencia').length
+      };
+    }
+
+    // === ANUALES ===
+    if (tipo !== "pt") {
+      const totalAnu = v.anuales.length;
+      let anuPagados = 0;
+      let anuSobrantes = 0;
+
+      if (tipo === "recepcion_part") {
+        anuPagados = totalAnu;
+      } else {
+        if (totalAnu >= 3) {
+          anuPagados = 3 + Math.floor((totalAnu - 3) / 2) * 2;
+          anuSobrantes = totalAnu - anuPagados;
+        } else {
+          anuSobrantes = totalAnu;
+        }
+      }
+
+      let comAnuCompleto = 0;
+      v.anuales.slice(0, anuPagados).forEach(p => comAnuCompleto += CONFIG.COMISIONES[p]);
+      let comAnuSobrante = 0;
+      v.anuales.slice(anuPagados, anuPagados + anuSobrantes).forEach(p => comAnuSobrante += CONFIG.COMISIONES[p] * 0.5);
+
+      comTotal += comAnuCompleto + comAnuSobrante;
+      detalle.anuales = {
+        total: totalAnu,
+        pagados: anuPagados,
+        sobrantes: anuSobrantes,
+        comision: comAnuCompleto + comAnuSobrante,
+        totalTarjeta: v.anuales.filter(p => p === 'Anual tarjeta').length,
+        totalTransf: v.anuales.filter(p => p === 'Anual Transferencia').length
+      };
+    }
+
+    // === SUPLEMENTOS ===
+    let comSupl = 0;
+    const factor = totalVentasSupl >= 550000 ? 1 : 0.5;
+    v.suplementos.forEach(p => comSupl += CONFIG.COMISIONES[p] * factor);
+    comTotal += comSupl;
+    detalle.suplementos = { productos: v.suplementos, comision: comSupl };
+
+    resultados[nombre] = { comTotal, pacParaGrupal, detalle };
+  });
+
+  // === BONOS GRUPALES ===
+  const totalPacGrupal = Object.values(resultados).reduce((sum, r) => sum + r.pacParaGrupal, 0);
+  let bonoPacGrupal = 0;
+  CONFIG.BONO_GRUPAL_PAC.forEach(b => {
+    if (totalPacGrupal >= b.min && bonoPacGrupal === 0) bonoPacGrupal = b.monto;
+  });
+
+  let bonoSuplGrupal = 0;
+  CONFIG.BONO_GRUPAL_SUPL.forEach(b => {
+    if (totalVentasSupl >= b.min && bonoSuplGrupal === 0) bonoSuplGrupal = b.monto;
+  });
+
+  escribirResultados(hComisiones, resultados, totalPacGrupal, bonoPacGrupal, totalVentasSupl, bonoSuplGrupal);
+
+  SpreadsheetApp.getUi().alert("Comisiones calculadas para " +
+    new Date().toLocaleDateString('es-CL', {month: 'long', year: 'numeric'}));
 }
 
-async function doLogout() {
-  await db.auth.signOut();
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-email').value = '';
-  document.getElementById('login-pass').value = '';
+function escribirResultados(hoja, resultados, totalPacGrupal, bonoPac, totalVentasSupl, bonoSupl) {
+  const nombres = ["Massiel", "Sara", "Camila", "Luis", "Diego", "Javiera"];
+
+  hoja.clearContents();
+
+  hoja.getRange(1, 1, 1, 14).setValues([[
+    "Persona", "Comisiones", "PAC pagados", "Bono pac", "Bono Supl",
+    "Total comisiones", "Suplementos", "PAC para grupal",
+    "PAC mensual", "PAC estudiante", "Semestral tarjeta", "Semestral transf", "Anual tarjeta", "Anual transf"
+  ]]);
+
+  nombres.forEach((nombre, i) => {
+    const r = resultados[nombre];
+    const fila = i + 2;
+    const suplTexto = r.detalle.suplementos ? r.detalle.suplementos.productos.join(", ") : "";
+    const pacPagados = r.detalle.pac ? r.detalle.pac.pagados : 0;
+    const pacMensual = r.detalle.pac ? r.detalle.pac.totalMensual : 0;
+    const pacEstudiante = r.detalle.pac ? r.detalle.pac.totalEstudiante : 0;
+    const semTarjeta = r.detalle.semestrales ? r.detalle.semestrales.totalTarjeta : 0;
+    const semTransf = r.detalle.semestrales ? r.detalle.semestrales.totalTransf : 0;
+    const anuTarjeta = r.detalle.anuales ? r.detalle.anuales.totalTarjeta : 0;
+    const anuTransf = r.detalle.anuales ? r.detalle.anuales.totalTransf : 0;
+
+    hoja.getRange(fila, 1, 1, 14).setValues([[
+      nombre, r.comTotal, pacPagados, 0, 0, r.comTotal, suplTexto, r.pacParaGrupal,
+      pacMensual, pacEstudiante, semTarjeta, semTransf, anuTarjeta, anuTransf
+    ]]);
+  });
+
+  hoja.getRange(9, 1).setValue("Total equipo");
+  hoja.getRange(9, 2).setFormula("=SUM(B2:B7)");
+  hoja.getRange(9, 3).setFormula("=SUM(H2:H7)");
+
+  hoja.getRange(11, 1).setValue("Bono pac");
+  hoja.getRange(11, 2).setValue(bonoPac);
+  hoja.getRange(12, 1).setValue("PAC para siguiente bono");
+
+  const siguiente = totalPacGrupal < 50 ? "Faltan " + (50 - totalPacGrupal) + " PAC para bono $20.000" :
+                    totalPacGrupal < 60 ? "Faltan " + (60 - totalPacGrupal) + " PAC para bono $30.000" :
+                    totalPacGrupal < 70 ? "Faltan " + (70 - totalPacGrupal) + " PAC para bono $45.000" : "Bono maximo activado";
+  hoja.getRange(12, 2).setValue(siguiente);
+
+  hoja.getRange(14, 1).setValue("Bono suplementos");
+  hoja.getRange(14, 2).setValue(bonoSupl);
+  hoja.getRange(15, 1).setValue("Ventas supl reales");
+  hoja.getRange(15, 2).setValue(totalVentasSupl);
 }
 
-function showApp() {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app-screen').style.display = 'block';
-  loadData();
+function crearTrigger() {
+  ScriptApp.newTrigger("calcularComisiones")
+    .timeBased()
+    .everyDays(1)
+    .atHour(6)
+    .create();
+  SpreadsheetApp.getUi().alert("Trigger creado - se calculara automaticamente cada dia a las 6am");
 }
 
-db.auth.getSession().then(({ data: { session } }) => {
-  if (session) showApp();
-});
-
-function getV(row, col) {
-  try {
-    const v = row.c[col]?.v;
-    if (v === null || v === undefined) return 0;
-    if (typeof v === 'number') return v;
-    if (typeof v === 'string' && v !== '-') return parseFloat(v) || 0;
-    return 0;
-  } catch(e) { return 0; }
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu("🏋️ Gym Factory")
+    .addItem("Calcular comisiones ahora", "calcularComisiones")
+    .addItem("Activar calculo automatico diario", "crearTrigger")
+    .addToUi();
 }
-
-function getTxt(row, col) {
-  try { return row.c[col]?.v || ''; } catch(e) { return ''; }
-}
-
-async function loadData() {
-  try {
-    const res = await fetch(URL_SHEET + '&t=' + Date.now());
-    const text = await res.text();
-    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
-    if (!match) throw new Error('No se pudo leer la respuesta de Google Sheets');
-    const json = JSON.parse(match[1]);
-    const rows = json.table.rows;
-
-    const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
-    const data = names.map((name, i) => ({
-      name,
-      comisiones: getV(rows[i], 1),
-      pacPagados: getV(rows[i], 2),
-      total: getV(rows[i], 5),
-      suplTexto: getTxt(rows[i], 6),
-      pacGrupal: getV(rows[i], 7),
-    }));
-
-    const totalPacGrupal = rows[8] ? getV(rows[8], 2) : 0;
-    const totalCom = rows[8] ? getV(rows[8], 1) : 0;
-    const bonoPacVal = rows[10] ? getV(rows[10], 1) : 0;
-    const pacSiguiente = rows[11] ? getTxt(rows[11], 1) : '';
-    const bonoSuplVal = rows[13] ? getV(rows[13], 1) : 0;
-    const ventasSuplReales = rows[14] ? getV(rows[14], 1) : 0;
-
-    renderDashboard(data, totalCom, totalPacGrupal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
-  } catch(e) {
-    document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
-  }
-}
-
-function buildDetalle(p) {
-  const style = PERSONAS[p.name] || {color:'#888'};
-  const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' : 
-               p.name === 'Camila' ? 'recepcion_part' : 'pt';
-
-  // Info de pisos
-  let infoText = '';
-  if (tipo === 'recepcion') {
-    infoText = `PAC pagados este mes: <span>${p.pacPagados}</span> (piso 10, luego cada 5)`;
-  } else if (tipo === 'recepcion_part') {
-    infoText = `PAC pagados este mes: <span>${p.pacPagados}</span> (piso 5, luego cada 3)`;
-  }
-
-  const infoHtml = infoText ? `<div class="detalle-info">${infoText}</div>` : '';
-
-  const suplHtml = p.suplTexto ? `
-    <div class="detalle-supl">
-      <div class="detalle-supl-titulo">Suplementos vendidos</div>
-      ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
-    </div>
-  ` : '';
-
-  const sinVentas = p.total === 0 ? '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin ventas pagadas este mes</div>' : '';
-
-  return `
-    <div class="detalle-persona" id="detalle-${p.name}">
-      ${sinVentas}
-      ${infoHtml}
-      ${suplHtml}
-      <div class="detalle-total">
-        <div class="detalle-total-label">Total comisiones</div>
-        <div class="detalle-total-val">${fmt(p.total)}</div>
-      </div>
-    </div>`;
-}
-
-function toggleDetalle(name) {
-  const el = document.getElementById(`detalle-${name}`);
-  const chev = document.getElementById(`chev-${name}`);
-  if (!el) return;
-  el.classList.toggle('open');
-  if (chev) chev.classList.toggle('open');
-}
-
-function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
-  const sorted = [...data].sort((a,b) => b.total - a.total);
-  const maxCom = Math.max(...data.map(d => d.total), 1);
-  const pacPct = Math.min(Math.round(totalPacGrupal/70*100), 100);
-  const mes = new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
-
-  document.getElementById('main').innerHTML = `
-    <div class="content">
-      <div class="metrics">
-        <div class="metric"><div class="metric-label">Comisiones equipo</div><div class="metric-val white">${fmt(totalCom)}</div></div>
-        <div class="metric"><div class="metric-label">PAC grupales</div><div class="metric-val amber">${totalPacGrupal}</div></div>
-        <div class="metric"><div class="metric-label">Bono PAC</div><div class="metric-val ${bonoPac>0?'green':'red'}">${fmt(bonoPac)}</div></div>
-        <div class="metric"><div class="metric-label">Bono suplementos</div><div class="metric-val ${bonoSupl>0?'green':'red'}">${fmt(bonoSupl)}</div></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Ranking comisiones · ${mes}</div>
-        <p class="hint">Toca una persona para ver el detalle</p>
-        ${sorted.map((p, i) => {
-          const pct = Math.round(p.total/maxCom*100)||0;
-          const style = PERSONAS[p.name] || {color:'#888',bg:'rgba(136,136,136,0.15)',rol:'Equipo'};
-          return `
-            <div onclick="toggleDetalle('${p.name}')">
-              <div class="ranking-row">
-                <div class="rank-medal">${p.total>0?(medals[i]||'#'+(i+1)):'-'}</div>
-                <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
-                <div class="rank-info">
-                  <div class="rank-name">${p.name}</div>
-                  <div class="rank-sub">${style.rol}${style.rol==='Recepcion'&&p.pacPagados>0?' · '+p.pacPagados+' PAC':''}</div>
-                </div>
-                <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
-                <div class="rank-com">${fmt(p.total)}</div>
-                <div class="rank-chevron" id="chev-${p.name}">▼</div>
-              </div>
-              ${buildDetalle(p)}
-            </div>`;
-        }).join('')}
-      </div>
-
-      <div class="card">
-        <div class="card-title">Bono PAC del equipo</div>
-        <div class="prog-wrap">
-          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales</span><span>${pacPct}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${pacPct}%"></div></div>
-        </div>
-        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
-        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
-        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
-        ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
-      </div>
-
-      <div class="card">
-        <div class="card-title">Bono suplementos del equipo</div>
-        <div class="prog-wrap">
-          <div class="prog-labels"><span>${fmt(ventasSupl)} en ventas</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
-        </div>
-        <div class="bonus-row"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Ventas actuales: ${fmt(ventasSupl)} · Faltan ${fmt(Math.max(0,700000-ventasSupl))} para primer bono</div>`}
-      </div>
-
-      <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
-    </div>
-    <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
-}
-
-function refresh() {
-  document.getElementById('main').innerHTML = '<div class="loading"><div class="spinner"></div><p style="color:#666;font-size:0.85rem">Actualizando...</p></div>';
-  loadData();
-}
-
-setInterval(loadData, 120000);
-</script>
-</body>
-</html>
