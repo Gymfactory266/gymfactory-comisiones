@@ -14,8 +14,6 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
-  
-  /* LOGIN */
   .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
   .login-box { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; }
   .login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); letter-spacing: 2px; margin-bottom: 4px; }
@@ -27,15 +25,12 @@
   .login-btn:hover { opacity: 0.9; }
   .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .login-error { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #e74c3c; margin-top: 12px; display: none; }
-
-  /* HEADER */
   .header { background: var(--red); padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
   .header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.05em; line-height: 1; }
   .header p { font-size: 0.75rem; opacity: 0.8; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
   .header-right { text-align: right; font-size: 0.75rem; opacity: 0.8; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .logout-btn { background: rgba(0,0,0,0.2); border: none; color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-family: 'DM Sans', sans-serif; letter-spacing: 1px; text-transform: uppercase; }
   .logout-btn:hover { background: rgba(0,0,0,0.4); }
-
   .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 1rem; }
   .spinner { width: 40px; height: 40px; border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -75,6 +70,8 @@
   .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
   .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
   .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
+  .detalle-info { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 10px; line-height: 1.6; }
+  .detalle-info span { color: var(--amber); font-weight: 600; }
   .prog-wrap { margin-bottom: 1rem; }
   .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
   .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
@@ -91,25 +88,24 @@
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
   .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
+  .mes-header { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 2px; text-align: center; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen" class="login-wrap">
   <div class="login-box">
     <div class="login-logo">Gym Factory</div>
     <div class="login-sub">Control de comisiones</div>
-    <label class="login-label">Correo electrónico</label>
+    <label class="login-label">Correo electronico</label>
     <input type="email" id="login-email" class="login-input" placeholder="tu@correo.com">
-    <label class="login-label">Contraseña</label>
+    <label class="login-label">Contrasena</label>
     <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
     <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
-    <div class="login-error" id="login-error">Correo o contraseña incorrectos</div>
+    <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="app-screen" style="display:none">
   <div class="header">
     <div>
@@ -118,8 +114,8 @@
     </div>
     <div class="header-right">
       <div id="hdr-date"></div>
-      <div>Mayo 2026</div>
-      <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+      <div id="hdr-mes"></div>
+      <button class="logout-btn" onclick="doLogout()">Cerrar sesion</button>
     </div>
   </div>
   <div id="main">
@@ -149,18 +145,13 @@ const PERSONAS = {
   Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
 };
 
-const COM_PLANES = {
-  pacMensual: 2000, pacEstudiante: 1500,
-  semestralTarjeta: 4000, semestralTransf: 6000,
-  anualTarjeta: 6000, anualTransf: 8000,
-};
-
 const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
 
-document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+const ahora = new Date();
+document.getElementById('hdr-date').textContent = ahora.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('hdr-mes').textContent = ahora.toLocaleDateString('es-CL',{month:'long',year:'numeric'});
 
-// Permitir login con Enter
 document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
@@ -169,13 +160,10 @@ async function doLogin() {
   const pass = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn');
   const err = document.getElementById('login-error');
-  
   btn.disabled = true;
   btn.textContent = 'Ingresando...';
   err.style.display = 'none';
-
   const { error } = await db.auth.signInWithPassword({ email, password: pass });
-  
   if (error) {
     err.style.display = 'block';
     btn.disabled = false;
@@ -199,7 +187,6 @@ function showApp() {
   loadData();
 }
 
-// Verificar si ya hay sesión activa
 db.auth.getSession().then(({ data: { session } }) => {
   if (session) showApp();
 });
@@ -220,7 +207,7 @@ function getTxt(row, col) {
 
 async function loadData() {
   try {
-    const res = await fetch(URL_SHEET);
+    const res = await fetch(URL_SHEET + '&t=' + Date.now());
     const text = await res.text();
     const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
     if (!match) throw new Error('No se pudo leer la respuesta de Google Sheets');
@@ -230,28 +217,21 @@ async function loadData() {
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = names.map((name, i) => ({
       name,
-      com: getV(rows[i], 1),
-      pac: rows[i].c[2]?.v === '-' || rows[i].c[2]?.v === null ? '-' : getV(rows[i], 2),
-      bonoPac: getV(rows[i], 3),
-      bonoSupl: getV(rows[i], 4),
+      comisiones: getV(rows[i], 1),
+      pacPagados: getV(rows[i], 2),
       total: getV(rows[i], 5),
       suplTexto: getTxt(rows[i], 6),
-      pacMensual:       getV(rows[i], 7),
-      pacEstudiante:    getV(rows[i], 8),
-      semestralTarjeta: getV(rows[i], 9),
-      semestralTransf:  getV(rows[i], 10),
-      anualTarjeta:     getV(rows[i], 11),
-      anualTransf:      getV(rows[i], 12),
+      pacGrupal: getV(rows[i], 7),
     }));
 
-    const totalPac = rows[7] ? getV(rows[7], 2) : 0;
-    const totalCom = rows[7] ? getV(rows[7], 1) : 0;
-    const bonoPacVal = rows[9] ? getV(rows[9], 1) : 0;
-    const pacSiguiente = rows[10] ? getTxt(rows[10], 1) : '';
-    const bonoSuplVal = rows[11] ? getV(rows[11], 1) : 0;
-    const ventasSuplReales = rows[12] ? getV(rows[12], 1) : 0;
+    const totalPacGrupal = rows[8] ? getV(rows[8], 2) : 0;
+    const totalCom = rows[8] ? getV(rows[8], 1) : 0;
+    const bonoPacVal = rows[10] ? getV(rows[10], 1) : 0;
+    const pacSiguiente = rows[11] ? getTxt(rows[11], 1) : '';
+    const bonoSuplVal = rows[13] ? getV(rows[13], 1) : 0;
+    const ventasSuplReales = rows[14] ? getV(rows[14], 1) : 0;
 
-    renderDashboard(data, totalCom, totalPac, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
+    renderDashboard(data, totalCom, totalPacGrupal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
@@ -259,38 +239,32 @@ async function loadData() {
 
 function buildDetalle(p) {
   const style = PERSONAS[p.name] || {color:'#888'};
-  const planes = [
-    { label: 'PAC Mensual',       val: p.pacMensual,       com: COM_PLANES.pacMensual },
-    { label: 'PAC Estudiante',    val: p.pacEstudiante,    com: COM_PLANES.pacEstudiante },
-    { label: 'Semestral Tarjeta', val: p.semestralTarjeta, com: COM_PLANES.semestralTarjeta },
-    { label: 'Semestral Transf.', val: p.semestralTransf,  com: COM_PLANES.semestralTransf },
-    { label: 'Anual Tarjeta',     val: p.anualTarjeta,     com: COM_PLANES.anualTarjeta },
-    { label: 'Anual Transf.',     val: p.anualTransf,      com: COM_PLANES.anualTransf },
-  ].filter(pl => pl.val > 0);
+  const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' : 
+               p.name === 'Camila' ? 'recepcion_part' : 'pt';
 
-  const planesHtml = planes.length > 0 ? `
-    <div class="detalle-titulo">Planes vendidos</div>
-    <div class="detalle-grid">
-      ${planes.map(pl => `
-        <div class="detalle-item">
-          <div class="detalle-item-label">${pl.label}</div>
-          <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
-          <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
-        </div>
-      `).join('')}
-    </div>
-  ` : '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin planes vendidos este mes</div>';
+  // Info de pisos
+  let infoText = '';
+  if (tipo === 'recepcion') {
+    infoText = `PAC pagados este mes: <span>${p.pacPagados}</span> (piso 10, luego cada 5)`;
+  } else if (tipo === 'recepcion_part') {
+    infoText = `PAC pagados este mes: <span>${p.pacPagados}</span> (piso 5, luego cada 3)`;
+  }
+
+  const infoHtml = infoText ? `<div class="detalle-info">${infoText}</div>` : '';
 
   const suplHtml = p.suplTexto ? `
     <div class="detalle-supl">
       <div class="detalle-supl-titulo">Suplementos vendidos</div>
-      ${p.suplTexto.split(',').map(s => `<span class="supl-tag">${s.trim()}</span>`).join('')}
+      ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
     </div>
   ` : '';
 
+  const sinVentas = p.total === 0 ? '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin ventas pagadas este mes</div>' : '';
+
   return `
     <div class="detalle-persona" id="detalle-${p.name}">
-      ${planesHtml}
+      ${sinVentas}
+      ${infoHtml}
       ${suplHtml}
       <div class="detalle-total">
         <div class="detalle-total-label">Total comisiones</div>
@@ -307,22 +281,23 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
-function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
+function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
-  const pacPct = Math.min(Math.round(totalPac/70*100), 100);
+  const pacPct = Math.min(Math.round(totalPacGrupal/70*100), 100);
+  const mes = new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
 
   document.getElementById('main').innerHTML = `
     <div class="content">
       <div class="metrics">
         <div class="metric"><div class="metric-label">Comisiones equipo</div><div class="metric-val white">${fmt(totalCom)}</div></div>
-        <div class="metric"><div class="metric-label">PAC nuevos</div><div class="metric-val amber">${totalPac}</div></div>
+        <div class="metric"><div class="metric-label">PAC grupales</div><div class="metric-val amber">${totalPacGrupal}</div></div>
         <div class="metric"><div class="metric-label">Bono PAC</div><div class="metric-val ${bonoPac>0?'green':'red'}">${fmt(bonoPac)}</div></div>
         <div class="metric"><div class="metric-label">Bono suplementos</div><div class="metric-val ${bonoSupl>0?'green':'red'}">${fmt(bonoSupl)}</div></div>
       </div>
 
       <div class="card">
-        <div class="card-title">Ranking comisiones · ${new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'})}</div>
+        <div class="card-title">Ranking comisiones · ${mes}</div>
         <p class="hint">Toca una persona para ver el detalle</p>
         ${sorted.map((p, i) => {
           const pct = Math.round(p.total/maxCom*100)||0;
@@ -330,11 +305,11 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
           return `
             <div onclick="toggleDetalle('${p.name}')">
               <div class="ranking-row">
-                <div class="rank-medal">${p.total>0?(medals[i]||`#${i+1}`):'-'}</div>
+                <div class="rank-medal">${p.total>0?(medals[i]||'#'+(i+1)):'-'}</div>
                 <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
                 <div class="rank-info">
                   <div class="rank-name">${p.name}</div>
-                  <div class="rank-sub">${style.rol}${style.rol === 'Recepcion' && typeof p.pac === 'number' ? ' · '+p.pac+' PAC' : ''}</div>
+                  <div class="rank-sub">${style.rol}${style.rol==='Recepcion'&&p.pacPagados>0?' · '+p.pacPagados+' PAC':''}</div>
                 </div>
                 <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
                 <div class="rank-com">${fmt(p.total)}</div>
@@ -348,25 +323,25 @@ function renderDashboard(data, totalCom, totalPac, bonoPac, pacSiguiente, bonoSu
       <div class="card">
         <div class="card-title">Bono PAC del equipo</div>
         <div class="prog-wrap">
-          <div class="prog-labels"><span>${totalPac} PAC nuevos</span><span>${pacPct}%</span></div>
+          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales</span><span>${pacPct}%</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${pacPct}%"></div></div>
         </div>
-        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPac>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPac)+'</span>'}</span></div>
-        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPac>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPac)+'</span>'}</span></div>
-        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPac>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPac)+'</span>'}</span></div>
+        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
+        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
+        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
         ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
       </div>
 
       <div class="card">
         <div class="card-title">Bono suplementos del equipo</div>
         <div class="prog-wrap">
-          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
+          <div class="prog-labels"><span>${fmt(ventasSupl)} en ventas</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
         </div>
         <div class="bonus-row"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
         <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
         <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Llevan ${fmt(ventasSupl)} de $700.000 · Faltan ${fmt(Math.max(0,700000-ventasSupl))}</div>`}
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Ventas actuales: ${fmt(ventasSupl)} · Faltan ${fmt(Math.max(0,700000-ventasSupl))} para primer bono</div>`}
       </div>
 
       <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
