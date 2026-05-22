@@ -70,8 +70,16 @@
   .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
   .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
   .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
-  .detalle-info { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 10px; line-height: 1.6; }
-  .detalle-info span { color: var(--amber); font-weight: 600; }
+  .prog-mini { margin: 8px 0 4px 0; }
+  .prog-mini-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: #666; margin-bottom: 4px; }
+  .prog-mini-track { background: #222; border-radius: 4px; height: 5px; overflow: hidden; }
+  .prog-mini-fill { height: 100%; border-radius: 4px; background: var(--red); transition: width 0.8s ease; }
+  .prog-mini-fill.green { background: var(--green); }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 0.78rem; color: rgba(255,255,255,0.6); border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .info-row:last-child { border-bottom: none; }
+  .info-row span { color: var(--amber); font-weight: 600; }
+  .info-row span.ok { color: var(--green); }
+  .info-row span.red { color: var(--red); }
   .prog-wrap { margin-bottom: 1rem; }
   .prog-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; color: #aaa; }
   .prog-track { background: var(--gray); border-radius: 6px; height: 10px; overflow: hidden; }
@@ -99,7 +107,7 @@
     <label class="login-label">Correo electronico</label>
     <input type="email" id="login-email" class="login-input" placeholder="tu@correo.com">
     <label class="login-label">Contrasena</label>
-    <input type="password" id="login-pass" class="login-input" placeholder="••••••••">
+    <input type="password" id="login-pass" class="login-input" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;">
     <button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
     <div class="login-error" id="login-error">Correo o contrasena incorrectos</div>
   </div>
@@ -148,6 +156,7 @@ const COM_PLANES = {
 
 const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
+const fmtN = n => Math.round(n||0).toLocaleString('es-CL');
 
 const ahora = new Date();
 document.getElementById('hdr-date').textContent = ahora.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
@@ -192,7 +201,6 @@ function getV(row, col) {
     return 0;
   } catch(e) { return 0; }
 }
-
 function getTxt(row, col) {
   try { return row.c[col]?.v || ''; } catch(e) { return ''; }
 }
@@ -206,9 +214,6 @@ async function loadData() {
     const json = JSON.parse(match[1]);
     const rows = json.table.rows;
 
-    // Columnas: A=Persona, B=Comisiones, C=PAC pagados, D=Bono pac, E=Bono Supl,
-    // F=Total comisiones, G=Suplementos, H=PAC para grupal,
-    // I=PAC mensual(8), J=PAC estudiante(9), K=Sem tarjeta(10), L=Sem transf(11), M=Anu tarjeta(12), N=Anu transf(13)
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = names.map((name, i) => ({
       name,
@@ -223,40 +228,61 @@ async function loadData() {
       semTransf:        getV(rows[i], 11),
       anuTarjeta:       getV(rows[i], 12),
       anuTransf:        getV(rows[i], 13),
+      pacTotalReal:     getV(rows[i], 14),
+      pacFaltanSig:     getV(rows[i], 15),
+      ventasSuplPersona: getV(rows[i], 16),
     }));
 
-    // Fila 9 = Total equipo (indice 8)
-    const totalPacGrupal = rows[8] ? getV(rows[8], 2) : 0;
-    const totalCom       = rows[8] ? getV(rows[8], 1) : 0;
-    // Fila 11 = Bono pac (indice 10)
-    const bonoPacVal     = rows[10] ? getV(rows[10], 1) : 0;
-    // Fila 12 = PAC siguiente (indice 11)
-    const pacSiguiente   = rows[11] ? getTxt(rows[11], 1) : '';
-    // Fila 14 = Bono supl (indice 13)
-    const bonoSuplVal    = rows[13] ? getV(rows[13], 1) : 0;
-    // Fila 15 = Ventas supl (indice 14)
-    const ventasSuplReales = rows[14] ? getV(rows[14], 1) : 0;
+    // Filas vacias se saltan en JSON
+    // Fila 9 (idx 8) = Total equipo
+    const totalPacGrupal   = rows[8] ? getV(rows[8], 2) : 0;
+    const totalCom         = rows[8] ? getV(rows[8], 1) : 0;
+    const totalPacReal     = rows[8] ? getV(rows[8], 14) : 0;
+    // Fila 11 (idx 9) = Bono pac
+    const bonoPacVal       = rows[9] ? getV(rows[9], 1) : 0;
+    // Fila 12 (idx 10) = PAC siguiente
+    const pacSiguiente     = rows[10] ? getTxt(rows[10], 1) : '';
+    // Fila 14 (idx 11) = Bono supl
+    const bonoSuplVal      = rows[11] ? getV(rows[11], 1) : 0;
+    // Fila 15 (idx 12) = Ventas supl reales
+    const ventasSuplReales = rows[12] ? getV(rows[12], 1) : 0;
+    // Fila 16 (idx 13) = Supl faltan 550k
+    const suplFaltan550k   = rows[13] ? getV(rows[13], 1) : 0;
 
-    renderDashboard(data, totalCom, totalPacGrupal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales);
+    renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k);
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
 }
 
-function buildDetalle(p) {
+function buildDetalle(p, ventasSuplReales) {
   const style = PERSONAS[p.name] || {color:'#888'};
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' :
                p.name === 'Camila' ? 'recepcion_part' : 'pt';
 
-  // Info pisos
-  let infoHtml = '';
-  if (tipo === 'recepcion') {
-    infoHtml = `<div class="detalle-info">PAC pagados: <span>${p.pacPagados}</span> · Piso 10, luego cada 5</div>`;
-  } else if (tipo === 'recepcion_part') {
-    infoHtml = `<div class="detalle-info">PAC pagados: <span>${p.pacPagados}</span> · Piso 5, luego cada 3</div>`;
+  // === INFO PAC ===
+  let pacHtml = '';
+  if (tipo !== 'pt') {
+    const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
+    const pacPct = tipo === 'recepcion'
+      ? Math.min(Math.round(p.pacTotalReal / 10 * 100), 100)
+      : Math.min(Math.round(p.pacTotalReal / 5 * 100), 100);
+    const pisoActual = tipo === 'recepcion' ? 10 : 5;
+
+    pacHtml = `
+      <div class="detalle-titulo">Estado PAC</div>
+      <div class="info-row"><span>${pisoLabel}</span></div>
+      <div class="info-row">PAC vendidos este mes <span class="${p.pacTotalReal > 0 ? 'ok' : ''}">${p.pacTotalReal}</span></div>
+      <div class="info-row">PAC pagados (llegaron a piso) <span class="${p.pacPagados > 0 ? 'ok' : ''}">${p.pacPagados}</span></div>
+      <div class="info-row">PAC sobrantes (50% comision) <span>${p.pacTotalReal - p.pacPagados}</span></div>
+      <div class="info-row">Faltan para proximo piso <span class="red">${p.pacFaltanSig}</span></div>
+      <div class="prog-mini">
+        <div class="prog-mini-track"><div class="prog-mini-fill ${p.pacPagados > 0 ? 'green' : ''}" style="width:${Math.min(p.pacTotalReal / pisoActual * 100, 100)}%"></div></div>
+      </div>
+    `;
   }
 
-  // Planes vendidos
+  // === PLANES VENDIDOS ===
   const planes = [
     { label: 'PAC Mensual',       val: p.pacMensual,    com: COM_PLANES.pacMensual },
     { label: 'PAC Estudiante',    val: p.pacEstudiante,  com: COM_PLANES.pacEstudiante },
@@ -267,7 +293,7 @@ function buildDetalle(p) {
   ].filter(pl => pl.val > 0);
 
   const planesHtml = planes.length > 0 ? `
-    <div class="detalle-titulo">Planes vendidos</div>
+    <div class="detalle-titulo" style="margin-top:12px">Planes vendidos</div>
     <div class="detalle-grid">
       ${planes.map(pl => `
         <div class="detalle-item">
@@ -277,21 +303,23 @@ function buildDetalle(p) {
         </div>
       `).join('')}
     </div>
-  ` : (tipo !== 'pt' ? '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin planes pagados este mes</div>' : '');
+  ` : '';
 
+  // === SUPLEMENTOS ===
+  const suplPct = Math.min(Math.round(ventasSuplReales / 550000 * 100), 100);
+  const suplActivo = ventasSuplReales >= 550000;
   const suplHtml = p.suplTexto ? `
-    <div class="detalle-supl">
-      <div class="detalle-supl-titulo">Suplementos vendidos</div>
+    <div class="detalle-titulo" style="margin-top:12px">Suplementos vendidos</div>
+    <div class="info-row">Comision individual <span class="${suplActivo ? 'ok' : 'red'}">${suplActivo ? '100% activa' : '50% (equipo bajo $550k)'}</span></div>
+    <div class="info-row">Tus ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
+    <div class="detalle-supl" style="margin-top:8px">
       ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
     </div>
   ` : '';
 
-  const sinVentas = p.total === 0 ? '<div style="font-size:0.8rem;color:#555;margin-bottom:12px;">Sin comisiones este mes</div>' : '';
-
   return `
     <div class="detalle-persona" id="detalle-${p.name}">
-      ${sinVentas}
-      ${infoHtml}
+      ${pacHtml}
       ${planesHtml}
       ${suplHtml}
       <div class="detalle-total">
@@ -309,11 +337,15 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
-function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, bonoSupl, ventasSupl) {
+function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
-  const pacPct = Math.min(Math.round(totalPacGrupal/70*100), 100);
+  const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
+  const suplPct550 = Math.min(Math.round(ventasSupl / 550000 * 100), 100);
+  const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
+  const suplPct1M = Math.min(Math.round(ventasSupl / 1000000 * 100), 100);
   const mes = new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
+  const suplActivo = ventasSupl >= 550000;
 
   document.getElementById('main').innerHTML = `
     <div class="content">
@@ -337,13 +369,13 @@ function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, 
                 <div class="rank-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
                 <div class="rank-info">
                   <div class="rank-name">${p.name}</div>
-                  <div class="rank-sub">${style.rol}${style.rol==='Recepcion'&&p.pacPagados>0?' · '+p.pacPagados+' PAC':''}</div>
+                  <div class="rank-sub">${style.rol}${style.rol==='Recepcion'&&p.pacTotalReal>0?' · '+p.pacTotalReal+' PAC':''}</div>
                 </div>
                 <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${style.color}"></div></div></div>
                 <div class="rank-com">${fmt(p.total)}</div>
                 <div class="rank-chevron" id="chev-${p.name}">▼</div>
               </div>
-              ${buildDetalle(p)}
+              ${buildDetalle(p, ventasSupl)}
             </div>`;
         }).join('')}
       </div>
@@ -351,8 +383,8 @@ function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, 
       <div class="card">
         <div class="card-title">Bono PAC del equipo</div>
         <div class="prog-wrap">
-          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales</span><span>${pacPct}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${pacPct}%"></div></div>
+          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales · ${totalPacReal} vendidos en total</span><span>${pacGrupalPct}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${pacGrupalPct}%"></div></div>
         </div>
         <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
@@ -361,18 +393,26 @@ function renderDashboard(data, totalCom, totalPacGrupal, bonoPac, pacSiguiente, 
       </div>
 
       <div class="card">
-        <div class="card-title">Bono suplementos del equipo</div>
+        <div class="card-title">Suplementos del equipo</div>
         <div class="prog-wrap">
-          <div class="prog-labels"><span>${fmt(ventasSupl)} en ventas</span><span>${Math.min(Math.round(ventasSupl/1000000*100),100)}% de $1M</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${Math.min(ventasSupl/1000000*100,100)}%"></div></div>
+          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>Meta $550k: ${suplPct550}%</span></div>
+          <div class="prog-track"><div class="prog-fill ${suplActivo ? 'green' : ''}" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
         </div>
-        <div class="bonus-row"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Pendiente</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:`<div class="alert-box">Ventas: ${fmt(ventasSupl)} · Faltan ${fmt(Math.max(0,700000-ventasSupl))} para primer bono</div>`}
+        ${suplActivo
+          ? '<div class="ok-box">Comisiones individuales al 100% activadas</div>'
+          : `<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`
+        }
+        <div style="margin-top:1rem">
+          <div class="prog-labels"><span>Bono grupal</span><span>Meta $700k: ${suplPct700}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${suplPct700}%"></div></div>
+        </div>
+        <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
+        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
+        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:''}
       </div>
 
-      <button class="refresh-btn" onclick="refresh()">↻ Actualizar datos</button>
+      <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
 }
