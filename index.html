@@ -233,21 +233,17 @@ async function loadData() {
       ventasSuplPersona: getV(rows[i], 16),
     }));
 
-    // Filas vacias se saltan en JSON
-    // Fila 9 (idx 8) = Total equipo
-    const totalPacGrupal   = rows[8] ? getV(rows[8], 2) : 0;
-    const totalCom         = rows[8] ? getV(rows[8], 1) : 0;
-    const totalPacReal     = rows[8] ? getV(rows[8], 14) : 0;
-    // Fila 11 (idx 9) = Bono pac
-    const bonoPacVal       = rows[9] ? getV(rows[9], 1) : 0;
-    // Fila 12 (idx 10) = PAC siguiente
-    const pacSiguiente     = rows[10] ? getTxt(rows[10], 1) : '';
-    // Fila 14 (idx 11) = Bono supl
-    const bonoSuplVal      = rows[11] ? getV(rows[11], 1) : 0;
-    // Fila 15 (idx 12) = Ventas supl reales
-    const ventasSuplReales = rows[12] ? getV(rows[12], 1) : 0;
-    // Fila 16 (idx 13) = Supl faltan 550k
-    const suplFaltan550k   = rows[13] ? getV(rows[13], 1) : 0;
+    // Sin filas vacias — indices directos:
+    // idx7=fila8=Total, idx8=fila9=BonoPac, idx9=fila10=PacSig
+    // idx10=fila11=BonoSupl, idx11=fila12=VentasSupl, idx12=fila13=Faltan550k
+    const totalPacGrupal   = rows[7]  ? getV(rows[7], 2) : 0;
+    const totalCom         = rows[7]  ? getV(rows[7], 1) : 0;
+    const totalPacReal     = rows[7]  ? getV(rows[7], 14) : 0;
+    const bonoPacVal       = rows[8]  ? getV(rows[8], 1) : 0;
+    const pacSiguiente     = rows[9]  ? getTxt(rows[9], 1) : '';
+    const bonoSuplVal      = rows[10] ? getV(rows[10], 1) : 0;
+    const ventasSuplReales = rows[11] ? getV(rows[11], 1) : 0;
+    const suplFaltan550k   = rows[12] ? getV(rows[12], 1) : 0;
 
     renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k);
   } catch(e) {
