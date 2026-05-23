@@ -243,9 +243,18 @@ async function loadData() {
     const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
     const bonoSuplVal      = rows[9]  ? getV(rows[9], 1) : 0;
     const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
-    const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
+    const suplFaltan550k      = rows[11] ? getV(rows[11], 1) : 0;
+    const transferenciasPend  = rows[12] ? getV(rows[12], 1) : 0;
+    // Detalle transferencias pendientes desde fila 14+
+    const transfDetalle = [];
+    for (let r = 13; r < rows.length; r++) {
+      if (!rows[r] || !rows[r].c || !rows[r].c[0] || !rows[r].c[0].v) break;
+      const txt = rows[r].c[0].v;
+      if (txt === '--- Detalle transferencias ---' || txt === 'Sin transferencias pendientes') continue;
+      transfDetalle.push({ info: txt, comision: getV(rows[r], 1) });
+    }
 
-    renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k);
+    renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
@@ -336,7 +345,7 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
-function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k) {
+function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
   const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
@@ -410,6 +419,23 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
         <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
         ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:''}
       </div>
+
+      ${transferenciasPend > 0 ? `
+      <div class="card" style="border-color:rgba(239,159,39,0.4)">
+        <div class="card-title" style="color:var(--amber)">⚠ Transferencias pendientes de verificar (${transferenciasPend})</div>
+        ${transfDetalle.map(t => `
+          <div class="bonus-row">
+            <span style="font-size:0.8rem;color:rgba(255,255,255,0.7)">${t.info}</span>
+            <span style="color:var(--amber);font-weight:600">${fmt(t.comision)}</span>
+          </div>
+        `).join('')}
+        <div class="alert-box" style="margin-top:0.75rem">Verifica estas transferencias en tu banco y marca OK en la planilla</div>
+      </div>
+      ` : `
+      <div class="card" style="border-color:rgba(29,158,117,0.3)">
+        <div class="card-title" style="color:var(--green)">✓ Todas las transferencias verificadas</div>
+      </div>
+      `}
 
       <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
