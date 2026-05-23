@@ -278,28 +278,31 @@ function buildDetalle(p, ventasSuplReales) {
     `;
   }
 
-  // === PLANES VENDIDOS ===
-  const planes = [
-    { label: 'PAC Mensual',       val: p.pacMensual,    com: COM_PLANES.pacMensual },
-    { label: 'PAC Estudiante',    val: p.pacEstudiante,  com: COM_PLANES.pacEstudiante },
-    { label: 'Semestral Tarjeta', val: p.semTarjeta,     com: COM_PLANES.semestralTarjeta },
-    { label: 'Semestral Transf.', val: p.semTransf,      com: COM_PLANES.semestralTransf },
-    { label: 'Anual Tarjeta',     val: p.anuTarjeta,     com: COM_PLANES.anualTarjeta },
-    { label: 'Anual Transf.',     val: p.anuTransf,      com: COM_PLANES.anualTransf },
-  ].filter(pl => pl.val > 0);
+  // === PLANES VENDIDOS (solo recepcionistas) ===
+  let planesHtml = '';
+  if (tipo !== 'pt') {
+    const planes = [
+      { label: 'PAC Mensual',       val: p.pacMensual,    com: COM_PLANES.pacMensual },
+      { label: 'PAC Estudiante',    val: p.pacEstudiante,  com: COM_PLANES.pacEstudiante },
+      { label: 'Semestral Tarjeta', val: p.semTarjeta,     com: COM_PLANES.semestralTarjeta },
+      { label: 'Semestral Transf.', val: p.semTransf,      com: COM_PLANES.semestralTransf },
+      { label: 'Anual Tarjeta',     val: p.anuTarjeta,     com: COM_PLANES.anualTarjeta },
+      { label: 'Anual Transf.',     val: p.anuTransf,      com: COM_PLANES.anualTransf },
+    ].filter(pl => pl.val > 0);
 
-  const planesHtml = planes.length > 0 ? `
-    <div class="detalle-titulo" style="margin-top:12px">Planes vendidos</div>
-    <div class="detalle-grid">
-      ${planes.map(pl => `
-        <div class="detalle-item">
-          <div class="detalle-item-label">${pl.label}</div>
-          <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
-          <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
-        </div>
-      `).join('')}
-    </div>
-  ` : '';
+    planesHtml = planes.length > 0 ? `
+      <div class="detalle-titulo" style="margin-top:12px">Planes vendidos</div>
+      <div class="detalle-grid">
+        ${planes.map(pl => `
+          <div class="detalle-item">
+            <div class="detalle-item-label">${pl.label}</div>
+            <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
+            <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
+          </div>
+        `).join('')}
+      </div>
+    ` : '';
+  }
 
   // === SUPLEMENTOS ===
   const suplPct = Math.min(Math.round(ventasSuplReales / 550000 * 100), 100);
