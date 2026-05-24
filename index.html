@@ -309,6 +309,7 @@ function buildDetalle(p, ventasSuplReales) {
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' :
                p.name === 'Camila' ? 'recepcion_part' : 'pt';
 
+  // PAC
   let pacHtml = '';
   if (tipo !== 'pt') {
     const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
@@ -325,41 +326,101 @@ function buildDetalle(p, ventasSuplReales) {
       </div>`;
   }
 
-  let planesHtml = '';
+  // Semestrales
+  let semHtml = '';
   if (tipo !== 'pt') {
-    const planes = [
-      { label: 'PAC Mensual',       val: p.pacMensual,    com: COM_PLANES.pacMensual },
-      { label: 'PAC Estudiante',    val: p.pacEstudiante,  com: COM_PLANES.pacEstudiante },
-      { label: 'Semestral Tarjeta', val: p.semTarjeta,     com: COM_PLANES.semestralTarjeta },
-      { label: 'Semestral Transf.', val: p.semTransf,      com: COM_PLANES.semestralTransf },
-      { label: 'Anual Tarjeta',     val: p.anuTarjeta,     com: COM_PLANES.anualTarjeta },
-      { label: 'Anual Transf.',     val: p.anuTransf,      com: COM_PLANES.anualTransf },
-    ].filter(pl => pl.val > 0);
-    planesHtml = planes.length > 0 ? `
-      <div class="detalle-titulo" style="margin-top:12px">Planes vendidos</div>
-      <div class="detalle-grid">
-        ${planes.map(pl => `
-          <div class="detalle-item">
-            <div class="detalle-item-label">${pl.label}</div>
-            <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
-            <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
-          </div>`).join('')}
-      </div>` : '';
+    const totalSem = p.semTarjeta + p.semTransf;
+    if (tipo === 'recepcion_part') {
+      const semPagadosCami = totalSem >= 2 ? 2 + Math.floor((totalSem - 2) / 2) * 2 : 0;
+      const semSobrantesCami = totalSem - semPagadosCami;
+      const semFaltanCami = totalSem < 2 ? 2 - totalSem : semSobrantesCami === 1 ? 1 : 0;
+      const semPctCami = Math.min(Math.round(totalSem / 2 * 100), 100);
+      semHtml = `
+        <div class="detalle-titulo" style="margin-top:12px">Semestrales</div>
+        <div class="info-row">Piso: 2, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+        <div class="info-row">Vendidos <span class="${totalSem > 0 ? 'ok' : ''}">${totalSem}</span></div>
+        <div class="info-row">Pagados al 100% <span class="${semPagadosCami > 0 ? 'ok' : ''}">${semPagadosCami}</span></div>
+        <div class="info-row">Sobrantes (50%) <span>${semSobrantesCami}</span></div>
+        ${semFaltanCami > 0 ? `<div class="info-row">Faltan para piso <span class="red">${semFaltanCami}</span></div>` : ''}
+        ${p.semTarjeta > 0 ? `<div class="info-row">Tarjeta <span>${p.semTarjeta}</span></div>` : ''}
+        ${p.semTransf > 0 ? `<div class="info-row">Transferencia <span>${p.semTransf}</span></div>` : ''}
+        <div class="prog-mini">
+          <div class="prog-mini-track"><div class="prog-mini-fill ${semPagadosCami > 0 ? 'green' : ''}" style="width:${semPctCami}%"></div></div>
+        </div>`;
+    } else {
+      const semPagados = totalSem >= 3 ? 3 + Math.floor((totalSem - 3) / 2) * 2 : 0;
+      const semSobrantes = totalSem - semPagados;
+      const semFaltan = totalSem < 3 ? 3 - totalSem : semSobrantes === 1 ? 1 : 0;
+      const semPct = Math.min(Math.round(totalSem / 3 * 100), 100);
+      semHtml = `
+        <div class="detalle-titulo" style="margin-top:12px">Semestrales</div>
+        <div class="info-row">Piso: 3, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+        <div class="info-row">Vendidos <span class="${totalSem > 0 ? 'ok' : ''}">${totalSem}</span></div>
+        <div class="info-row">Pagados al 100% <span class="${semPagados > 0 ? 'ok' : ''}">${semPagados}</span></div>
+        <div class="info-row">Sobrantes (50%) <span>${semSobrantes}</span></div>
+        ${semFaltan > 0 ? `<div class="info-row">Faltan para piso <span class="red">${semFaltan}</span></div>` : ''}
+        ${p.semTarjeta > 0 ? `<div class="info-row">Tarjeta <span>${p.semTarjeta}</span></div>` : ''}
+        ${p.semTransf > 0 ? `<div class="info-row">Transferencia <span>${p.semTransf}</span></div>` : ''}
+        <div class="prog-mini">
+          <div class="prog-mini-track"><div class="prog-mini-fill ${semPagados > 0 ? 'green' : ''}" style="width:${semPct}%"></div></div>
+        </div>`;
+    }
+  }
+
+  // Anuales
+  let anuHtml = '';
+  if (tipo !== 'pt') {
+    const totalAnu = p.anuTarjeta + p.anuTransf;
+    if (tipo === 'recepcion_part') {
+      const anuPagadosCami = totalAnu >= 2 ? 2 + Math.floor((totalAnu - 2) / 2) * 2 : 0;
+      const anuSobrantesCami = totalAnu - anuPagadosCami;
+      const anuFaltanCami = totalAnu < 2 ? 2 - totalAnu : anuSobrantesCami === 1 ? 1 : 0;
+      const anuPctCami = Math.min(Math.round(totalAnu / 2 * 100), 100);
+      anuHtml = `
+        <div class="detalle-titulo" style="margin-top:12px">Anuales</div>
+        <div class="info-row">Piso: 2, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+        <div class="info-row">Vendidos <span class="${totalAnu > 0 ? 'ok' : ''}">${totalAnu}</span></div>
+        <div class="info-row">Pagados al 100% <span class="${anuPagadosCami > 0 ? 'ok' : ''}">${anuPagadosCami}</span></div>
+        <div class="info-row">Sobrantes (50%) <span>${anuSobrantesCami}</span></div>
+        ${anuFaltanCami > 0 ? `<div class="info-row">Faltan para piso <span class="red">${anuFaltanCami}</span></div>` : ''}
+        ${p.anuTarjeta > 0 ? `<div class="info-row">Tarjeta <span>${p.anuTarjeta}</span></div>` : ''}
+        ${p.anuTransf > 0 ? `<div class="info-row">Transferencia <span>${p.anuTransf}</span></div>` : ''}
+        <div class="prog-mini">
+          <div class="prog-mini-track"><div class="prog-mini-fill ${anuPagadosCami > 0 ? 'green' : ''}" style="width:${anuPctCami}%"></div></div>
+        </div>`;
+    } else {
+      const anuPagados = totalAnu >= 3 ? 3 + Math.floor((totalAnu - 3) / 2) * 2 : 0;
+      const anuSobrantes = totalAnu - anuPagados;
+      const anuFaltan = totalAnu < 3 ? 3 - totalAnu : anuSobrantes === 1 ? 1 : 0;
+      const anuPct = Math.min(Math.round(totalAnu / 3 * 100), 100);
+      anuHtml = `
+        <div class="detalle-titulo" style="margin-top:12px">Anuales</div>
+        <div class="info-row">Piso: 3, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+        <div class="info-row">Vendidos <span class="${totalAnu > 0 ? 'ok' : ''}">${totalAnu}</span></div>
+        <div class="info-row">Pagados al 100% <span class="${anuPagados > 0 ? 'ok' : ''}">${anuPagados}</span></div>
+        <div class="info-row">Sobrantes (50%) <span>${anuSobrantes}</span></div>
+        ${anuFaltan > 0 ? `<div class="info-row">Faltan para piso <span class="red">${anuFaltan}</span></div>` : ''}
+        ${p.anuTarjeta > 0 ? `<div class="info-row">Tarjeta <span>${p.anuTarjeta}</span></div>` : ''}
+        ${p.anuTransf > 0 ? `<div class="info-row">Transferencia <span>${p.anuTransf}</span></div>` : ''}
+        <div class="prog-mini">
+          <div class="prog-mini-track"><div class="prog-mini-fill ${anuPagados > 0 ? 'green' : ''}" style="width:${anuPct}%"></div></div>
+        </div>`;
+    }
   }
 
   const suplActivo = ventasSuplReales >= 550000;
   const suplHtml = p.suplTexto ? `
     <div class="detalle-titulo" style="margin-top:12px">Suplementos vendidos</div>
     <div class="info-row">Comision individual <span class="${suplActivo ? 'ok' : 'red'}">${suplActivo ? '100% activa' : '50% (equipo bajo $550k)'}</span></div>
-    <div class="info-row">Tus ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
-    <div class="info-row">Tu comision suplementos <span class="ok">${fmt(p.comisionSupl)}</span></div>
+    <div class="info-row">Ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
+    <div class="info-row">Comision suplementos <span class="ok">${fmt(p.comisionSupl)}</span></div>
     <div class="detalle-supl" style="margin-top:8px">
       ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
     </div>` : '';
 
   return `
     <div class="detalle-persona" id="detalle-${p.name}">
-      ${pacHtml}${planesHtml}${suplHtml}
+      ${pacHtml}${semHtml}${anuHtml}${suplHtml}
       <div class="detalle-total">
         <div class="detalle-total-label">Total comisiones</div>
         <div class="detalle-total-val">${fmt(p.total)}</div>
@@ -428,13 +489,24 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
   if (tipo !== 'pt') {
     const totalSem = p.semTarjeta + p.semTransf;
     if (tipo === 'recepcion_part') {
-      semHtml = totalSem > 0 ? `
+      const semPagadosCami = totalSem >= 2 ? 2 + Math.floor((totalSem - 2) / 2) * 2 : 0;
+      const semSobrantesCami = totalSem - semPagadosCami;
+      const semFaltanCami = totalSem < 2 ? 2 - totalSem : semSobrantesCami === 1 ? 1 : 0;
+      const semPctCami = Math.min(Math.round(totalSem / 2 * 100), 100);
+      semHtml = `
         <div class="card">
           <div class="card-title">Mis semestrales</div>
-          <div class="info-row">Sin piso — todos al 100% <span class="ok">✓</span></div>
-          ${p.semTarjeta > 0 ? `<div class="info-row">Semestral Tarjeta <span class="ok">${p.semTarjeta} × $4.000 = ${fmt(p.semTarjeta * 4000)}</span></div>` : ''}
-          ${p.semTransf > 0 ? `<div class="info-row">Semestral Transferencia <span class="ok">${p.semTransf} × $6.000 = ${fmt(p.semTransf * 6000)}</span></div>` : ''}
-        </div>` : '';
+          <div class="info-row">Piso: 2, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+          <div class="info-row">Vendidos <span class="${totalSem > 0 ? 'ok' : ''}">${totalSem}</span></div>
+          <div class="info-row">Pagados al 100% <span class="${semPagadosCami > 0 ? 'ok' : ''}">${semPagadosCami}</span></div>
+          <div class="info-row">Sobrantes (50%) <span>${semSobrantesCami}</span></div>
+          ${semFaltanCami > 0 ? `<div class="info-row">Faltan para piso <span class="red">${semFaltanCami}</span></div>` : ''}
+          ${p.semTarjeta > 0 ? `<div class="info-row">Semestral Tarjeta <span>${p.semTarjeta}</span></div>` : ''}
+          ${p.semTransf > 0 ? `<div class="info-row">Semestral Transferencia <span>${p.semTransf}</span></div>` : ''}
+          <div class="prog-mini" style="margin-top:12px">
+            <div class="prog-mini-track" style="height:8px"><div class="prog-mini-fill ${semPagadosCami > 0 ? 'green' : ''}" style="width:${semPctCami}%"></div></div>
+          </div>
+        </div>`;
     } else {
       const semPagados = totalSem >= 3 ? 3 + Math.floor((totalSem - 3) / 2) * 2 : 0;
       const semSobrantes = totalSem - semPagados;
@@ -462,13 +534,24 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
   if (tipo !== 'pt') {
     const totalAnu = p.anuTarjeta + p.anuTransf;
     if (tipo === 'recepcion_part') {
-      anuHtml = totalAnu > 0 ? `
+      const anuPagadosCami = totalAnu >= 2 ? 2 + Math.floor((totalAnu - 2) / 2) * 2 : 0;
+      const anuSobrantesCami = totalAnu - anuPagadosCami;
+      const anuFaltanCami = totalAnu < 2 ? 2 - totalAnu : anuSobrantesCami === 1 ? 1 : 0;
+      const anuPctCami = Math.min(Math.round(totalAnu / 2 * 100), 100);
+      anuHtml = `
         <div class="card">
           <div class="card-title">Mis anuales</div>
-          <div class="info-row">Sin piso — todos al 100% <span class="ok">✓</span></div>
-          ${p.anuTarjeta > 0 ? `<div class="info-row">Anual Tarjeta <span class="ok">${p.anuTarjeta} × $6.000 = ${fmt(p.anuTarjeta * 6000)}</span></div>` : ''}
-          ${p.anuTransf > 0 ? `<div class="info-row">Anual Transferencia <span class="ok">${p.anuTransf} × $8.000 = ${fmt(p.anuTransf * 8000)}</span></div>` : ''}
-        </div>` : '';
+          <div class="info-row">Piso: 2, luego cada 2 <span style="color:#666">se pagan completos</span></div>
+          <div class="info-row">Vendidos <span class="${totalAnu > 0 ? 'ok' : ''}">${totalAnu}</span></div>
+          <div class="info-row">Pagados al 100% <span class="${anuPagadosCami > 0 ? 'ok' : ''}">${anuPagadosCami}</span></div>
+          <div class="info-row">Sobrantes (50%) <span>${anuSobrantesCami}</span></div>
+          ${anuFaltanCami > 0 ? `<div class="info-row">Faltan para piso <span class="red">${anuFaltanCami}</span></div>` : ''}
+          ${p.anuTarjeta > 0 ? `<div class="info-row">Anual Tarjeta <span>${p.anuTarjeta}</span></div>` : ''}
+          ${p.anuTransf > 0 ? `<div class="info-row">Anual Transferencia <span>${p.anuTransf}</span></div>` : ''}
+          <div class="prog-mini" style="margin-top:12px">
+            <div class="prog-mini-track" style="height:8px"><div class="prog-mini-fill ${anuPagadosCami > 0 ? 'green' : ''}" style="width:${anuPctCami}%"></div></div>
+          </div>
+        </div>`;
     } else {
       const anuPagados = totalAnu >= 3 ? 3 + Math.floor((totalAnu - 3) / 2) * 2 : 0;
       const anuSobrantes = totalAnu - anuPagados;
