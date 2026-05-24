@@ -65,13 +65,11 @@
   .detalle-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; }
   .detalle-item-com { font-size: 0.75rem; color: var(--green); margin-top: 2px; }
   .detalle-supl { margin-top: 8px; }
-  .detalle-supl-titulo { font-size: 0.68rem; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; }
   .supl-tag { display: inline-block; background: rgba(255,255,255,0.06); border: 1px solid var(--gray); border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; color: #aaa; margin: 3px 3px 3px 0; }
   .detalle-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--gray); padding-top: 10px; margin-top: 10px; }
   .detalle-total-label { font-size: 0.75rem; color: #777; text-transform: uppercase; letter-spacing: 0.06em; }
   .detalle-total-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--green); }
   .prog-mini { margin: 8px 0 4px 0; }
-  .prog-mini-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: #666; margin-bottom: 4px; }
   .prog-mini-track { background: #222; border-radius: 4px; height: 5px; overflow: hidden; }
   .prog-mini-fill { height: 100%; border-radius: 4px; background: var(--red); transition: width 0.8s ease; }
   .prog-mini-fill.green { background: var(--green); }
@@ -96,8 +94,6 @@
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
   .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
-
-  /* Vista personal */
   .personal-hero { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
   .personal-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; flex-shrink: 0; }
   .personal-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.05em; line-height: 1; }
@@ -105,6 +101,10 @@
   .personal-total { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--green); letter-spacing: 0.03em; }
   .personal-total-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
   .rank-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--gray); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; margin-top: 8px; }
+  .bono-card { background: rgba(29,158,117,0.08); border: 1px solid rgba(29,158,117,0.25); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+  .bono-card-title { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--green); margin-bottom: 8px; font-weight: 600; }
+  .bono-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.8rem; color: rgba(255,255,255,0.7); }
+  .bono-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--green); }
 </style>
 </head>
 <body>
@@ -148,7 +148,6 @@ try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
 
-// Mapeo email -> nombre persona (null = admin, ve todo)
 const EMAIL_MAP = {
   'gonzaloescobarhidalgo89@gmail.com': null,
   'bea.sotopavez@hotmail.com': null,
@@ -177,9 +176,7 @@ const COM_PLANES = {
 
 const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
-const fmtN = n => Math.round(n||0).toLocaleString('es-CL');
-
-let currentUserPersona = null; // null = admin
+let currentUserPersona = null;
 
 const ahora = new Date();
 document.getElementById('hdr-date').textContent = ahora.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
@@ -196,11 +193,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; }
-  else {
-    const persona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null;
-    currentUserPersona = persona;
-    showApp();
-  }
+  else { currentUserPersona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null; showApp(); }
 }
 
 async function doLogout() {
@@ -215,17 +208,13 @@ async function doLogout() {
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  if (currentUserPersona) {
-    document.getElementById('hdr-subtitle').textContent = 'Mis comisiones · ' + currentUserPersona;
-  }
+  if (currentUserPersona) document.getElementById('hdr-subtitle').textContent = 'Mis comisiones · ' + currentUserPersona;
   loadData();
 }
 
 db.auth.getSession().then(async ({ data: { session } }) => {
   if (session) {
-    const email = session.user.email;
-    const persona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null;
-    currentUserPersona = persona;
+    currentUserPersona = EMAIL_MAP[session.user.email.toLowerCase()] ?? EMAIL_MAP[session.user.email] ?? null;
     showApp();
   }
 });
@@ -257,6 +246,8 @@ async function loadData() {
       name,
       comisiones:        getV(rows[i], 1),
       pacPagados:        getV(rows[i], 2),
+      bonoPac:           getV(rows[i], 3), // columna D — bono PAC individual
+      bonoSupl:          getV(rows[i], 4), // columna E — bono supl individual
       total:             getV(rows[i], 5),
       suplTexto:         getTxt(rows[i], 6),
       pacGrupal:         getV(rows[i], 7),
@@ -273,11 +264,11 @@ async function loadData() {
     }));
 
     const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
-    const totalCom         = rows[6]  ? getV(rows[6], 1) : 0;
+    const totalCom         = rows[6]  ? getV(rows[6], 5) : 0;
     const totalPacReal     = rows[6]  ? getV(rows[6], 14) : 0;
-    const bonoPacVal       = rows[7]  ? getV(rows[7], 1) : 0;
+    const bonoPacTotal     = rows[7]  ? getV(rows[7], 1) : 0;
     const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
-    const bonoSuplVal      = rows[9]  ? getV(rows[9], 1) : 0;
+    const bonoSuplTotal    = rows[9]  ? getV(rows[9], 1) : 0;
     const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
     const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
     const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
@@ -290,18 +281,30 @@ async function loadData() {
     }
 
     if (currentUserPersona) {
-      // Vista personal
       const miData = data.find(d => d.name === currentUserPersona);
       const sorted = [...data].sort((a,b) => b.total - a.total);
       const miRank = sorted.findIndex(d => d.name === currentUserPersona) + 1;
-      renderPersonal(miData, miRank, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, sorted);
+      renderPersonal(miData, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, sorted);
     } else {
-      // Vista admin
-      renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
+      renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
     }
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
+}
+
+function bonosHtml(p) {
+  if (p.bonoPac <= 0 && p.bonoSupl <= 0) return '';
+  return `
+    <div class="bono-card">
+      <div class="bono-card-title">🎉 Bonos grupales activados</div>
+      ${p.bonoPac > 0 ? `<div class="bono-row"><span>Bono PAC (proporcional)</span><span class="bono-val">${fmt(p.bonoPac)}</span></div>` : ''}
+      ${p.bonoSupl > 0 ? `<div class="bono-row"><span>Bono suplementos (proporcional)</span><span class="bono-val">${fmt(p.bonoSupl)}</span></div>` : ''}
+      <div class="bono-row" style="border-top:1px solid rgba(29,158,117,0.2);margin-top:6px;padding-top:6px">
+        <span style="font-weight:600">Total bonos</span>
+        <span class="bono-val">${fmt(p.bonoPac + p.bonoSupl)}</span>
+      </div>
+    </div>`;
 }
 
 function buildDetalle(p, ventasSuplReales) {
@@ -309,7 +312,6 @@ function buildDetalle(p, ventasSuplReales) {
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' :
                p.name === 'Camila' ? 'recepcion_part' : 'pt';
 
-  // PAC
   let pacHtml = '';
   if (tipo !== 'pt') {
     const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
@@ -326,7 +328,6 @@ function buildDetalle(p, ventasSuplReales) {
       </div>`;
   }
 
-  // Semestrales
   let semHtml = '';
   if (tipo !== 'pt') {
     const totalSem = p.semTarjeta + p.semTransf;
@@ -335,12 +336,7 @@ function buildDetalle(p, ventasSuplReales) {
     const semSobrantes = totalSem - semPagados;
     const semFaltan = totalSem < pisoBySem ? pisoBySem - totalSem : semSobrantes === 1 ? 1 : 0;
     const semPct = Math.min(Math.round(totalSem / pisoBySem * 100), 100);
-    // Calcular comision semestrales
-    const comSemTarjeta100 = Math.min(p.semTarjeta, semPagados) * COM_PLANES.semestralTarjeta;
-    const comSemTransf100 = Math.max(0, semPagados - p.semTarjeta) * COM_PLANES.semestralTransf;
-    const comSemTarjeta50 = Math.max(0, p.semTarjeta - semPagados) * COM_PLANES.semestralTarjeta * 0.5;
-    const comSemTransf50 = Math.max(0, p.semTransf - Math.max(0, semPagados - p.semTarjeta)) * COM_PLANES.semestralTransf * 0.5;
-    const comSemTotal = comSemTarjeta100 + comSemTransf100 + comSemTarjeta50 + comSemTransf50;
+    const comSemTotal = p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf;
     semHtml = `
       <div class="detalle-titulo" style="margin-top:12px">Semestrales · ${fmt(comSemTotal)}</div>
       <div class="info-row">Piso: ${pisoBySem}, luego cada 2 <span style="color:#666">se pagan completos</span></div>
@@ -355,7 +351,6 @@ function buildDetalle(p, ventasSuplReales) {
       </div>`;
   }
 
-  // Anuales
   let anuHtml = '';
   if (tipo !== 'pt') {
     const totalAnu = p.anuTarjeta + p.anuTransf;
@@ -389,11 +384,16 @@ function buildDetalle(p, ventasSuplReales) {
       ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
     </div>` : '';
 
+  const bonosDetalle = (p.bonoPac > 0 || p.bonoSupl > 0) ? `
+    <div class="detalle-titulo" style="margin-top:12px;color:var(--green)">Bonos grupales</div>
+    ${p.bonoPac > 0 ? `<div class="info-row">Bono PAC (proporcional) <span class="ok">${fmt(p.bonoPac)}</span></div>` : ''}
+    ${p.bonoSupl > 0 ? `<div class="info-row">Bono suplementos (proporcional) <span class="ok">${fmt(p.bonoSupl)}</span></div>` : ''}` : '';
+
   return `
     <div class="detalle-persona" id="detalle-${p.name}">
-      ${pacHtml}${semHtml}${anuHtml}${suplHtml}
+      ${pacHtml}${semHtml}${anuHtml}${suplHtml}${bonosDetalle}
       <div class="detalle-total">
-        <div class="detalle-total-label">Total comisiones</div>
+        <div class="detalle-total-label">Total con bonos</div>
         <div class="detalle-total-val">${fmt(p.total)}</div>
       </div>
     </div>`;
@@ -407,7 +407,7 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
-function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k, sorted) {
+function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, sorted) {
   if (!p) { document.getElementById('main').innerHTML = '<div class="error-box">No se encontraron datos para tu usuario.</div>'; return; }
   const style = PERSONAS[p.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' : p.name === 'Camila' ? 'recepcion_part' : 'pt';
@@ -417,7 +417,6 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
   const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
   const medalStr = miRank <= 3 ? medals[miRank-1] : '#' + miRank;
 
-  // Mini ranking (todos, resaltando al usuario)
   const maxCom = Math.max(...sorted.map(d => d.total), 1);
   const rankingHtml = sorted.map((d, i) => {
     const st = PERSONAS[d.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
@@ -436,7 +435,6 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
       </div>`;
   }).join('');
 
-  // Detalle PAC personal
   let pacHtml = '';
   if (tipo !== 'pt') {
     const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
@@ -455,7 +453,6 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
       </div>`;
   }
 
-  // Detalle Semestrales personal
   let semHtml = '';
   if (tipo !== 'pt') {
     const totalSem = p.semTarjeta + p.semTransf;
@@ -464,9 +461,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
     const semSobrantes = totalSem - semPagados;
     const semFaltan = totalSem < pisoBySem ? pisoBySem - totalSem : semSobrantes === 1 ? 1 : 0;
     const semPct = Math.min(Math.round(totalSem / pisoBySem * 100), 100);
-    const comSemTarjeta = p.semTarjeta * COM_PLANES.semestralTarjeta;
-    const comSemTransf = p.semTransf * COM_PLANES.semestralTransf;
-    const comSemTotal = comSemTarjeta + comSemTransf;
+    const comSemTotal = p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf;
     semHtml = totalSem > 0 ? `
       <div class="card">
         <div class="card-title">Mis semestrales · ${fmt(comSemTotal)}</div>
@@ -475,15 +470,14 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         <div class="info-row">Pagados al 100% <span class="${semPagados > 0 ? 'ok' : ''}">${semPagados}</span></div>
         <div class="info-row">Sobrantes (50%) <span>${semSobrantes}</span></div>
         ${semFaltan > 0 ? `<div class="info-row">Faltan para piso <span class="red">${semFaltan}</span></div>` : '<div class="info-row">Piso alcanzado <span class="ok">✓</span></div>'}
-        ${p.semTarjeta > 0 ? `<div class="info-row">Semestral Tarjeta × ${p.semTarjeta} <span class="ok">${fmt(comSemTarjeta)}</span></div>` : ''}
-        ${p.semTransf > 0 ? `<div class="info-row">Semestral Transf. × ${p.semTransf} <span class="ok">${fmt(comSemTransf)}</span></div>` : ''}
+        ${p.semTarjeta > 0 ? `<div class="info-row">Semestral Tarjeta × ${p.semTarjeta} <span class="ok">${fmt(p.semTarjeta * COM_PLANES.semestralTarjeta)}</span></div>` : ''}
+        ${p.semTransf > 0 ? `<div class="info-row">Semestral Transf. × ${p.semTransf} <span class="ok">${fmt(p.semTransf * COM_PLANES.semestralTransf)}</span></div>` : ''}
         <div class="prog-mini" style="margin-top:12px">
           <div class="prog-mini-track" style="height:8px"><div class="prog-mini-fill ${semPagados > 0 ? 'green' : ''}" style="width:${semPct}%"></div></div>
         </div>
       </div>` : '';
   }
 
-  // Detalle Anuales personal
   let anuHtml = '';
   if (tipo !== 'pt') {
     const totalAnu = p.anuTarjeta + p.anuTransf;
@@ -492,9 +486,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
     const anuSobrantes = totalAnu - anuPagados;
     const anuFaltan = totalAnu < pisoByAnu ? pisoByAnu - totalAnu : anuSobrantes === 1 ? 1 : 0;
     const anuPct = Math.min(Math.round(totalAnu / pisoByAnu * 100), 100);
-    const comAnuTarjeta = p.anuTarjeta * COM_PLANES.anualTarjeta;
-    const comAnuTransf = p.anuTransf * COM_PLANES.anualTransf;
-    const comAnuTotal = comAnuTarjeta + comAnuTransf;
+    const comAnuTotal = p.anuTarjeta * COM_PLANES.anualTarjeta + p.anuTransf * COM_PLANES.anualTransf;
     anuHtml = totalAnu > 0 ? `
       <div class="card">
         <div class="card-title">Mis anuales · ${fmt(comAnuTotal)}</div>
@@ -503,18 +495,14 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         <div class="info-row">Pagados al 100% <span class="${anuPagados > 0 ? 'ok' : ''}">${anuPagados}</span></div>
         <div class="info-row">Sobrantes (50%) <span>${anuSobrantes}</span></div>
         ${anuFaltan > 0 ? `<div class="info-row">Faltan para piso <span class="red">${anuFaltan}</span></div>` : '<div class="info-row">Piso alcanzado <span class="ok">✓</span></div>'}
-        ${p.anuTarjeta > 0 ? `<div class="info-row">Anual Tarjeta × ${p.anuTarjeta} <span class="ok">${fmt(comAnuTarjeta)}</span></div>` : ''}
-        ${p.anuTransf > 0 ? `<div class="info-row">Anual Transf. × ${p.anuTransf} <span class="ok">${fmt(comAnuTransf)}</span></div>` : ''}
+        ${p.anuTarjeta > 0 ? `<div class="info-row">Anual Tarjeta × ${p.anuTarjeta} <span class="ok">${fmt(p.anuTarjeta * COM_PLANES.anualTarjeta)}</span></div>` : ''}
+        ${p.anuTransf > 0 ? `<div class="info-row">Anual Transf. × ${p.anuTransf} <span class="ok">${fmt(p.anuTransf * COM_PLANES.anualTransf)}</span></div>` : ''}
         <div class="prog-mini" style="margin-top:12px">
           <div class="prog-mini-track" style="height:8px"><div class="prog-mini-fill ${anuPagados > 0 ? 'green' : ''}" style="width:${anuPct}%"></div></div>
         </div>
       </div>` : '';
   }
 
-  // Planes vendidos personal (resumen)
-  let planesHtml = '';
-
-  // Suplementos personal
   let suplHtml = '';
   if (p.suplTexto) {
     suplHtml = `
@@ -531,8 +519,6 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
 
   document.getElementById('main').innerHTML = `
     <div class="content">
-
-      <!-- Hero personal -->
       <div class="personal-hero">
         <div class="personal-avatar" style="background:${style.bg};color:${style.color};width:64px;height:64px;font-size:1.8rem">${p.name[0]}</div>
         <div style="flex:1">
@@ -546,19 +532,17 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         </div>
       </div>
 
+      ${bonosHtml(p)}
       ${pacHtml}
       ${semHtml}
       ${anuHtml}
-      ${planesHtml}
       ${suplHtml}
 
-      <!-- Ranking equipo -->
       <div class="card">
         <div class="card-title">Ranking del equipo</div>
         ${rankingHtml}
       </div>
 
-      <!-- Bono PAC grupal -->
       <div class="card">
         <div class="card-title">Bono PAC del equipo</div>
         <div class="prog-wrap">
@@ -568,10 +552,9 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
-        ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+        ${bonoPacTotal>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPacTotal)} — tu parte: ${fmt(p.bonoPac)}</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
       </div>
 
-      <!-- Suplementos equipo -->
       <div class="card">
         <div class="card-title">Suplementos del equipo</div>
         <div class="prog-wrap">
@@ -586,7 +569,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:''}
+        ${bonoSuplTotal>0?`<div class="ok-box">Bono suplementos activado — tu parte: ${fmt(p.bonoSupl)}</div>`:''}
       </div>
 
       <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
@@ -594,7 +577,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
 }
 
-function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
+function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
   const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
@@ -608,8 +591,8 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
       <div class="metrics">
         <div class="metric"><div class="metric-label">Comisiones equipo</div><div class="metric-val white">${fmt(totalCom)}</div></div>
         <div class="metric"><div class="metric-label">PAC grupales</div><div class="metric-val amber">${totalPacGrupal}</div></div>
-        <div class="metric"><div class="metric-label">Bono PAC</div><div class="metric-val ${bonoPac>0?'green':'red'}">${fmt(bonoPac)}</div></div>
-        <div class="metric"><div class="metric-label">Bono suplementos</div><div class="metric-val ${bonoSupl>0?'green':'red'}">${fmt(bonoSupl)}</div></div>
+        <div class="metric"><div class="metric-label">Bono PAC total</div><div class="metric-val ${bonoPacTotal>0?'green':'red'}">${fmt(bonoPacTotal)}</div></div>
+        <div class="metric"><div class="metric-label">Bono supl total</div><div class="metric-val ${bonoSuplTotal>0?'green':'red'}">${fmt(bonoSuplTotal)}</div></div>
       </div>
 
       <div class="card">
@@ -645,7 +628,7 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
         <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
-        ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+        ${bonoPacTotal>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPacTotal)} repartido proporcionalmente</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
       </div>
 
       <div class="card">
@@ -662,7 +645,7 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
         <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
-        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:''}
+        ${bonoSuplTotal>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSuplTotal)} repartido proporcionalmente</div>`:''}
       </div>
 
       ${transferenciasPend > 0 ? `
