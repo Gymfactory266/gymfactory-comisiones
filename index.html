@@ -96,6 +96,15 @@
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
   .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
+
+  /* Vista personal */
+  .personal-hero { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
+  .personal-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; flex-shrink: 0; }
+  .personal-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.05em; line-height: 1; }
+  .personal-rol { font-size: 0.72rem; color: #666; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+  .personal-total { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--green); letter-spacing: 0.03em; }
+  .personal-total-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .rank-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.05); border: 1px solid var(--gray); border-radius: 20px; padding: 4px 12px; font-size: 0.8rem; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -117,7 +126,7 @@
   <div class="header">
     <div>
       <h1>Gym Factory</h1>
-      <p>Control de comisiones</p>
+      <p id="hdr-subtitle">Control de comisiones</p>
     </div>
     <div class="header-right">
       <div id="hdr-date"></div>
@@ -139,6 +148,18 @@ try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
 
+// Mapeo email -> nombre persona (null = admin, ve todo)
+const EMAIL_MAP = {
+  'gonzaloescobarhidalgo89@gmail.com': null,
+  'bea.sotopavez@hotmail.com': null,
+  'massiel.olivares.olea@gmail.com': 'Massiel',
+  'saricep93@gmail.com': 'Sara',
+  'cami_olivos@outlook.es': 'Camila',
+  'luis.caceres.martinez@gmail.com': 'Luis',
+  'diegomunozchacon@gmail.com': 'Diego',
+  'javierasep.o@gmail.com': 'Javiera',
+};
+
 const PERSONAS = {
   Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)', rol: 'Recepcion' },
   Sara:    { color: '#1D9E75', bg: 'rgba(29,158,117,0.2)', rol: 'Recepcion' },
@@ -158,6 +179,8 @@ const medals = ['🥇','🥈','🥉'];
 const fmt = n => '$' + Math.round(n||0).toLocaleString('es-CL');
 const fmtN = n => Math.round(n||0).toLocaleString('es-CL');
 
+let currentUserPersona = null; // null = admin
+
 const ahora = new Date();
 document.getElementById('hdr-date').textContent = ahora.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
 document.getElementById('hdr-mes').textContent = ahora.toLocaleDateString('es-CL',{month:'long',year:'numeric'});
@@ -171,13 +194,18 @@ async function doLogin() {
   const btn = document.getElementById('login-btn');
   const err = document.getElementById('login-error');
   btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
-  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; }
-  else { showApp(); }
+  else {
+    const persona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null;
+    currentUserPersona = persona;
+    showApp();
+  }
 }
 
 async function doLogout() {
   await db.auth.signOut();
+  currentUserPersona = null;
   document.getElementById('app-screen').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('login-email').value = '';
@@ -187,10 +215,20 @@ async function doLogout() {
 function showApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  if (currentUserPersona) {
+    document.getElementById('hdr-subtitle').textContent = 'Mis comisiones · ' + currentUserPersona;
+  }
   loadData();
 }
 
-db.auth.getSession().then(({ data: { session } }) => { if (session) showApp(); });
+db.auth.getSession().then(async ({ data: { session } }) => {
+  if (session) {
+    const email = session.user.email;
+    const persona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null;
+    currentUserPersona = persona;
+    showApp();
+  }
+});
 
 function getV(row, col) {
   try {
@@ -217,25 +255,22 @@ async function loadData() {
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
     const data = names.map((name, i) => ({
       name,
-      comisiones:       getV(rows[i], 1),
-      pacPagados:       getV(rows[i], 2),
-      total:            getV(rows[i], 5),
-      suplTexto:        getTxt(rows[i], 6),
-      pacGrupal:        getV(rows[i], 7),
-      pacMensual:       getV(rows[i], 8),
-      pacEstudiante:    getV(rows[i], 9),
-      semTarjeta:       getV(rows[i], 10),
-      semTransf:        getV(rows[i], 11),
-      anuTarjeta:       getV(rows[i], 12),
-      anuTransf:        getV(rows[i], 13),
-      pacTotalReal:     getV(rows[i], 14),
-      pacFaltanSig:     getV(rows[i], 15),
+      comisiones:        getV(rows[i], 1),
+      pacPagados:        getV(rows[i], 2),
+      total:             getV(rows[i], 5),
+      suplTexto:         getTxt(rows[i], 6),
+      pacGrupal:         getV(rows[i], 7),
+      pacMensual:        getV(rows[i], 8),
+      pacEstudiante:     getV(rows[i], 9),
+      semTarjeta:        getV(rows[i], 10),
+      semTransf:         getV(rows[i], 11),
+      anuTarjeta:        getV(rows[i], 12),
+      anuTransf:         getV(rows[i], 13),
+      pacTotalReal:      getV(rows[i], 14),
+      pacFaltanSig:      getV(rows[i], 15),
       ventasSuplPersona: getV(rows[i], 16),
     }));
 
-    // Google Sheets no incluye encabezados en JSON — idx 0 = fila 2 = Massiel
-    // idx6=fila8=Total, idx7=fila9=BonoPac, idx8=fila10=PacSig
-    // idx9=fila11=BonoSupl, idx10=fila12=VentasSupl, idx11=fila13=Faltan550k
     const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
     const totalCom         = rows[6]  ? getV(rows[6], 1) : 0;
     const totalPacReal     = rows[6]  ? getV(rows[6], 14) : 0;
@@ -243,9 +278,8 @@ async function loadData() {
     const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
     const bonoSuplVal      = rows[9]  ? getV(rows[9], 1) : 0;
     const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
-    const suplFaltan550k      = rows[11] ? getV(rows[11], 1) : 0;
-    const transferenciasPend  = rows[12] ? getV(rows[12], 1) : 0;
-    // Detalle transferencias pendientes desde fila 14+
+    const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
+    const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
     const transfDetalle = [];
     for (let r = 13; r < rows.length; r++) {
       if (!rows[r] || !rows[r].c || !rows[r].c[0] || !rows[r].c[0].v) break;
@@ -254,7 +288,16 @@ async function loadData() {
       transfDetalle.push({ info: txt, comision: getV(rows[r], 1) });
     }
 
-    renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
+    if (currentUserPersona) {
+      // Vista personal
+      const miData = data.find(d => d.name === currentUserPersona);
+      const sorted = [...data].sort((a,b) => b.total - a.total);
+      const miRank = sorted.findIndex(d => d.name === currentUserPersona) + 1;
+      renderPersonal(miData, miRank, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, sorted);
+    } else {
+      // Vista admin
+      renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacVal, pacSiguiente, bonoSuplVal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
+    }
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
@@ -265,15 +308,10 @@ function buildDetalle(p, ventasSuplReales) {
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' :
                p.name === 'Camila' ? 'recepcion_part' : 'pt';
 
-  // === INFO PAC ===
   let pacHtml = '';
   if (tipo !== 'pt') {
     const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
-    const pacPct = tipo === 'recepcion'
-      ? Math.min(Math.round(p.pacTotalReal / 10 * 100), 100)
-      : Math.min(Math.round(p.pacTotalReal / 5 * 100), 100);
     const pisoActual = tipo === 'recepcion' ? 10 : 5;
-
     pacHtml = `
       <div class="detalle-titulo">Estado PAC</div>
       <div class="info-row"><span>${pisoLabel}</span></div>
@@ -283,11 +321,9 @@ function buildDetalle(p, ventasSuplReales) {
       <div class="info-row">Faltan para proximo piso <span class="red">${p.pacFaltanSig}</span></div>
       <div class="prog-mini">
         <div class="prog-mini-track"><div class="prog-mini-fill ${p.pacPagados > 0 ? 'green' : ''}" style="width:${Math.min(p.pacTotalReal / pisoActual * 100, 100)}%"></div></div>
-      </div>
-    `;
+      </div>`;
   }
 
-  // === PLANES VENDIDOS (solo recepcionistas) ===
   let planesHtml = '';
   if (tipo !== 'pt') {
     const planes = [
@@ -298,7 +334,6 @@ function buildDetalle(p, ventasSuplReales) {
       { label: 'Anual Tarjeta',     val: p.anuTarjeta,     com: COM_PLANES.anualTarjeta },
       { label: 'Anual Transf.',     val: p.anuTransf,      com: COM_PLANES.anualTransf },
     ].filter(pl => pl.val > 0);
-
     planesHtml = planes.length > 0 ? `
       <div class="detalle-titulo" style="margin-top:12px">Planes vendidos</div>
       <div class="detalle-grid">
@@ -307,14 +342,10 @@ function buildDetalle(p, ventasSuplReales) {
             <div class="detalle-item-label">${pl.label}</div>
             <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
             <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
-          </div>
-        `).join('')}
-      </div>
-    ` : '';
+          </div>`).join('')}
+      </div>` : '';
   }
 
-  // === SUPLEMENTOS ===
-  const suplPct = Math.min(Math.round(ventasSuplReales / 550000 * 100), 100);
   const suplActivo = ventasSuplReales >= 550000;
   const suplHtml = p.suplTexto ? `
     <div class="detalle-titulo" style="margin-top:12px">Suplementos vendidos</div>
@@ -322,14 +353,11 @@ function buildDetalle(p, ventasSuplReales) {
     <div class="info-row">Tus ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
     <div class="detalle-supl" style="margin-top:8px">
       ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
-    </div>
-  ` : '';
+    </div>` : '';
 
   return `
     <div class="detalle-persona" id="detalle-${p.name}">
-      ${pacHtml}
-      ${planesHtml}
-      ${suplHtml}
+      ${pacHtml}${planesHtml}${suplHtml}
       <div class="detalle-total">
         <div class="detalle-total-label">Total comisiones</div>
         <div class="detalle-total-val">${fmt(p.total)}</div>
@@ -345,13 +373,164 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
+function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k, sorted) {
+  if (!p) { document.getElementById('main').innerHTML = '<div class="error-box">No se encontraron datos para tu usuario.</div>'; return; }
+  const style = PERSONAS[p.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
+  const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' : p.name === 'Camila' ? 'recepcion_part' : 'pt';
+  const suplActivo = ventasSupl >= 550000;
+  const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
+  const suplPct550 = Math.min(Math.round(ventasSupl / 550000 * 100), 100);
+  const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
+  const medalStr = miRank <= 3 ? medals[miRank-1] : '#' + miRank;
+
+  // Mini ranking (todos, resaltando al usuario)
+  const maxCom = Math.max(...sorted.map(d => d.total), 1);
+  const rankingHtml = sorted.map((d, i) => {
+    const st = PERSONAS[d.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
+    const esMio = d.name === p.name;
+    const pct = Math.round(d.total / maxCom * 100) || 0;
+    return `
+      <div class="ranking-row" style="${esMio ? 'background:rgba(255,255,255,0.04);border-radius:8px;padding-left:8px;' : 'opacity:0.5'}">
+        <div class="rank-medal">${d.total>0?(medals[i]||'#'+(i+1)):'-'}</div>
+        <div class="rank-avatar" style="background:${st.bg};color:${st.color}">${d.name[0]}</div>
+        <div class="rank-info">
+          <div class="rank-name">${d.name}${esMio?' 👈':''}</div>
+          <div class="rank-sub">${st.rol}</div>
+        </div>
+        <div class="rank-bar-wrap"><div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${pct}%;background:${st.color}"></div></div></div>
+        <div class="rank-com">${fmt(d.total)}</div>
+      </div>`;
+  }).join('');
+
+  // Detalle PAC personal
+  let pacHtml = '';
+  if (tipo !== 'pt') {
+    const pisoLabel = tipo === 'recepcion' ? 'Piso: 10, luego cada 5' : 'Piso: 5, luego cada 3';
+    const pisoActual = tipo === 'recepcion' ? 10 : 5;
+    pacHtml = `
+      <div class="card">
+        <div class="card-title">Mi estado PAC</div>
+        <div class="info-row"><span>${pisoLabel}</span></div>
+        <div class="info-row">PAC vendidos este mes <span class="${p.pacTotalReal > 0 ? 'ok' : ''}">${p.pacTotalReal}</span></div>
+        <div class="info-row">PAC pagados (llegaron a piso) <span class="${p.pacPagados > 0 ? 'ok' : ''}">${p.pacPagados}</span></div>
+        <div class="info-row">PAC sobrantes (50% comision) <span>${p.pacTotalReal - p.pacPagados}</span></div>
+        <div class="info-row">Faltan para proximo piso <span class="red">${p.pacFaltanSig}</span></div>
+        <div class="prog-mini" style="margin-top:12px">
+          <div class="prog-mini-track" style="height:8px"><div class="prog-mini-fill ${p.pacPagados > 0 ? 'green' : ''}" style="width:${Math.min(p.pacTotalReal / pisoActual * 100, 100)}%"></div></div>
+        </div>
+      </div>`;
+  }
+
+  // Planes vendidos personal
+  let planesHtml = '';
+  if (tipo !== 'pt') {
+    const planes = [
+      { label: 'PAC Mensual',       val: p.pacMensual,    com: COM_PLANES.pacMensual },
+      { label: 'PAC Estudiante',    val: p.pacEstudiante,  com: COM_PLANES.pacEstudiante },
+      { label: 'Semestral Tarjeta', val: p.semTarjeta,     com: COM_PLANES.semestralTarjeta },
+      { label: 'Semestral Transf.', val: p.semTransf,      com: COM_PLANES.semestralTransf },
+      { label: 'Anual Tarjeta',     val: p.anuTarjeta,     com: COM_PLANES.anualTarjeta },
+      { label: 'Anual Transf.',     val: p.anuTransf,      com: COM_PLANES.anualTransf },
+    ].filter(pl => pl.val > 0);
+    if (planes.length > 0) {
+      planesHtml = `
+        <div class="card">
+          <div class="card-title">Mis planes vendidos</div>
+          <div class="detalle-grid">
+            ${planes.map(pl => `
+              <div class="detalle-item">
+                <div class="detalle-item-label">${pl.label}</div>
+                <div class="detalle-item-val" style="color:${style.color}">${pl.val}</div>
+                <div class="detalle-item-com">+${fmt(pl.val * pl.com)}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }
+  }
+
+  // Suplementos personal
+  let suplHtml = '';
+  if (p.suplTexto) {
+    suplHtml = `
+      <div class="card">
+        <div class="card-title">Mis suplementos</div>
+        <div class="info-row">Comision individual <span class="${suplActivo ? 'ok' : 'red'}">${suplActivo ? '100% activa' : '50% (equipo bajo $550k)'}</span></div>
+        <div class="info-row">Mis ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
+        <div style="margin-top:10px">
+          ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
+        </div>
+      </div>`;
+  }
+
+  document.getElementById('main').innerHTML = `
+    <div class="content">
+
+      <!-- Hero personal -->
+      <div class="personal-hero">
+        <div class="personal-avatar" style="background:${style.bg};color:${style.color};width:64px;height:64px;font-size:1.8rem">${p.name[0]}</div>
+        <div style="flex:1">
+          <div class="personal-name">${p.name}</div>
+          <div class="personal-rol">${style.rol}</div>
+          <div class="rank-badge">${medalStr} Puesto ${miRank} del equipo</div>
+        </div>
+        <div style="text-align:right">
+          <div class="personal-total-label">Mis comisiones</div>
+          <div class="personal-total">${fmt(p.total)}</div>
+        </div>
+      </div>
+
+      ${pacHtml}
+      ${planesHtml}
+      ${suplHtml}
+
+      <!-- Ranking equipo -->
+      <div class="card">
+        <div class="card-title">Ranking del equipo</div>
+        ${rankingHtml}
+      </div>
+
+      <!-- Bono PAC grupal -->
+      <div class="card">
+        <div class="card-title">Bono PAC del equipo</div>
+        <div class="prog-wrap">
+          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales · ${totalPacReal} vendidos en total</span><span>${pacGrupalPct}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${pacGrupalPct}%"></div></div>
+        </div>
+        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
+        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
+        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
+        ${bonoPac>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPac)} a repartir</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+      </div>
+
+      <!-- Suplementos equipo -->
+      <div class="card">
+        <div class="card-title">Suplementos del equipo</div>
+        <div class="prog-wrap">
+          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>Meta $550k: ${suplPct550}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
+        </div>
+        ${suplActivo?'<div class="ok-box">Comisiones individuales al 100% activadas</div>':`<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
+        <div style="margin-top:1rem">
+          <div class="prog-labels"><span>Bono grupal</span><span>Meta $700k: ${suplPct700}%</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:${suplPct700}%"></div></div>
+        </div>
+        <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
+        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
+        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
+        ${bonoSupl>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSupl)}</div>`:''}
+      </div>
+
+      <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
+    </div>
+    <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
+}
+
 function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, pacSiguiente, bonoSupl, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
   const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
   const suplPct550 = Math.min(Math.round(ventasSupl / 550000 * 100), 100);
   const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
-  const suplPct1M = Math.min(Math.round(ventasSupl / 1000000 * 100), 100);
   const mes = new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
   const suplActivo = ventasSupl >= 550000;
 
@@ -404,12 +583,9 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
         <div class="card-title">Suplementos del equipo</div>
         <div class="prog-wrap">
           <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>Meta $550k: ${suplPct550}%</span></div>
-          <div class="prog-track"><div class="prog-fill ${suplActivo ? 'green' : ''}" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
+          <div class="prog-track"><div class="prog-fill ${suplActivo?'green':''}" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
         </div>
-        ${suplActivo
-          ? '<div class="ok-box">Comisiones individuales al 100% activadas</div>'
-          : `<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`
-        }
+        ${suplActivo?'<div class="ok-box">Comisiones individuales al 100% activadas</div>':`<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
         <div style="margin-top:1rem">
           <div class="prog-labels"><span>Bono grupal</span><span>Meta $700k: ${suplPct700}%</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${suplPct700}%"></div></div>
@@ -427,15 +603,12 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPac, 
           <div class="bonus-row">
             <span style="font-size:0.8rem;color:rgba(255,255,255,0.7)">${t.info}</span>
             <span style="color:var(--amber);font-weight:600">${fmt(t.comision)}</span>
-          </div>
-        `).join('')}
+          </div>`).join('')}
         <div class="alert-box" style="margin-top:0.75rem">Verifica estas transferencias en tu banco y marca OK en la planilla</div>
-      </div>
-      ` : `
+      </div>` : `
       <div class="card" style="border-color:rgba(29,158,117,0.3)">
         <div class="card-title" style="color:var(--green)">✓ Todas las transferencias verificadas</div>
-      </div>
-      `}
+      </div>`}
 
       <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
