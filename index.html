@@ -269,6 +269,7 @@ async function loadData() {
       pacTotalReal:      getV(rows[i], 14),
       pacFaltanSig:      getV(rows[i], 15),
       ventasSuplPersona: getV(rows[i], 16),
+      comisionSupl:      getV(rows[i], 17),
     }));
 
     const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
@@ -351,6 +352,7 @@ function buildDetalle(p, ventasSuplReales) {
     <div class="detalle-titulo" style="margin-top:12px">Suplementos vendidos</div>
     <div class="info-row">Comision individual <span class="${suplActivo ? 'ok' : 'red'}">${suplActivo ? '100% activa' : '50% (equipo bajo $550k)'}</span></div>
     <div class="info-row">Tus ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
+    <div class="info-row">Tu comision suplementos <span class="ok">${fmt(p.comisionSupl)}</span></div>
     <div class="detalle-supl" style="margin-top:8px">
       ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
     </div>` : '';
@@ -456,6 +458,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPac, pacSig
         <div class="card-title">Mis suplementos</div>
         <div class="info-row">Comision individual <span class="${suplActivo ? 'ok' : 'red'}">${suplActivo ? '100% activa' : '50% (equipo bajo $550k)'}</span></div>
         <div class="info-row">Mis ventas supl este mes <span>${fmt(p.ventasSuplPersona)}</span></div>
+        <div class="info-row">Mi comision suplementos <span class="ok">${fmt(p.comisionSupl)}</span></div>
         <div style="margin-top:10px">
           ${p.suplTexto.split(',').map(s => s.trim() ? `<span class="supl-tag">${s.trim()}</span>` : '').join('')}
         </div>
