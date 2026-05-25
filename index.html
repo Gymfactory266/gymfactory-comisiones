@@ -247,6 +247,9 @@ try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY
 
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
+// Hojas posibles donde Google Forms guarda las ventas crudas.
+// Se usan para recalcular planes como "Anual" + "Tarjeta", evitando que queden en comisión 0.
+const RAW_SHEET_CANDIDATES = ['Respuestas de formulario 1', 'Form Responses 1', 'Ventas', 'Formulario'];
 
 const EMAIL_MAP = {
   'gonzaloescobarhidalgo89@gmail.com': null,
@@ -333,6 +336,111 @@ function getTxt(row, col) {
   try { return row.c[col]?.v || ''; } catch(e) { return ''; }
 }
 
+
+function normTxt(v) {
+  return String(v || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function detectPersona(v) {
+  const t = normTxt(v);
+  if (t.includes('massiel')) return 'Massiel';
+  if (t.includes('sara') || t.includes('sarah')) return 'Sara';
+  if (t.includes('camila') || t.includes('cami')) return 'Camila';
+  if (t.includes('luis')) return 'Luis';
+  if (t.includes('diego')) return 'Diego';
+  if (t.includes('javiera')) return 'Javiera';
+  return '';
+}
+
+function getRawCell(row, idx) {
+  try { return row.c[idx]?.v ?? ''; } catch(e) { return ''; }
+}
+
+function planFloorFactor(total, tipoPlan, persona) {
+  if (!total) return 0;
+  const isCamila = persona === 'Camila';
+  const primerPiso = (tipoPlan === 'pac') ? (isCamila ? 5 : 10) : (isCamila ? 2 : 3);
+  const bloquePosterior = (tipoPlan === 'pac') ? (isCamila ? 3 : 5) : 2;
+  if (total < primerPiso) return 0.5;
+  const pagados = primerPiso + Math.floor((total - primerPiso) / bloquePosterior) * bloquePosterior;
+  const sobrantes = total - pagados;
+  return (pagados + sobrantes * 0.5) / total;
+}
+
+async function fetchRawSalesStats(ventasSuplReales) {
+  for (const sheetName of RAW_SHEET_CANDIDATES) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+      const res = await fetch(url + '&t=' + Date.now());
+      const text = await res.text();
+      const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
+      if (!match) continue;
+      const json = JSON.parse(match[1]);
+      const rows = json.table.rows || [];
+      if (!rows.length) continue;
+
+      const stats = {};
+      Object.keys(PERSONAS).forEach(name => stats[name] = {
+        pacMensual:0, pacEstudiante:0, semTarjeta:0, semTransf:0, anuTarjeta:0, anuTransf:0,
+        pacTotalReal:0, ventasSuplPersona:0, suplBase:0, suplTexto:[]
+      });
+
+      for (const row of rows) {
+        const persona = detectPersona(getRawCell(row, 1));      // ¿Quién vendió?
+        if (!persona || !stats[persona]) continue;
+
+        const productoRaw = getRawCell(row, 2);                 // ¿Qué vendiste?
+        const pagoRaw = getRawCell(row, 6);                     // Cómo Pagó?
+        const producto = normTxt(productoRaw);
+        const pago = normTxt(pagoRaw);
+        const comisionFormulario = Number(getRawCell(row, 7)) || 0;
+        const s = stats[persona];
+
+        if (producto.includes('pac estudiante')) {
+          s.pacEstudiante++; s.pacTotalReal++;
+        } else if (producto.includes('pac mensual') || producto === 'pac' || producto.includes('mensual convertido a pac')) {
+          s.pacMensual++; s.pacTotalReal++;
+        } else if (producto.includes('semestral')) {
+          if (producto.includes('transfer') || pago.includes('transfer')) s.semTransf++;
+          else s.semTarjeta++;
+        } else if (producto.includes('anual')) {
+          // Corrección clave: si el formulario dice solo "Anual", se usa el método de pago.
+          if (producto.includes('transfer') || pago.includes('transfer')) s.anuTransf++;
+          else s.anuTarjeta++;
+        } else if (comisionFormulario > 0) {
+          s.suplBase += comisionFormulario;
+          s.suplTexto.push(String(productoRaw || '').trim());
+        }
+      }
+
+      const suplFactor = ventasSuplReales >= 550000 ? 1 : 0.5;
+      Object.entries(stats).forEach(([name, s]) => {
+        const tipo = ['Massiel','Sara','Camila'].includes(name) ? 'recepcion' : 'pt';
+        const pacBase = s.pacMensual * COM_PLANES.pacMensual + s.pacEstudiante * COM_PLANES.pacEstudiante;
+        const semTotal = s.semTarjeta + s.semTransf;
+        const semBase = s.semTarjeta * COM_PLANES.semestralTarjeta + s.semTransf * COM_PLANES.semestralTransf;
+        const anuTotal = s.anuTarjeta + s.anuTransf;
+        const anuBase = s.anuTarjeta * COM_PLANES.anualTarjeta + s.anuTransf * COM_PLANES.anualTransf;
+        s.comPlanes = tipo === 'pt' ? 0 :
+          pacBase * planFloorFactor(s.pacTotalReal, 'pac', name) +
+          semBase * planFloorFactor(semTotal, 'sem', name) +
+          anuBase * planFloorFactor(anuTotal, 'anu', name);
+        s.comisionSupl = s.suplBase * suplFactor;
+        s.suplTexto = [...new Set(s.suplTexto.filter(Boolean))].join(', ');
+      });
+      console.log('Comisiones recalculadas desde hoja cruda:', sheetName, stats);
+      return stats;
+    } catch(e) {
+      console.warn('No se pudo leer hoja cruda:', sheetName, e);
+    }
+  }
+  return null;
+}
+
 async function loadData() {
   try {
     const res = await fetch(URL_SHEET + '&t=' + Date.now());
@@ -343,7 +451,7 @@ async function loadData() {
     const rows = json.table.rows;
 
     const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
-    const data = names.map((name, i) => ({
+    let data = names.map((name, i) => ({
       name,
       comisiones:        getV(rows[i], 1),
       pacPagados:        getV(rows[i], 2),
@@ -365,12 +473,36 @@ async function loadData() {
     }));
 
     const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
-    const totalCom         = rows[6]  ? getV(rows[6], 5) : 0;
+    let totalCom           = rows[6]  ? getV(rows[6], 5) : 0;
     const totalPacReal     = rows[6]  ? getV(rows[6], 14) : 0;
     const bonoPacTotal     = rows[7]  ? getV(rows[7], 1) : 0;
     const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
     const bonoSuplTotal    = rows[9]  ? getV(rows[9], 1) : 0;
     const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
+    const rawStats = await fetchRawSalesStats(ventasSuplReales);
+    if (rawStats) {
+      data = data.map(p => {
+        const s = rawStats[p.name];
+        if (!s) return p;
+        const totalSinBonos = s.comPlanes + s.comisionSupl;
+        return {
+          ...p,
+          pacMensual: s.pacMensual,
+          pacEstudiante: s.pacEstudiante,
+          semTarjeta: s.semTarjeta,
+          semTransf: s.semTransf,
+          anuTarjeta: s.anuTarjeta,
+          anuTransf: s.anuTransf,
+          pacTotalReal: s.pacTotalReal,
+          ventasSuplPersona: p.ventasSuplPersona || 0,
+          comisionSupl: s.comisionSupl,
+          suplTexto: s.suplTexto || p.suplTexto,
+          comisiones: totalSinBonos,
+          total: totalSinBonos + (p.bonoPac || 0) + (p.bonoSupl || 0)
+        };
+      });
+      totalCom = data.reduce((acc, p) => acc + (p.total || 0), 0);
+    }
     const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
     const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
     const transfDetalle = [];
