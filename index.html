@@ -371,6 +371,82 @@ function planFloorFactor(total, tipoPlan, persona) {
   return (pagados + sobrantes * 0.5) / total;
 }
 
+
+// FIX GITHUB: recalcula comisiones de planes desde los conteos visibles de la hoja "Comisiones".
+// Esto evita que una venta tipo "Anual" + "Tarjeta" quede en $0 aunque Apps Script aún no haya corregido
+// la columna de comisión del formulario. La página usa los conteos: PAC, semestrales y anuales.
+function repeatAmount(count, amount) {
+  return Array.from({ length: Math.max(0, Number(count) || 0) }, () => amount);
+}
+
+function commissionByFloor(amounts, tipoPlan, persona) {
+  if (!amounts || !amounts.length) return 0;
+
+  const isCamila = persona === 'Camila';
+  const primerPiso = (tipoPlan === 'pac') ? (isCamila ? 5 : 10) : (isCamila ? 2 : 3);
+  const bloquePosterior = (tipoPlan === 'pac') ? (isCamila ? 3 : 5) : 2;
+
+  const total = amounts.length;
+  let pagados = 0;
+  let sobrantes = 0;
+
+  if (total >= primerPiso) {
+    pagados = primerPiso + Math.floor((total - primerPiso) / bloquePosterior) * bloquePosterior;
+    sobrantes = total - pagados;
+  } else {
+    sobrantes = total;
+  }
+
+  const full = amounts.slice(0, pagados).reduce((a, b) => a + b, 0);
+  const half = amounts.slice(pagados, pagados + sobrantes).reduce((a, b) => a + b * 0.5, 0);
+  return full + half;
+}
+
+function recalcPlanCommissionsFromCounts(person) {
+  const isRecepcion = ['Massiel', 'Sara', 'Camila'].includes(person.name);
+  if (!isRecepcion) {
+    person._pacCommission = 0;
+    person._semCommission = 0;
+    person._anuCommission = 0;
+    return person;
+  }
+
+  const pacAmounts = [
+    ...repeatAmount(person.pacMensual, COM_PLANES.pacMensual),
+    ...repeatAmount(person.pacEstudiante, COM_PLANES.pacEstudiante),
+  ];
+
+  const semAmounts = [
+    ...repeatAmount(person.semTarjeta, COM_PLANES.semestralTarjeta),
+    ...repeatAmount(person.semTransf, COM_PLANES.semestralTransf),
+  ];
+
+  const anuAmounts = [
+    ...repeatAmount(person.anuTarjeta, COM_PLANES.anualTarjeta),
+    ...repeatAmount(person.anuTransf, COM_PLANES.anualTransf),
+  ];
+
+  const pacCommission = commissionByFloor(pacAmounts, 'pac', person.name);
+  const semCommission = commissionByFloor(semAmounts, 'sem', person.name);
+  const anuCommission = commissionByFloor(anuAmounts, 'anu', person.name);
+
+  person._pacCommission = pacCommission;
+  person._semCommission = semCommission;
+  person._anuCommission = anuCommission;
+
+  // Total sin bonos = planes recalculados + suplementos.
+  // Si Apps Script dejó planes en $0, esto lo corrige en la web.
+  const totalSinBonos = pacCommission + semCommission + anuCommission + (Number(person.comisionSupl) || 0);
+  person.comisiones = totalSinBonos;
+  person.total = totalSinBonos + (Number(person.bonoPac) || 0) + (Number(person.bonoSupl) || 0);
+
+  return person;
+}
+
+function recalcAllPlanCommissionsFromCounts(data) {
+  return data.map(p => recalcPlanCommissionsFromCounts({ ...p }));
+}
+
 async function fetchRawSalesStats(ventasSuplReales) {
   for (const sheetName of RAW_SHEET_CANDIDATES) {
     try {
@@ -503,6 +579,12 @@ async function loadData() {
       });
       totalCom = data.reduce((acc, p) => acc + (p.total || 0), 0);
     }
+
+    // FIX GITHUB: aunque la hoja resumen o la columna "Comisión" traiga 0,
+    // recalculamos planes desde los conteos de PAC/Semestral/Anual para mostrar el valor correcto.
+    data = recalcAllPlanCommissionsFromCounts(data);
+    totalCom = data.reduce((acc, p) => acc + (p.total || 0), 0);
+
     const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
     const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
     const transfDetalle = [];
@@ -569,7 +651,7 @@ function buildDetalle(p, ventasSuplReales) {
     const semSobrantes = totalSem - semPagados;
     const semFaltan = totalSem < pisoBySem ? pisoBySem - totalSem : semSobrantes === 1 ? 1 : 0;
     const semPct = Math.min(Math.round(totalSem / pisoBySem * 100), 100);
-    const comSemTotal = p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf;
+    const comSemTotal = Number(p._semCommission ?? (p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf));
     semHtml = `
       <div class="detalle-titulo" style="margin-top:12px">Semestrales · ${fmt(comSemTotal)}</div>
       <div class="info-row">Piso: ${pisoBySem}, luego cada 2 <span style="color:#666">se pagan completos</span></div>
@@ -592,7 +674,7 @@ function buildDetalle(p, ventasSuplReales) {
     const anuSobrantes = totalAnu - anuPagados;
     const anuFaltan = totalAnu < pisoByAnu ? pisoByAnu - totalAnu : anuSobrantes === 1 ? 1 : 0;
     const anuPct = Math.min(Math.round(totalAnu / pisoByAnu * 100), 100);
-    const comAnuTotal = p.anuTarjeta * COM_PLANES.anualTarjeta + p.anuTransf * COM_PLANES.anualTransf;
+    const comAnuTotal = Number(p._anuCommission ?? (p.anuTarjeta * COM_PLANES.anualTarjeta + p.anuTransf * COM_PLANES.anualTransf));
     anuHtml = `
       <div class="detalle-titulo" style="margin-top:12px">Anuales · ${fmt(comAnuTotal)}</div>
       <div class="info-row">Piso: ${pisoByAnu}, luego cada 2 <span style="color:#666">se pagan completos</span></div>
@@ -694,7 +776,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
     const semSobrantes = totalSem - semPagados;
     const semFaltan = totalSem < pisoBySem ? pisoBySem - totalSem : semSobrantes === 1 ? 1 : 0;
     const semPct = Math.min(Math.round(totalSem / pisoBySem * 100), 100);
-    const comSemTotal = p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf;
+    const comSemTotal = Number(p._semCommission ?? (p.semTarjeta * COM_PLANES.semestralTarjeta + p.semTransf * COM_PLANES.semestralTransf));
     semHtml = totalSem > 0 ? `
       <div class="card">
         <div class="card-title">Mis semestrales · ${fmt(comSemTotal)}</div>
@@ -719,7 +801,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
     const anuSobrantes = totalAnu - anuPagados;
     const anuFaltan = totalAnu < pisoByAnu ? pisoByAnu - totalAnu : anuSobrantes === 1 ? 1 : 0;
     const anuPct = Math.min(Math.round(totalAnu / pisoByAnu * 100), 100);
-    const comAnuTotal = p.anuTarjeta * COM_PLANES.anualTarjeta + p.anuTransf * COM_PLANES.anualTransf;
+    const comAnuTotal = Number(p._anuCommission ?? (p.anuTarjeta * COM_PLANES.anualTarjeta + p.anuTransf * COM_PLANES.anualTransf));
     anuHtml = totalAnu > 0 ? `
       <div class="card">
         <div class="card-title">Mis anuales · ${fmt(comAnuTotal)}</div>
