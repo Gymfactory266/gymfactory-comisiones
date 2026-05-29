@@ -868,26 +868,11 @@ function refresh() {
 
 
 function switchGuia(tab, idx) {
-  document.querySelectorAll('.guias-tab').forEach((t,i) => {
-    t.classList.toggle('active', i === idx);
-  });
-  document.querySelectorAll('.guias-panel').forEach((p,i) => {
-    p.classList.toggle('active', i === idx);
-  });
-}
-
-}
-
-function switchGuia(tab, idx) {
   const keys = ['recepcion', 'pt', 'comisiones'];
   const iframes = ['iframe-recepcion', 'iframe-pt', 'iframe-comisiones'];
   document.querySelectorAll('.guias-tab').forEach((t,i) => t.classList.toggle('active', i === idx));
   document.querySelectorAll('.guias-panel').forEach((p,i) => p.classList.toggle('active', i === idx));
   loadGuia(keys[idx], iframes[idx]);
-}
-
-
-
 }
 
 
