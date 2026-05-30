@@ -160,6 +160,37 @@
   .acord-chev.open { transform: rotate(180deg); }
   .acord-body { display: none; padding: 0 10px 10px; }
   .acord-body.open { display: block; }
+
+  /* ===== PANEL PROSPECTOS ===== */
+  .prosp-section { margin-top: 1.5rem; }
+  .prosp-section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; color: var(--red); margin-bottom: 0.75rem; text-transform: uppercase; }
+  .prosp-add-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
+  .prosp-add-btn:hover { opacity: 0.9; }
+  .prosp-form { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: none; }
+  .prosp-form.open { display: block; }
+  .prosp-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 10px; }
+  .prosp-input:focus { outline: none; border-color: var(--red); }
+  .prosp-select { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 10px; }
+  .prosp-save-btn { width: 100%; background: var(--green); color: white; border: none; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+  .prosp-card { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 1rem; margin-bottom: 8px; }
+  .prosp-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .prosp-nombre { font-weight: 700; font-size: 0.95rem; }
+  .prosp-canal { font-size: 0.72rem; color: #888; margin-top: 2px; }
+  .prosp-consulta { font-size: 0.8rem; color: #aaa; margin-bottom: 10px; line-height: 1.4; }
+  .prosp-footer { display: flex; justify-content: space-between; align-items: center; }
+  .prosp-responsable { font-size: 0.72rem; color: #666; }
+  .prosp-fecha { font-size: 0.72rem; color: #555; }
+  .prosp-estado-btn { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .estado-pendiente { background: rgba(239,159,39,0.2); color: var(--amber); }
+  .estado-dia1 { background: rgba(192,57,43,0.2); color: var(--red); }
+  .estado-dia3 { background: rgba(192,57,43,0.3); color: var(--red); }
+  .estado-dia7 { background: rgba(192,57,43,0.4); color: #ff6b6b; }
+  .estado-cerrado { background: rgba(29,158,117,0.2); color: var(--green); }
+  .estado-frio { background: var(--gray); color: #666; }
+  .prosp-del-btn { background: none; border: none; color: #444; cursor: pointer; font-size: 0.85rem; padding: 2px 6px; }
+  .prosp-del-btn:hover { color: var(--red); }
+  .prosp-empty { text-align: center; color: #555; font-size: 0.85rem; padding: 2rem 0; }
+
 </style>
 </head>
 <body>
@@ -266,6 +297,8 @@ function showApp() {
   if (currentUserPersona) document.getElementById('hdr-subtitle').textContent = 'Mis comisiones · ' + currentUserPersona;
   loadData();
   setTimeout(initGuias, 800);
+  const tipoUsuario = ['Massiel','Sara','Camila'].includes(currentUserPersona) ? 'recepcion' : 'pt';
+  if (tipoUsuario !== 'pt') setTimeout(cargarProspectos, 1000);
 }
 
 db.auth.getSession().then(async ({ data: { session } }) => {
@@ -559,6 +592,22 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
   }
 
   let suplHtml = '';
+  const prospectosHtml = `
+      <div class="prosp-section">
+        <div class="prosp-section-title">📋 Prospectos en seguimiento</div>
+        <button class="prosp-add-btn" onclick="toggleProspForm()">➕ Nuevo prospecto</button>
+        <div class="prosp-form" id="prosp-form">
+          <input class="prosp-input" id="prosp-nombre" placeholder="Nombre del prospecto" type="text">
+          <select class="prosp-select" id="prosp-canal">
+            <option value="WhatsApp">WhatsApp</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Presencial">Presencial</option>
+          </select>
+          <input class="prosp-input" id="prosp-consulta" placeholder="¿Qué preguntó? (opcional)" type="text">
+          <button class="prosp-save-btn" id="prosp-save-btn" onclick="guardarProspecto()">Guardar prospecto</button>
+        </div>
+        <div id="prosp-lista"></div>
+      </div>`;
   if (p.suplTexto) {
     suplHtml = `
       <div class="card">
@@ -592,6 +641,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
       ${semHtml}
       ${anuHtml}
       ${suplHtml}
+      ${tipo !== "pt" ? prospectosHtml : ""}
 
       <div class="card">
         <div class="card-title">Ranking del equipo</div>
@@ -975,6 +1025,104 @@ function toggleAcord(id) {
   if (!body) return;
   body.classList.toggle('open');
   if (chev) chev.classList.toggle('open');
+}
+
+
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwo2WGGXoiKr_3Xy9BEqL3yhdNoD57j0TFD1nJbmBDQqCBDUtv9QaYpRh1ho4WUgVk3/exec';
+
+function toggleProspForm() {
+  const f = document.getElementById('prosp-form');
+  f.classList.toggle('open');
+}
+
+async function guardarProspecto() {
+  const nombre = document.getElementById('prosp-nombre').value.trim();
+  const canal = document.getElementById('prosp-canal').value;
+  const consulta = document.getElementById('prosp-consulta').value.trim();
+  const responsable = currentUserPersona || 'Recepcion';
+  if (!nombre) { alert('Ingresa el nombre del prospecto'); return; }
+  const btn = document.getElementById('prosp-save-btn');
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+  try {
+    await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'agregar', nombre, canal, consulta, responsable }),
+    });
+    document.getElementById('prosp-nombre').value = '';
+    document.getElementById('prosp-consulta').value = '';
+    document.getElementById('prosp-form').classList.remove('open');
+    cargarProspectos();
+  } catch(e) { alert('Error al guardar'); }
+  btn.textContent = 'Guardar prospecto';
+  btn.disabled = false;
+}
+
+async function cambiarEstado(id, estadoActual) {
+  const estados = ['Pendiente', 'Seguimiento Día 1', 'Seguimiento Día 3', 'Seguimiento Día 7', 'Cerrado', 'Frío'];
+  const idx = estados.indexOf(estadoActual);
+  const siguiente = estados[(idx + 1) % estados.length];
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'actualizar', id, estado: siguiente }),
+  });
+  cargarProspectos();
+}
+
+async function eliminarProspecto(id) {
+  if (!confirm('¿Eliminar este prospecto?')) return;
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'eliminar', id }),
+  });
+  cargarProspectos();
+}
+
+function estadoClass(estado) {
+  if (estado === 'Pendiente') return 'estado-pendiente';
+  if (estado === 'Seguimiento Día 1') return 'estado-dia1';
+  if (estado === 'Seguimiento Día 3') return 'estado-dia3';
+  if (estado === 'Seguimiento Día 7') return 'estado-dia7';
+  if (estado === 'Cerrado') return 'estado-cerrado';
+  return 'estado-frio';
+}
+
+async function cargarProspectos() {
+  const cont = document.getElementById('prosp-lista');
+  if (!cont) return;
+  cont.innerHTML = '<div class="prosp-empty">Cargando...</div>';
+  try {
+    const res = await fetch(WEBAPP_URL + '?accion=listar');
+    const data = await res.json();
+    if (!data.prospectos || data.prospectos.length === 0) {
+      cont.innerHTML = '<div class="prosp-empty">No hay prospectos registrados</div>';
+      return;
+    }
+    // Filtrar cerrados y fríos al fondo
+    const activos = data.prospectos.filter(p => p.estado !== 'Cerrado' && p.estado !== 'Frío');
+    const otros = data.prospectos.filter(p => p.estado === 'Cerrado' || p.estado === 'Frío');
+    const todos = [...activos, ...otros];
+    cont.innerHTML = todos.map(p => `
+      <div class="prosp-card">
+        <div class="prosp-card-header">
+          <div>
+            <div class="prosp-nombre">${p.nombre}</div>
+            <div class="prosp-canal">${p.canal} · ${p.responsable}</div>
+          </div>
+          <button class="prosp-del-btn" onclick="eliminarProspecto('${p.id}')">✕</button>
+        </div>
+        <div class="prosp-consulta">${p.consulta || 'Sin detalle'}</div>
+        <div class="prosp-footer">
+          <div>
+            <button class="prosp-estado-btn ${estadoClass(p.estado)}" onclick="cambiarEstado('${p.id}', '${p.estado}')">${p.estado}</button>
+          </div>
+          <div class="prosp-fecha">${p.fecha}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    cont.innerHTML = '<div class="prosp-empty">Error al cargar prospectos</div>';
+  }
 }
 
 setInterval(loadData, 120000);
