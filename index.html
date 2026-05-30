@@ -230,6 +230,250 @@
   .prosp-cerrar-btn { background: rgba(29,158,117,0.9); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; display: none; }
   .prosp-cerrar-btn.open { display: block; width: 100%; margin-bottom: 6px; }
   .prosp-venta-tag { font-size: 0.72rem; font-weight: 700; color: var(--green); background: rgba(29,158,117,0.15); border: 1px solid rgba(29,158,117,0.3); border-radius: 6px; padding: 3px 8px; display: inline-block; margin-top: 4px; }
+
+  /* ===== SECCIONES PREMIUM ===== */
+  .section-block {
+    background: var(--dark);
+    border: 1px solid #242424;
+    border-radius: 16px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .section-block:hover { border-color: #333; }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header:hover { background: rgba(255,255,255,0.02); }
+  
+  .section-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .section-title-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ccc;
+  }
+  .section-subtitle {
+    font-size: 0.7rem;
+    color: #555;
+    margin-top: 1px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .section-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.03em;
+  }
+  .section-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .section-chev {
+    font-size: 0.65rem;
+    color: #444;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+  .section-chev.open { transform: rotate(180deg); }
+  
+  .section-body {
+    display: none;
+    border-top: 1px solid #1e1e1e;
+    padding: 16px 18px;
+  }
+  .section-body.open { display: block; }
+
+  /* Hero premium */
+  .hero-block {
+    background: linear-gradient(135deg, #1a1a1a 0%, #111 100%);
+    border: 1px solid #242424;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-block::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(192,57,43,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .hero-avatar-wrap { position: relative; }
+  .hero-avatar {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    border: 2px solid rgba(255,255,255,0.08);
+  }
+  .hero-info { flex: 1; }
+  .hero-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.05em; line-height: 1; }
+  .hero-rol { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 3px; }
+  .hero-rank-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #2a2a2a;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    margin-top: 6px;
+    color: #888;
+  }
+  .hero-total-block { text-align: right; }
+  .hero-total-label { font-size: 0.65rem; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+  .hero-total { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--green); letter-spacing: 0.02em; line-height: 1; }
+
+  /* Métricas rápidas en hero */
+  .hero-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .hero-metric {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .hero-metric-label { font-size: 0.62rem; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 3px; }
+  .hero-metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+
+  /* Divisor de secciones */
+  .section-divider {
+    font-size: 0.6rem;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    padding: 8px 4px 4px;
+  }
+
+  /* Info rows mejoradas */
+  .info-row-v2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+  }
+  .info-row-v2:last-child { border-bottom: none; }
+  .info-row-v2 .val { font-weight: 600; }
+  .info-row-v2 .val.green { color: var(--green); }
+  .info-row-v2 .val.red { color: var(--red); }
+  .info-row-v2 .val.amber { color: var(--amber); }
+  .info-row-v2 .val.white { color: var(--white); }
+
+  /* Progress bar premium */
+  .prog-v2 { margin: 10px 0 4px; }
+  .prog-v2-track { background: #1e1e1e; border-radius: 4px; height: 5px; overflow: hidden; }
+  .prog-v2-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+
+  /* Admin metrics */
+  .admin-hero {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+    border: 1px solid #242424;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .admin-hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(192,57,43,0.08) 0%, transparent 70%);
+  }
+  .admin-hero-label { font-size: 0.62rem; color: #444; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 12px; font-weight: 700; }
+  .admin-metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .admin-metric-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid #1e1e1e;
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .admin-metric-label { font-size: 0.65rem; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-metric-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 0.02em; line-height: 1; }
+
+  /* Ranking premium */
+  .rank-row-v2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 8px;
+    padding-left: 4px;
+  }
+  .rank-row-v2:last-child { border-bottom: none; }
+  .rank-row-v2.es-mio { background: rgba(255,255,255,0.03); padding-left: 8px; }
+  .rank-pos { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; min-width: 28px; text-align: center; }
+  .rank-av-v2 {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .rank-data { min-width: 70px; }
+  .rank-nombre { font-weight: 700; font-size: 0.85rem; }
+  .rank-rol-v2 { font-size: 0.65rem; color: #555; margin-top: 1px; }
+  .rank-bar-v2 { flex: 1; }
+  .rank-bar-track { background: #1e1e1e; border-radius: 3px; height: 4px; overflow: hidden; }
+  .rank-bar-prog { height: 100%; border-radius: 3px; transition: width 1s ease; }
+  .rank-com-v2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; color: var(--green); min-width: 70px; text-align: right; }
+
+  /* Bonus rows premium */
+  .bonus-row-v2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+  }
+  .bonus-row-v2:last-child { border-bottom: none; }
+
 </style>
 </head>
 <body>
@@ -670,148 +914,289 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
 
   document.getElementById('main').innerHTML = `
     <div class="content">
-      <div class="personal-hero">
-        <div class="personal-avatar" style="background:${style.bg};color:${style.color};width:64px;height:64px;font-size:1.8rem">${p.name[0]}</div>
-        <div style="flex:1">
-          <div class="personal-name">${p.name}</div>
-          <div class="personal-rol">${style.rol}</div>
-          <div class="rank-badge">${medalStr} Puesto ${miRank} del equipo</div>
+
+      <!-- HERO -->
+      <div class="hero-block">
+        <div class="hero-top">
+          <div class="hero-avatar-wrap">
+            <div class="hero-avatar" style="background:${style.bg};color:${style.color}">${p.name[0]}</div>
+          </div>
+          <div class="hero-info">
+            <div class="hero-name">${p.name}</div>
+            <div class="hero-rol">${style.rol}</div>
+            <div class="hero-rank-badge">${medalStr} Puesto ${miRank} del equipo</div>
+          </div>
+          <div class="hero-total-block">
+            <div class="hero-total-label">Mis comisiones</div>
+            <div class="hero-total">${fmt(p.total)}</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div class="personal-total-label">Mis comisiones</div>
-          <div class="personal-total">${fmt(p.total)}</div>
+        ${tipo !== 'pt' ? `
+        <div class="hero-metrics">
+          <div class="hero-metric">
+            <div class="hero-metric-label">PAC vendidos</div>
+            <div class="hero-metric-val" style="color:var(--amber)">${p.pacTotalReal}</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">Semestrales</div>
+            <div class="hero-metric-val" style="color:var(--green)">${p.semTarjeta + p.semTransf}</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">Anuales</div>
+            <div class="hero-metric-val" style="color:var(--green)">${p.anuTarjeta + p.anuTransf}</div>
+          </div>
+        </div>` : `
+        <div class="hero-metrics">
+          <div class="hero-metric">
+            <div class="hero-metric-label">Suplementos vendidos</div>
+            <div class="hero-metric-val" style="color:var(--amber)">${fmt(p.ventasSuplPersona)}</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">Comisión supl</div>
+            <div class="hero-metric-val" style="color:var(--green)">${fmt(p.comisionSupl)}</div>
+          </div>
+          <div class="hero-metric">
+            <div class="hero-metric-label">Comisión supl</div>
+            <div class="hero-metric-val" style="color:${ventasSupl >= 550000 ? 'var(--green)' : 'var(--red)'}">${ventasSupl >= 550000 ? '100%' : '50%'}</div>
+          </div>
+        </div>`}
+      </div>
+
+      ${p.bonoPac > 0 || p.bonoSupl > 0 ? `
+      <!-- BONOS ACTIVOS -->
+      <div class="section-block" style="border-color:rgba(29,158,117,0.3)">
+        <div class="section-header" onclick="toggleSec('sec-bonos')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(29,158,117,0.15);color:var(--green)">🎉</div>
+            <div>
+              <div class="section-title-text">Bonos grupales activados</div>
+              <div class="section-subtitle">Tu parte proporcional este mes</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-value" style="color:var(--green)">${fmt(p.bonoPac + p.bonoSupl)}</span>
+            <span class="section-chev" id="chev-sec-bonos">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="sec-bonos">
+          ${p.bonoPac > 0 ? `<div class="info-row-v2">Bono PAC (proporcional) <span class="val green">${fmt(p.bonoPac)}</span></div>` : ''}
+          ${p.bonoSupl > 0 ? `<div class="info-row-v2">Bono suplementos (proporcional) <span class="val green">${fmt(p.bonoSupl)}</span></div>` : ''}
+        </div>
+      </div>` : ''}
+
+      ${tipo !== 'pt' ? `
+      <!-- COMISIONES DEL MES -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-com')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(192,57,43,0.15);color:var(--red)">💳</div>
+            <div>
+              <div class="section-title-text">Mis comisiones del mes</div>
+              <div class="section-subtitle">PAC · Semestrales · Anuales · Suplementos</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-value" style="color:var(--white)">${fmt(p.comisiones)}</span>
+            <span class="section-chev" id="chev-sec-com">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="sec-com">
+          ${pacHtml}${semHtml}${anuHtml}${suplHtml}
+        </div>
+      </div>` : `
+      <!-- SUPLEMENTOS PT -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-supl-pt')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(192,57,43,0.15);color:var(--red)">💊</div>
+            <div>
+              <div class="section-title-text">Mis suplementos</div>
+              <div class="section-subtitle">${fmt(p.ventasSuplPersona)} vendidos este mes</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-value" style="color:var(--green)">${fmt(p.comisionSupl)}</span>
+            <span class="section-chev" id="chev-sec-supl-pt">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="sec-supl-pt">
+          ${suplHtml}
+        </div>
+      </div>`}
+
+      <!-- PROSPECTOS (solo recepción) -->
+      ${tipo !== 'pt' ? prospectosHtml : ''}
+
+      <!-- RANKING -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-ranking')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(239,159,39,0.15);color:var(--amber)">🏆</div>
+            <div>
+              <div class="section-title-text">Ranking del equipo</div>
+              <div class="section-subtitle">Puesto ${miRank} de ${sorted.length}</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-chev" id="chev-sec-ranking">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="sec-ranking">
+          ${sorted.map((d, i) => {
+            const st = PERSONAS[d.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
+            const esMio = d.name === p.name;
+            const maxC = Math.max(...sorted.map(x => x.total), 1);
+            const pct = Math.round(d.total / maxC * 100) || 0;
+            return `<div class="rank-row-v2 ${esMio ? 'es-mio' : ''}" style="${esMio ? '' : 'opacity:0.45'}">
+              <div class="rank-pos" style="color:${st.color}">${d.total>0?(medals[i]||'#'+(i+1)):'-'}</div>
+              <div class="rank-av-v2" style="background:${st.bg};color:${st.color}">${d.name[0]}</div>
+              <div class="rank-data">
+                <div class="rank-nombre">${d.name}${esMio?' 👈':''}</div>
+                <div class="rank-rol-v2">${st.rol}</div>
+              </div>
+              <div class="rank-bar-v2"><div class="rank-bar-track"><div class="rank-bar-prog" style="width:${pct}%;background:${st.color}"></div></div></div>
+              <div class="rank-com-v2">${fmt(d.total)}</div>
+            </div>`;
+          }).join('')}
         </div>
       </div>
 
-      ${bonosHtml(p)}
-      ${pacHtml}
-      ${semHtml}
-      ${anuHtml}
-      ${suplHtml}
-      ${tipo !== "pt" ? prospectosHtml : ""}
-
-      <div class="card">
-        <div class="card-title">Ranking del equipo</div>
-        ${rankingHtml}
-      </div>
-
-      <div class="card">
-        <div class="card-title">Bono PAC del equipo</div>
-        <div class="prog-wrap">
-          <div class="prog-labels"><span>${totalPacGrupal} PAC grupales · ${totalPacReal} vendidos en total</span><span>${pacGrupalPct}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${pacGrupalPct}%"></div></div>
-        </div>
-        <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
-        <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
-        <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
-        ${bonoPacTotal>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPacTotal)} — tu parte: ${fmt(p.bonoPac)}</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
-      </div>
-
-      <div class="card">
-        <div class="card-title">Suplementos del equipo</div>
-        <div class="prog-wrap">
-          <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>Meta $550k: ${suplPct550}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
-        </div>
-        ${suplActivo?'<div class="ok-box">Comisiones individuales al 100% activadas</div>':`<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
-        <div style="margin-top:1rem">
-          <div class="prog-labels"><span>Bono grupal</span><span>Meta $700k: ${suplPct700}%</span></div>
-          <div class="prog-track"><div class="prog-fill" style="width:${suplPct700}%"></div></div>
-        </div>
-        <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
-        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
-        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
-        ${bonoSuplTotal>0?`<div class="ok-box">Bono suplementos activado — tu parte: ${fmt(p.bonoSupl)}</div>`:''}
-      </div>
-      
-      <div class="guias-section">
-        <div class="guias-section-title">&#128203; Guias de venta</div>
-
-        <!-- TARJETAS BOLSILLO -->
-        <div class="acord-group">
-          <div class="acord-group-label">Tarjetas de bolsillo — imprimir y plastificar</div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-tar-rec')">
-              <span>Recepción</span><span class="acord-chev" id="chev-ac-tar-rec">▼</span>
-            </div>
-            <div class="acord-body" id="ac-tar-rec">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir en pantalla completa</button>
-              <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar HTML</button>
+      <!-- BONO PAC GRUPAL -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-bono-pac')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">🎯</div>
+            <div>
+              <div class="section-title-text">Bono PAC del equipo</div>
+              <div class="section-subtitle">${totalPacGrupal} PAC grupales · ${totalPacReal} vendidos</div>
             </div>
           </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-tar-pt')">
-              <span>Profesores / PT</span><span class="acord-chev" id="chev-ac-tar-pt">▼</span>
-            </div>
-            <div class="acord-body" id="ac-tar-pt">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir en pantalla completa</button>
-              <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar HTML</button>
-            </div>
+          <div class="section-right">
+            ${bonoPacTotal > 0 ? `<span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">✓ Activado</span>` : `<span class="section-badge" style="background:rgba(239,159,39,0.12);color:var(--amber)">Faltan ${50 - totalPacGrupal < 0 ? 0 : 50 - totalPacGrupal}</span>`}
+            <span class="section-chev" id="chev-sec-bono-pac">▼</span>
           </div>
         </div>
+        <div class="section-body" id="sec-bono-pac">
+          <div class="prog-v2">
+            <div class="prog-v2-track"><div class="prog-v2-fill" style="width:${pacGrupalPct}%;background:var(--red)"></div></div>
+          </div>
+          <div style="margin-top:12px">
+            <div class="bonus-row-v2"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
+          </div>
+          ${bonoPacTotal>0?`<div class="ok-box" style="margin-top:10px">Bono activado: ${fmt(bonoPacTotal)} — tu parte: ${fmt(p.bonoPac)}</div>`:`<div class="alert-box" style="margin-top:10px">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+        </div>
+      </div>
 
-        <!-- GUIAS COMPLETAS -->
-        <div class="acord-group" style="margin-top:1rem">
-          <div class="acord-group-label">Guías completas — documentos</div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-rec')">
-              <span>Guía Recepción</span><span class="acord-chev" id="chev-ac-rec">▼</span>
-            </div>
-            <div class="acord-body" id="ac-rec">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar</button>
+      <!-- SUPLEMENTOS EQUIPO -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-supl-eq')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(29,158,117,0.12);color:var(--green)">💊</div>
+            <div>
+              <div class="section-title-text">Suplementos del equipo</div>
+              <div class="section-subtitle">${fmt(ventasSupl)} vendidos este mes</div>
             </div>
           </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-pro')">
-              <span>Guía Profesores</span><span class="acord-chev" id="chev-ac-pro">▼</span>
-            </div>
-            <div class="acord-body" id="ac-pro">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar</button>
-            </div>
+          <div class="section-right">
+            ${suplActivo ? `<span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">100% activo</span>` : `<span class="section-badge" style="background:rgba(192,57,43,0.12);color:var(--red)">50%</span>`}
+            <span class="section-chev" id="chev-sec-supl-eq">▼</span>
           </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-con')">
-              <span>Protocolo Conjunto</span><span class="acord-chev" id="chev-ac-con">▼</span>
-            </div>
-            <div class="acord-body" id="ac-con">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar</button>
-            </div>
+        </div>
+        <div class="section-body" id="sec-supl-eq">
+          <div class="prog-v2">
+            <div class="prog-v2-track"><div class="prog-v2-fill" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
           </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-pre')">
-              <span>Servicios Premium</span><span class="acord-chev" id="chev-ac-pre">▼</span>
-            </div>
-            <div class="acord-body" id="ac-pre">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
-            </div>
+          ${suplActivo?'<div class="ok-box" style="margin:10px 0">Comisiones individuales al 100% activadas</div>':`<div class="alert-box" style="margin:10px 0">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
+          <div class="prog-v2" style="margin-top:8px">
+            <div class="prog-v2-track"><div class="prog-v2-fill" style="width:${suplPct700}%;background:var(--amber)"></div></div>
           </div>
+          <div style="margin-top:10px">
+            <div class="bonus-row-v2"><span>$700k–$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>$850k–$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
+          </div>
+          ${bonoSuplTotal>0?`<div class="ok-box" style="margin-top:10px">Bono activado — tu parte: ${fmt(p.bonoSupl)}</div>`:''}
+        </div>
+      </div>
 
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac-seg')">
-              <span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac-seg">▼</span>
+      <!-- GUÍAS -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('sec-guias')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(255,255,255,0.05);color:#888">📖</div>
+            <div>
+              <div class="section-title-text">Guías de venta</div>
+              <div class="section-subtitle">Protocolos · Tarjetas · Documentos</div>
             </div>
-            <div class="acord-body" id="ac-seg">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
+          </div>
+          <div class="section-right">
+            <span class="section-chev" id="chev-sec-guias">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="sec-guias">
+          <div class="acord-group">
+            <div class="acord-group-label">Tarjetas de bolsillo</div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-tar-rec')"><span>Recepción</span><span class="acord-chev" id="chev-ac-tar-rec">▼</span></div>
+              <div class="acord-body" id="ac-tar-rec">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-tar-pt')"><span>Profesores / PT</span><span class="acord-chev" id="chev-ac-tar-pt">▼</span></div>
+              <div class="acord-body" id="ac-tar-pt">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar</button>
+              </div>
+            </div>
+          </div>
+          <div class="acord-group" style="margin-top:1rem">
+            <div class="acord-group-label">Guías completas</div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-g-rec')"><span>Guía Recepción</span><span class="acord-chev" id="chev-ac-g-rec">▼</span></div>
+              <div class="acord-body" id="ac-g-rec">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-g-pro')"><span>Guía Profesores</span><span class="acord-chev" id="chev-ac-g-pro">▼</span></div>
+              <div class="acord-body" id="ac-g-pro">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-g-con')"><span>Protocolo Conjunto</span><span class="acord-chev" id="chev-ac-g-con">▼</span></div>
+              <div class="acord-body" id="ac-g-con">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-g-pre')"><span>Servicios Premium</span><span class="acord-chev" id="chev-ac-g-pre">▼</span></div>
+              <div class="acord-body" id="ac-g-pre">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac-g-seg')"><span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac-g-seg">▼</span></div>
+              <div class="acord-body" id="ac-g-seg">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
+              </div>
             </div>
           </div>
         </div>
-
       </div>
-</div>
 
-      <div class="admin-prosp-section">
-        <div class="guias-section-title">👥 Seguimiento de prospectos</div>
-        <div id="admin-prosp-lista"><div class="prosp-empty">Cargando...</div></div>
-      </div>
-<button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
+      <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
-  // Cargar prospectos para recepcionistas
   if (tipo !== 'pt') setTimeout(cargarProspectos, 400);
 }
 
@@ -826,16 +1211,45 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
 
   document.getElementById('main').innerHTML = `
     <div class="content">
-      <div class="metrics">
-        <div class="metric"><div class="metric-label">Comisiones equipo</div><div class="metric-val white">${fmt(totalCom)}</div></div>
-        <div class="metric"><div class="metric-label">PAC grupales</div><div class="metric-val amber">${totalPacGrupal}</div></div>
-        <div class="metric"><div class="metric-label">Bono PAC total</div><div class="metric-val ${bonoPacTotal>0?'green':'red'}">${fmt(bonoPacTotal)}</div></div>
-        <div class="metric"><div class="metric-label">Bono supl total</div><div class="metric-val ${bonoSuplTotal>0?'green':'red'}">${fmt(bonoSuplTotal)}</div></div>
+
+      <!-- ADMIN HERO -->
+      <div class="admin-hero">
+        <div class="admin-hero-label">Panel de control · ${mes}</div>
+        <div class="admin-metrics-grid">
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Comisiones equipo</div>
+            <div class="admin-metric-val white">${fmt(totalCom)}</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">PAC grupales</div>
+            <div class="admin-metric-val" style="color:var(--amber)">${totalPacGrupal}</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Bono PAC total</div>
+            <div class="admin-metric-val" style="color:${bonoPacTotal>0?'var(--green)':'var(--red)'}">${fmt(bonoPacTotal)}</div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-label">Bono supl total</div>
+            <div class="admin-metric-val" style="color:${bonoSuplTotal>0?'var(--green)':'var(--red)'}">${fmt(bonoSuplTotal)}</div>
+          </div>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Ranking comisiones · ${mes}</div>
-        <p class="hint">Toca una persona para ver el detalle</p>
+      <!-- RANKING -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-ranking')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(239,159,39,0.15);color:var(--amber)">🏆</div>
+            <div>
+              <div class="section-title-text">Ranking comisiones</div>
+              <div class="section-subtitle">${mes} · Toca para ver detalle</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <span class="section-chev" id="chev-adm-ranking">▼</span>
+          </div>
+        </div>
+        <div class="section-body open" id="adm-ranking">
         ${sorted.map((p, i) => {
           const pct = Math.round(p.total/maxCom*100)||0;
           const style = PERSONAS[p.name] || {color:'#888',bg:'rgba(136,136,136,0.15)',rol:'Equipo'};
@@ -855,10 +1269,26 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
               ${buildDetalle(p, ventasSupl)}
             </div>`;
         }).join('')}
+        </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Bono PAC del equipo</div>
+      <!-- BONO PAC -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-bono-pac')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">🎯</div>
+            <div>
+              <div class="section-title-text">Bono PAC del equipo</div>
+              <div class="section-subtitle">${totalPacGrupal} grupales · ${totalPacReal} vendidos</div>
+            </div>
+          </div>
+          <div class="section-right">
+            ${bonoPacTotal > 0 ? '<span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">✓ Activado</span>' : '<span class="section-badge" style="background:rgba(239,159,39,0.12);color:var(--amber)">Sin activar</span>'}
+            <span class="section-chev" id="chev-adm-bono-pac">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-bono-pac">
+          <div class="prog-wrap">
         <div class="prog-wrap">
           <div class="prog-labels"><span>${totalPacGrupal} PAC grupales · ${totalPacReal} vendidos en total</span><span>${pacGrupalPct}%</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${pacGrupalPct}%"></div></div>
@@ -866,11 +1296,27 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
         <div class="bonus-row"><span>50 PAC → bono $20.000</span><span>${totalPacGrupal>=50?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-warn">Faltan '+(50-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>60 PAC → bono $30.000</span><span>${totalPacGrupal>=60?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(60-totalPacGrupal)+'</span>'}</span></div>
         <div class="bonus-row"><span>70+ PAC → bono $45.000</span><span>${totalPacGrupal>=70?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+(70-totalPacGrupal)+'</span>'}</span></div>
-        ${bonoPacTotal>0?`<div class="ok-box">Bono PAC activado: ${fmt(bonoPacTotal)} repartido proporcionalmente</div>`:`<div class="alert-box">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+          ${bonoPacTotal>0?`<div class="ok-box" style="margin-top:8px">Bono PAC activado: ${fmt(bonoPacTotal)} repartido proporcionalmente</div>`:`<div class="alert-box" style="margin-top:8px">${pacSiguiente||'Sigan vendiendo PAC para activar el bono'}</div>`}
+        </div>
       </div>
 
-      <div class="card">
-        <div class="card-title">Suplementos del equipo</div>
+      <!-- SUPLEMENTOS -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-supl')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(29,158,117,0.12);color:var(--green)">💊</div>
+            <div>
+              <div class="section-title-text">Suplementos del equipo</div>
+              <div class="section-subtitle">${fmt(ventasSupl)} vendidos este mes</div>
+            </div>
+          </div>
+          <div class="section-right">
+            ${suplActivo ? '<span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">100% activo</span>' : '<span class="section-badge" style="background:rgba(192,57,43,0.12);color:var(--red)">50%</span>'}
+            <span class="section-chev" id="chev-adm-supl">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-supl">
+          <div class="prog-wrap">
         <div class="prog-wrap">
           <div class="prog-labels"><span>${fmt(ventasSupl)} vendidos</span><span>Meta $550k: ${suplPct550}%</span></div>
           <div class="prog-track"><div class="prog-fill ${suplActivo?'green':''}" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
@@ -883,108 +1329,135 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
         <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
         <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
-        ${bonoSuplTotal>0?`<div class="ok-box">Bono suplementos activado: ${fmt(bonoSuplTotal)} repartido proporcionalmente</div>`:''}
+          ${bonoSuplTotal>0?`<div class="ok-box" style="margin-top:8px">Bono suplementos activado: ${fmt(bonoSuplTotal)} repartido proporcionalmente</div>`:''}
+        </div>
       </div>
 
-      ${transferenciasPend > 0 ? `
-      <div class="card" style="border-color:rgba(239,159,39,0.4)">
-        <div class="card-title" style="color:var(--amber)">⚠ Transferencias pendientes de verificar (${transferenciasPend})</div>
-        ${transfDetalle.map(t => `
-          <div class="bonus-row">
-            <span style="font-size:0.8rem;color:rgba(255,255,255,0.7)">${t.info}</span>
-            <span style="color:var(--amber);font-weight:600">${fmt(t.comision)}</span>
-          </div>`).join('')}
-        <div class="alert-box" style="margin-top:0.75rem">Verifica estas transferencias en tu banco y marca OK en la planilla</div>
-      </div>` : `
-      <div class="card" style="border-color:rgba(29,158,117,0.3)">
-        <div class="card-title" style="color:var(--green)">✓ Todas las transferencias verificadas</div>
-      </div>`}
+      <!-- TRANSFERENCIAS -->
+      <div class="section-block" style="${transferenciasPend > 0 ? 'border-color:rgba(239,159,39,0.35)' : 'border-color:rgba(29,158,117,0.2)'}">
+        <div class="section-header" onclick="toggleSec('adm-transf')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:${transferenciasPend > 0 ? 'rgba(239,159,39,0.15);color:var(--amber)' : 'rgba(29,158,117,0.12);color:var(--green)'}">
+              ${transferenciasPend > 0 ? '⚠️' : '✓'}
+            </div>
+            <div>
+              <div class="section-title-text">${transferenciasPend > 0 ? 'Transferencias pendientes' : 'Transferencias'}</div>
+              <div class="section-subtitle">${transferenciasPend > 0 ? transferenciasPend + ' por verificar' : 'Todas verificadas'}</div>
+            </div>
+          </div>
+          <div class="section-right">
+            ${transferenciasPend > 0 ? '<span class="section-badge" style="background:rgba(239,159,39,0.15);color:var(--amber)">Revisar</span>' : '<span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">✓ OK</span>'}
+            <span class="section-chev" id="chev-adm-transf">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-transf">
+          ${transferenciasPend > 0 ? `
+            ${transfDetalle.map(t => `
+              <div class="bonus-row-v2">
+                <span style="font-size:0.78rem">${t.info}</span>
+                <span style="color:var(--amber);font-weight:600">${fmt(t.comision)}</span>
+              </div>`).join('')}
+            <div class="alert-box" style="margin-top:10px">Verifica en tu banco y marca OK en la planilla</div>
+          ` : '<div class="ok-box">Todas las transferencias del mes están verificadas</div>'}
+        </div>
+      </div>
       
-      <div class="guias-section">
-        <div class="guias-section-title">&#128203; Guias de venta</div>
 
-        <div class="acord-group">
-          <div class="acord-group-label">Tarjetas de bolsillo — imprimir y plastificar</div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-tar-rec')">
-              <span>Recepción</span><span class="acord-chev" id="chev-ac2-tar-rec">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-tar-rec">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir en pantalla completa</button>
-              <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar HTML</button>
+      <!-- SEGUIMIENTO PROSPECTOS -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-prosp'); setTimeout(cargarProspectosAdmin, 100)">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(55,138,221,0.12);color:#378ADD">👥</div>
+            <div>
+              <div class="section-title-text">Seguimiento de prospectos</div>
+              <div class="section-subtitle">Massiel · Sara · Camila</div>
             </div>
           </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-tar-pt')">
-              <span>Profesores / PT</span><span class="acord-chev" id="chev-ac2-tar-pt">▼</span>
+          <div class="section-right">
+            <span class="section-chev" id="chev-adm-prosp">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-prosp">
+          <div id="admin-prosp-lista"><div class="prosp-empty">Abre esta sección para cargar</div></div>
+        </div>
+      </div>
+
+      <!-- GUÍAS -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-guias')">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(255,255,255,0.05);color:#666">📖</div>
+            <div>
+              <div class="section-title-text">Guías de venta</div>
+              <div class="section-subtitle">Protocolos · Tarjetas · Documentos</div>
             </div>
-            <div class="acord-body" id="ac2-tar-pt">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir en pantalla completa</button>
-              <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar HTML</button>
+          </div>
+          <div class="section-right">
+            <span class="section-chev" id="chev-adm-guias">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-guias">
+          <div class="acord-group">
+            <div class="acord-group-label">Tarjetas de bolsillo</div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-tar-rec')"><span>Recepción</span><span class="acord-chev" id="chev-ac2-tar-rec">▼</span></div>
+              <div class="acord-body" id="ac2-tar-rec">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-tar-pt')"><span>Profesores / PT</span><span class="acord-chev" id="chev-ac2-tar-pt">▼</span></div>
+              <div class="acord-body" id="ac2-tar-pt">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar</button>
+              </div>
+            </div>
+          </div>
+          <div class="acord-group" style="margin-top:1rem">
+            <div class="acord-group-label">Guías completas</div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-rec')"><span>Guía Recepción</span><span class="acord-chev" id="chev-ac2-rec">▼</span></div>
+              <div class="acord-body" id="ac2-rec">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-pro')"><span>Guía Profesores</span><span class="acord-chev" id="chev-ac2-pro">▼</span></div>
+              <div class="acord-body" id="ac2-pro">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-con')"><span>Protocolo Conjunto</span><span class="acord-chev" id="chev-ac2-con">▼</span></div>
+              <div class="acord-body" id="ac2-con">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-pre')"><span>Servicios Premium</span><span class="acord-chev" id="chev-ac2-pre">▼</span></div>
+              <div class="acord-body" id="ac2-pre">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
+              </div>
+            </div>
+            <div class="acord-item">
+              <div class="acord-header" onclick="toggleAcord('ac2-seg')"><span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac2-seg">▼</span></div>
+              <div class="acord-body" id="ac2-seg">
+                <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
+                <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
+              </div>
             </div>
           </div>
         </div>
-
-        <div class="acord-group" style="margin-top:1rem">
-          <div class="acord-group-label">Guías completas — documentos</div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-rec')">
-              <span>Guía Recepción</span><span class="acord-chev" id="chev-ac2-rec">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-rec">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar</button>
-            </div>
-          </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-pro')">
-              <span>Guía Profesores</span><span class="acord-chev" id="chev-ac2-pro">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-pro">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar</button>
-            </div>
-          </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-con')">
-              <span>Protocolo Conjunto</span><span class="acord-chev" id="chev-ac2-con">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-con">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar</button>
-            </div>
-          </div>
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-pre')">
-              <span>Servicios Premium</span><span class="acord-chev" id="chev-ac2-pre">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-pre">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
-            </div>
-          </div>
-
-          <div class="acord-item">
-            <div class="acord-header" onclick="toggleAcord('ac2-seg')">
-              <span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac2-seg">▼</span>
-            </div>
-            <div class="acord-body" id="ac2-seg">
-              <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
-              <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <div class="admin-prosp-section">
-        <div class="guias-section-title">👥 Seguimiento de prospectos</div>
-        <div id="admin-prosp-lista"><div class="prosp-empty">Cargando...</div></div>
-      </div>
-<button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
+      <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
-  setTimeout(cargarProspectosAdmin, 500);
 }
 
 function refresh() {
@@ -1078,6 +1551,14 @@ function initGuias() {
   firstFrames.forEach(f => loadGuiaFrame(f.dataset.key, f.id));
 }
 
+
+function toggleSec(id) {
+  const body = document.getElementById(id);
+  const chev = document.getElementById('chev-' + id);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
 
 function toggleAcord(id) {
   const body = document.getElementById(id);
