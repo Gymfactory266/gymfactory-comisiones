@@ -164,6 +164,8 @@
   /* ===== PANEL PROSPECTOS ===== */
   .prosp-section { margin-top: 1.5rem; }
   .prosp-section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 2px; color: var(--red); margin-bottom: 0.75rem; text-transform: uppercase; }
+  .prosp-alerta { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.4); border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; font-size: 0.85rem; color: #ff6b6b; font-weight: 600; display: none; }
+  .prosp-alerta.visible { display: block; }
   .prosp-add-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 10px; padding: 12px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem; }
   .prosp-add-btn:hover { opacity: 0.9; }
   .prosp-form { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; display: none; }
@@ -172,24 +174,33 @@
   .prosp-input:focus { outline: none; border-color: var(--red); }
   .prosp-select { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 10px; }
   .prosp-save-btn { width: 100%; background: var(--green); color: white; border: none; border-radius: 8px; padding: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
-  .prosp-card { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 1rem; margin-bottom: 8px; }
-  .prosp-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .prosp-card { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 1rem; margin-bottom: 8px; transition: border-color 0.2s; }
+  .prosp-card.urgente { border-color: var(--red); }
+  .prosp-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
   .prosp-nombre { font-weight: 700; font-size: 0.95rem; }
   .prosp-canal { font-size: 0.72rem; color: #888; margin-top: 2px; }
-  .prosp-consulta { font-size: 0.8rem; color: #aaa; margin-bottom: 10px; line-height: 1.4; }
+  .prosp-dias { font-size: 0.7rem; font-weight: 700; color: var(--red); margin-top: 2px; }
+  .prosp-consulta { font-size: 0.8rem; color: #aaa; margin-bottom: 8px; line-height: 1.4; }
+  .prosp-nota { font-size: 0.78rem; color: var(--amber); margin-bottom: 8px; font-style: italic; }
+  .prosp-nota-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 6px; padding: 7px 10px; font-size: 13px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 8px; display: none; }
+  .prosp-nota-input.open { display: block; }
+  .prosp-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .prosp-contacte-btn { background: rgba(29,158,117,0.2); color: var(--green); border: 1px solid rgba(29,158,117,0.3); border-radius: 6px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .prosp-nota-btn { background: rgba(239,159,39,0.15); color: var(--amber); border: 1px solid rgba(239,159,39,0.3); border-radius: 6px; padding: 6px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .prosp-footer { display: flex; justify-content: space-between; align-items: center; }
-  .prosp-responsable { font-size: 0.72rem; color: #666; }
-  .prosp-fecha { font-size: 0.72rem; color: #555; }
-  .prosp-estado-btn { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; border: none; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .prosp-fecha { font-size: 0.7rem; color: #555; }
+  .prosp-responsable { font-size: 0.7rem; color: #555; }
+  .prosp-estado-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+  .prosp-del-btn { background: none; border: none; color: #333; cursor: pointer; font-size: 0.85rem; padding: 2px 6px; }
+  .prosp-del-btn:hover { color: var(--red); }
+  .prosp-empty { text-align: center; color: #555; font-size: 0.85rem; padding: 2rem 0; }
   .estado-pendiente { background: rgba(239,159,39,0.2); color: var(--amber); }
   .estado-dia1 { background: rgba(192,57,43,0.2); color: var(--red); }
   .estado-dia3 { background: rgba(192,57,43,0.3); color: var(--red); }
   .estado-dia7 { background: rgba(192,57,43,0.4); color: #ff6b6b; }
   .estado-cerrado { background: rgba(29,158,117,0.2); color: var(--green); }
-  .estado-frio { background: var(--gray); color: #666; }
-  .prosp-del-btn { background: none; border: none; color: #444; cursor: pointer; font-size: 0.85rem; padding: 2px 6px; }
-  .prosp-del-btn:hover { color: var(--red); }
-  .prosp-empty { text-align: center; color: #555; font-size: 0.85rem; padding: 2rem 0; }
+  .estado-frio { background: var(--gray); color: #555; }
+  .prosp-seccion-label { font-size: 0.65rem; color: #555; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin: 12px 0 6px; padding-left: 2px; }
 
 </style>
 </head>
@@ -593,6 +604,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
   const prospectosHtml = `
       <div class="prosp-section">
         <div class="prosp-section-title">📋 Prospectos en seguimiento</div>
+        <div class="prosp-alerta" id="prosp-alerta"></div>
         <button class="prosp-add-btn" onclick="toggleProspForm()">➕ Nuevo prospecto</button>
         <div class="prosp-form" id="prosp-form">
           <input class="prosp-input" id="prosp-nombre" placeholder="Nombre del prospecto" type="text">
@@ -1058,15 +1070,19 @@ async function guardarProspecto() {
   btn.disabled = false;
 }
 
-async function cambiarEstado(id, estadoActual) {
-  const estados = ['Pendiente', 'Seguimiento Día 1', 'Seguimiento Día 3', 'Seguimiento Día 7', 'Cerrado', 'Frío'];
-  const idx = estados.indexOf(estadoActual);
-  const siguiente = estados[(idx + 1) % estados.length];
+async function marcarContactado(id) {
+  const nota = document.getElementById('nota-input-' + id);
+  const textoNota = nota ? nota.value.trim() : '';
   await fetch(WEBAPP_URL, {
     method: 'POST',
-    body: JSON.stringify({ accion: 'actualizar', id, estado: siguiente }),
+    body: JSON.stringify({ accion: 'contactado', id, nota: textoNota }),
   });
   cargarProspectos();
+}
+
+function toggleNota(id) {
+  const input = document.getElementById('nota-input-' + id);
+  if (input) input.classList.toggle('open');
 }
 
 async function eliminarProspecto(id) {
@@ -1074,6 +1090,14 @@ async function eliminarProspecto(id) {
   await fetch(WEBAPP_URL, {
     method: 'POST',
     body: JSON.stringify({ accion: 'eliminar', id }),
+  });
+  cargarProspectos();
+}
+
+async function archivarFrio(id) {
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'actualizar', id, estado: 'Frío' }),
   });
   cargarProspectos();
 }
@@ -1087,44 +1111,118 @@ function estadoClass(estado) {
   return 'estado-frio';
 }
 
+function diasTranscurridos(fechaISO) {
+  if (!fechaISO) return 0;
+  const fecha = new Date(fechaISO);
+  const hoy = new Date();
+  const diff = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+function estadoSegunDias(dias, estadoActual) {
+  if (estadoActual === 'Cerrado' || estadoActual === 'Frío') return estadoActual;
+  if (dias >= 7) return 'Seguimiento Día 7';
+  if (dias >= 3) return 'Seguimiento Día 3';
+  if (dias >= 1) return 'Seguimiento Día 1';
+  return 'Pendiente';
+}
+
+function tocaHoy(dias, estadoActual) {
+  if (estadoActual === 'Cerrado' || estadoActual === 'Frío') return false;
+  return dias >= 1;
+}
+
+function formatFecha(fechaISO) {
+  if (!fechaISO) return '';
+  const f = new Date(fechaISO);
+  return f.toLocaleDateString('es-CL', {day: '2-digit', month: '2-digit', year: 'numeric'});
+}
+
 async function cargarProspectos() {
   const cont = document.getElementById('prosp-lista');
+  const alerta = document.getElementById('prosp-alerta');
   if (!cont) return;
   cont.innerHTML = '<div class="prosp-empty">Cargando...</div>';
   try {
     const res = await fetch(WEBAPP_URL + '?accion=listar');
     const data = await res.json();
     if (!data.prospectos || data.prospectos.length === 0) {
-      cont.innerHTML = '<div class="prosp-empty">No hay prospectos registrados</div>';
+      cont.innerHTML = '<div class="prosp-empty">No hay prospectos registrados aún</div>';
+      if (alerta) alerta.classList.remove('visible');
       return;
     }
-    // Filtrar cerrados y fríos al fondo
-    const activos = data.prospectos.filter(p => p.estado !== 'Cerrado' && p.estado !== 'Frío');
-    const otros = data.prospectos.filter(p => p.estado === 'Cerrado' || p.estado === 'Frío');
-    const todos = [...activos, ...otros];
-    cont.innerHTML = todos.map(p => `
-      <div class="prosp-card">
-        <div class="prosp-card-header">
-          <div>
-            <div class="prosp-nombre">${p.nombre}</div>
-            <div class="prosp-canal">${p.canal} · ${p.responsable}</div>
+
+    // Calcular estado real según días transcurridos
+    const prospectos = data.prospectos.map(p => {
+      const dias = diasTranscurridos(p.fechaContacto || p.fecha);
+      const estadoReal = estadoSegunDias(dias, p.estado);
+      return { ...p, dias, estadoReal };
+    });
+
+    // Separar urgentes, normales, cerrados/fríos
+    const urgentes = prospectos.filter(p => tocaHoy(p.dias, p.estado));
+    const normales = prospectos.filter(p => !tocaHoy(p.dias, p.estado) && p.estado !== 'Cerrado' && p.estado !== 'Frío');
+    const archivados = prospectos.filter(p => p.estado === 'Cerrado' || p.estado === 'Frío');
+
+    // Mostrar alerta si hay urgentes
+    if (alerta) {
+      if (urgentes.length > 0) {
+        alerta.textContent = '🔴 ' + urgentes.length + ' prospecto' + (urgentes.length > 1 ? 's' : '') + ' necesitan seguimiento hoy';
+        alerta.classList.add('visible');
+      } else {
+        alerta.classList.remove('visible');
+      }
+    }
+
+    function renderCard(p) {
+      const urgente = tocaHoy(p.dias, p.estado);
+      const diasTexto = p.dias === 0 ? 'Ingresado hoy' : p.dias === 1 ? 'Hace 1 día' : 'Hace ' + p.dias + ' días';
+      return `
+        <div class="prosp-card ${urgente ? 'urgente' : ''}">
+          <div class="prosp-card-header">
+            <div>
+              <div class="prosp-nombre">${p.nombre}</div>
+              <div class="prosp-canal">${p.canal} · ${p.responsable}</div>
+              <div class="prosp-dias">${diasTexto}${urgente ? ' — ¡Contactar hoy!' : ''}</div>
+            </div>
+            <button class="prosp-del-btn" onclick="eliminarProspecto('${p.id}')">✕</button>
           </div>
-          <button class="prosp-del-btn" onclick="eliminarProspecto('${p.id}')">✕</button>
-        </div>
-        <div class="prosp-consulta">${p.consulta || 'Sin detalle'}</div>
-        <div class="prosp-footer">
-          <div>
-            <button class="prosp-estado-btn ${estadoClass(p.estado)}" onclick="cambiarEstado('${p.id}', '${p.estado}')">${p.estado}</button>
+          ${p.consulta ? `<div class="prosp-consulta">${p.consulta}</div>` : ''}
+          ${p.nota ? `<div class="prosp-nota">💬 ${p.nota}</div>` : ''}
+          <input class="prosp-nota-input" id="nota-input-${p.id}" placeholder="¿En qué quedaron?" type="text">
+          <div class="prosp-actions">
+            ${p.estado !== 'Cerrado' && p.estado !== 'Frío' ? `
+              <button class="prosp-contacte-btn" onclick="marcarContactado('${p.id}')">✅ Lo contacté</button>
+              <button class="prosp-nota-btn" onclick="toggleNota('${p.id}')">💬 Agregar nota</button>
+              <button class="prosp-del-btn" style="color:#555;font-size:0.72rem;border:1px solid #333;border-radius:6px;padding:5px 8px" onclick="archivarFrio('${p.id}')">❄️ Archivar</button>
+            ` : ''}
           </div>
-          <div class="prosp-fecha">${p.fecha}</div>
-        </div>
-      </div>
-    `).join('');
+          <div class="prosp-footer">
+            <span class="prosp-estado-badge ${estadoClass(p.estadoReal)}">${p.estadoReal}</span>
+            <span class="prosp-fecha">${formatFecha(p.fecha)}</span>
+          </div>
+        </div>`;
+    }
+
+    let html = '';
+    if (urgentes.length > 0) {
+      html += '<div class="prosp-seccion-label">🔴 Requieren seguimiento hoy</div>';
+      html += urgentes.map(renderCard).join('');
+    }
+    if (normales.length > 0) {
+      html += '<div class="prosp-seccion-label">En seguimiento</div>';
+      html += normales.map(renderCard).join('');
+    }
+    if (archivados.length > 0) {
+      html += '<div class="prosp-seccion-label">Cerrados / Fríos</div>';
+      html += archivados.map(renderCard).join('');
+    }
+
+    cont.innerHTML = html;
   } catch(e) {
     cont.innerHTML = '<div class="prosp-empty">Error al cargar prospectos</div>';
   }
 }
-
 setInterval(loadData, 120000);
 </script>
 </body>
