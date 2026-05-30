@@ -297,8 +297,6 @@ function showApp() {
   if (currentUserPersona) document.getElementById('hdr-subtitle').textContent = 'Mis comisiones · ' + currentUserPersona;
   loadData();
   setTimeout(initGuias, 800);
-  const tipoUsuario = ['Massiel','Sara','Camila'].includes(currentUserPersona) ? 'recepcion' : 'pt';
-  if (tipoUsuario !== 'pt') setTimeout(cargarProspectos, 1000);
 }
 
 db.auth.getSession().then(async ({ data: { session } }) => {
@@ -759,6 +757,8 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
 <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
+  // Cargar prospectos para recepcionistas
+  if (tipo !== 'pt') setTimeout(cargarProspectos, 400);
 }
 
 function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
