@@ -202,6 +202,34 @@
   .estado-frio { background: var(--gray); color: #555; }
   .prosp-seccion-label { font-size: 0.65rem; color: #555; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; margin: 12px 0 6px; padding-left: 2px; }
 
+
+  /* ===== PANEL ADMIN PROSPECTOS ===== */
+  .admin-prosp-section { margin-top: 1.5rem; }
+  .admin-prosp-acord { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; margin-bottom: 8px; overflow: hidden; }
+  .admin-prosp-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; }
+  .admin-prosp-header:hover { background: #222; }
+  .admin-prosp-title { font-weight: 700; font-size: 0.9rem; }
+  .admin-prosp-meta { font-size: 0.72rem; color: #666; margin-top: 2px; }
+  .admin-prosp-badges { display: flex; gap: 6px; align-items: center; }
+  .admin-prosp-body { display: none; padding: 0 12px 12px; border-top: 1px solid var(--gray); }
+  .admin-prosp-body.open { display: block; }
+  .admin-prosp-item { padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
+  .admin-prosp-item:last-child { border-bottom: none; }
+  .admin-prosp-nombre { font-weight: 600; font-size: 0.88rem; }
+  .admin-prosp-info { font-size: 0.75rem; color: #888; margin-top: 2px; }
+  .admin-prosp-nota { font-size: 0.75rem; color: var(--amber); margin-top: 4px; font-style: italic; }
+  .admin-prosp-dias { font-size: 0.72rem; font-weight: 700; }
+  .urgente-text { color: var(--red); }
+  .ok-text { color: var(--green); }
+  .admin-badge-count { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .admin-badge-urgente { background: rgba(192,57,43,0.2); color: var(--red); }
+  .admin-badge-ok { background: rgba(29,158,117,0.15); color: var(--green); }
+
+  .prosp-plan-select { width: 100%; background: #111; border: 1px solid var(--green); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 6px; display: none; }
+  .prosp-plan-select.open { display: block; }
+  .prosp-cerrar-btn { background: rgba(29,158,117,0.9); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; display: none; }
+  .prosp-cerrar-btn.open { display: block; width: 100%; margin-bottom: 6px; }
+  .prosp-venta-tag { font-size: 0.72rem; font-weight: 700; color: var(--green); background: rgba(29,158,117,0.15); border: 1px solid rgba(29,158,117,0.3); border-radius: 6px; padding: 3px 8px; display: inline-block; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -247,6 +275,7 @@ const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tq
 
 const EMAIL_MAP = {
   'gonzaloescobarhidalgo89@gmail.com': null,
+  'bea.sotopavez@hotmail.com': null,
   'bea.sotopavez@hotmail.com': null,
   'massiel.olivares.olea@gmail.com': 'Massiel',
   'saricep93@gmail.com': 'Sara',
@@ -766,6 +795,11 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
 
       </div>
 </div>
+
+      <div class="admin-prosp-section">
+        <div class="guias-section-title">👥 Seguimiento de prospectos</div>
+        <div id="admin-prosp-lista"><div class="prosp-empty">Cargando...</div></div>
+      </div>
 <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
@@ -934,9 +968,15 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
         </div>
 
       </div>
+
+      <div class="admin-prosp-section">
+        <div class="guias-section-title">👥 Seguimiento de prospectos</div>
+        <div id="admin-prosp-lista"><div class="prosp-empty">Cargando...</div></div>
+      </div>
 <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
+  setTimeout(cargarProspectosAdmin, 500);
 }
 
 function refresh() {
@@ -1193,10 +1233,20 @@ async function cargarProspectos() {
           <div class="prosp-actions">
             ${p.estado !== 'Cerrado' && p.estado !== 'Frío' ? `
               <button class="prosp-contacte-btn" onclick="marcarContactado('${p.id}')">✅ Lo contacté</button>
-              <button class="prosp-nota-btn" onclick="toggleNota('${p.id}')">💬 Agregar nota</button>
+              <button class="prosp-nota-btn" onclick="toggleNota('${p.id}')">💬 Nota</button>
+              <button class="prosp-nota-btn" style="background:rgba(29,158,117,0.15);color:var(--green);border-color:rgba(29,158,117,0.3)" onclick="togglePlanSelect('${p.id}')">🏆 Cerrar venta</button>
               <button class="prosp-del-btn" style="color:#555;font-size:0.72rem;border:1px solid #333;border-radius:6px;padding:5px 8px" onclick="archivarFrio('${p.id}')">❄️ Archivar</button>
-            ` : ''}
+            ` : `<div class="prosp-venta-tag">🏆 ${p.planVendido || 'Cerrado'}</div>`}
           </div>
+          <select class="prosp-plan-select" id="plan-select-${p.id}">
+            <option value="">— Selecciona el plan vendido —</option>
+            <option value="PAC Mensual">PAC Mensual $34.990</option>
+            <option value="Semestral Tarjeta">Semestral Tarjeta $182.990</option>
+            <option value="Semestral Transferencia">Semestral Transferencia $182.990</option>
+            <option value="Anual Tarjeta">Anual Tarjeta $305.990</option>
+            <option value="Anual Transferencia">Anual Transferencia $305.990</option>
+          </select>
+          <button class="prosp-cerrar-btn" id="plan-cerrar-btn-${p.id}" onclick="cerrarVenta('${p.id}')">✅ Confirmar venta</button>
           <div class="prosp-footer">
             <span class="prosp-estado-badge ${estadoClass(p.estadoReal)}">${p.estadoReal}</span>
             <span class="prosp-fecha">${formatFecha(p.fecha)}</span>
@@ -1223,6 +1273,98 @@ async function cargarProspectos() {
     cont.innerHTML = '<div class="prosp-empty">Error al cargar prospectos</div>';
   }
 }
+function togglePlanSelect(id) {
+  const sel = document.getElementById('plan-select-' + id);
+  const btn = document.getElementById('plan-cerrar-btn-' + id);
+  if (sel) sel.classList.toggle('open');
+  if (btn) btn.classList.toggle('open');
+}
+
+async function cerrarVenta(id) {
+  const sel = document.getElementById('plan-select-' + id);
+  const nota = document.getElementById('nota-input-' + id);
+  const plan = sel ? sel.value : '';
+  const textoNota = nota ? nota.value.trim() : '';
+  if (!plan) { alert('Selecciona el plan vendido'); return; }
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'cerrarVenta', id, plan, nota: textoNota }),
+  });
+  cargarProspectos();
+}
+
+async function cargarProspectosAdmin() {
+  const cont = document.getElementById('admin-prosp-lista');
+  if (!cont) return;
+  try {
+    const res = await fetch(WEBAPP_URL + '?accion=listar');
+    const data = await res.json();
+    if (!data.prospectos || data.prospectos.length === 0) {
+      cont.innerHTML = '<div class="prosp-empty">No hay prospectos registrados</div>';
+      return;
+    }
+
+    // Agrupar por responsable
+    const grupos = {};
+    data.prospectos.forEach(p => {
+      const resp = p.responsable || 'Sin asignar';
+      if (!grupos[resp]) grupos[resp] = [];
+      const dias = diasTranscurridos(p.fechaContacto || p.fecha);
+      grupos[resp].push({ ...p, dias, estadoReal: estadoSegunDias(dias, p.estado) });
+    });
+
+    const orden = ['Massiel', 'Sara', 'Camila'];
+    const responsables = [...orden.filter(r => grupos[r]), ...Object.keys(grupos).filter(r => !orden.includes(r))];
+
+    cont.innerHTML = responsables.map(resp => {
+      const prospectos = grupos[resp];
+      const urgentes = prospectos.filter(p => tocaHoy(p.dias, p.estado));
+      const activos = prospectos.filter(p => p.estado !== 'Cerrado' && p.estado !== 'Frío');
+      const cerrados = prospectos.filter(p => p.estado === 'Cerrado' || p.estado === 'Frío');
+
+      const items = [...activos, ...cerrados].map(p => {
+        const urgente = tocaHoy(p.dias, p.estado);
+        const diasTexto = p.dias === 0 ? 'Hoy' : p.dias === 1 ? 'Hace 1 día' : 'Hace ' + p.dias + ' días';
+        return `
+          <div class="admin-prosp-item">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="admin-prosp-nombre">${p.nombre}</div>
+                <div class="admin-prosp-info">${p.canal} · ${formatFecha(p.fecha)}</div>
+                ${p.consulta ? `<div class="admin-prosp-info" style="margin-top:2px">${p.consulta}</div>` : ''}
+                ${p.nota ? `<div class="admin-prosp-nota">💬 ${p.nota}</div>` : ''}
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:8px">
+                <div class="admin-prosp-dias ${urgente ? 'urgente-text' : 'ok-text'}">${urgente ? '🔴 ' : '✓ '}${diasTexto}</div>
+                <div class="admin-prosp-info" style="margin-top:4px">${p.estadoReal}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="admin-prosp-acord">
+          <div class="admin-prosp-header" onclick="toggleAcord('admin-prosp-${resp}')">
+            <div>
+              <div class="admin-prosp-title">${resp}</div>
+              <div class="admin-prosp-meta">${activos.length} activo${activos.length !== 1 ? 's' : ''} · ${cerrados.length} cerrado${cerrados.length !== 1 ? 's' : ''}</div>
+            </div>
+            <div class="admin-prosp-badges">
+              ${urgentes.length > 0 ? `<span class="admin-badge-count admin-badge-urgente">🔴 ${urgentes.length} hoy</span>` : '<span class="admin-badge-count admin-badge-ok">✓ Al día</span>'}
+              <span class="acord-chev" id="chev-admin-prosp-${resp}">▼</span>
+            </div>
+          </div>
+          <div class="admin-prosp-body" id="admin-prosp-${resp}">
+            ${items || '<div class="prosp-empty" style="padding:1rem">Sin prospectos</div>'}
+          </div>
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    cont.innerHTML = '<div class="prosp-empty">Error al cargar</div>';
+  }
+}
+
 setInterval(loadData, 120000);
 </script>
 </body>
