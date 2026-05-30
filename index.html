@@ -474,6 +474,37 @@
   }
   .bonus-row-v2:last-child { border-bottom: none; }
 
+
+  /* ===== PLANES PT ===== */
+  .planes-form { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px; margin-bottom: 12px; display: none; }
+  .planes-form.open { display: block; }
+  .planes-group-label { font-size: 0.62rem; color: #555; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; margin: 12px 0 6px; }
+  .planes-option { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 8px; margin-bottom: 6px; cursor: pointer; transition: border-color 0.15s; }
+  .planes-option:hover { border-color: #333; }
+  .planes-option.selected { border-color: var(--red); background: rgba(192,57,43,0.08); }
+  .planes-option-name { flex: 1; font-size: 0.82rem; font-weight: 600; }
+  .planes-option-price { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; color: var(--green); }
+  .planes-option-pt { font-size: 0.72rem; color: #666; }
+  .planes-card { background: var(--dark); border: 1px solid #242424; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  .planes-card.pendiente { border-color: rgba(239,159,39,0.3); }
+  .planes-card.pagado { border-color: rgba(29,158,117,0.2); opacity: 0.7; }
+  .planes-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .planes-card-nombre { font-weight: 700; font-size: 0.9rem; }
+  .planes-card-pt { font-size: 0.7rem; color: #666; margin-top: 2px; }
+  .planes-card-plan { font-size: 0.78rem; color: #888; margin-bottom: 8px; }
+  .planes-montos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .planes-monto-box { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 8px; padding: 8px 10px; }
+  .planes-monto-label { font-size: 0.62rem; color: #555; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+  .planes-monto-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+  .planes-estado { display: inline-flex; align-items: center; gap: 5px; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+  .planes-estado.pendiente { background: rgba(239,159,39,0.15); color: var(--amber); }
+  .planes-estado.pagado { background: rgba(29,158,117,0.15); color: var(--green); }
+  .planes-aprobar-btn { background: var(--green); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .planes-del-btn { background: none; border: none; color: #333; cursor: pointer; font-size: 0.85rem; }
+  .planes-del-btn:hover { color: var(--red); }
+  .planes-add-btn { width: 100%; background: rgba(192,57,43,0.15); color: var(--red); border: 1px solid rgba(192,57,43,0.3); border-radius: 10px; padding: 11px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+  .planes-alerta { background: rgba(239,159,39,0.1); border: 1px solid rgba(239,159,39,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--amber); font-weight: 600; margin-bottom: 10px; display: none; }
+  .planes-alerta.visible { display: block; }
 </style>
 </head>
 <body>
@@ -1024,8 +1055,69 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
         </div>
       </div>`}
 
-      <!-- PROSPECTOS (solo recepción) -->
-      ${tipo !== 'pt' ? prospectosHtml : ''}
+      <!-- PLANES PT -->
+      ${tipo === 'pt' ? `
+        <div class="section-block" style="margin-top:0">
+          <div class="section-header" onclick="toggleSec('sec-planes-pt')">
+            <div class="section-header-left">
+              <div class="section-icon" style="background:rgba(192,57,43,0.15);color:var(--red)">📋</div>
+              <div>
+                <div class="section-title-text">Planes personalizados</div>
+                <div class="section-subtitle">Registro de clientes y pagos</div>
+              </div>
+            </div>
+            <div class="section-right">
+              <span class="section-chev" id="chev-sec-planes-pt">▼</span>
+            </div>
+          </div>
+          <div class="section-body" id="sec-planes-pt">
+            <button class="planes-add-btn" onclick="togglePlanesForm()">➕ Registrar nuevo plan</button>
+            <div class="planes-form" id="planes-form">
+              <input class="prosp-input" id="plan-cliente" placeholder="Nombre del cliente" type="text">
+              <div class="planes-group-label" style="margin-top:8px">1 Persona</div>
+              <div class="planes-option" data-plan="1 persona · 4 sesiones" onclick="selectPlan('1 persona · 4 sesiones')">
+                <div class="planes-option-name">4 sesiones</div>
+                <div><div class="planes-option-price">$88.000</div><div class="planes-option-pt">Tu parte: $70.400</div></div>
+              </div>
+              <div class="planes-option" data-plan="1 persona · 8 sesiones" onclick="selectPlan('1 persona · 8 sesiones')">
+                <div class="planes-option-name">8 sesiones</div>
+                <div><div class="planes-option-price">$160.000</div><div class="planes-option-pt">Tu parte: $128.000</div></div>
+              </div>
+              <div class="planes-option" data-plan="1 persona · 12 sesiones" onclick="selectPlan('1 persona · 12 sesiones')">
+                <div class="planes-option-name">12 sesiones</div>
+                <div><div class="planes-option-price">$204.000</div><div class="planes-option-pt">Tu parte: $163.200</div></div>
+              </div>
+              <div class="planes-group-label">2 Personas</div>
+              <div class="planes-option" data-plan="2 personas · 4 sesiones" onclick="selectPlan('2 personas · 4 sesiones')">
+                <div class="planes-option-name">4 sesiones</div>
+                <div><div class="planes-option-price">$152.000</div><div class="planes-option-pt">Tu parte: $121.600</div></div>
+              </div>
+              <div class="planes-option" data-plan="2 personas · 8 sesiones" onclick="selectPlan('2 personas · 8 sesiones')">
+                <div class="planes-option-name">8 sesiones</div>
+                <div><div class="planes-option-price">$256.000</div><div class="planes-option-pt">Tu parte: $204.800</div></div>
+              </div>
+              <div class="planes-option" data-plan="2 personas · 12 sesiones" onclick="selectPlan('2 personas · 12 sesiones')">
+                <div class="planes-option-name">12 sesiones</div>
+                <div><div class="planes-option-price">$288.000</div><div class="planes-option-pt">Tu parte: $230.400</div></div>
+              </div>
+              <div class="planes-group-label">3 Personas</div>
+              <div class="planes-option" data-plan="3 personas · 4 sesiones" onclick="selectPlan('3 personas · 4 sesiones')">
+                <div class="planes-option-name">4 sesiones</div>
+                <div><div class="planes-option-price">$180.000</div><div class="planes-option-pt">Tu parte: $144.000</div></div>
+              </div>
+              <div class="planes-option" data-plan="3 personas · 8 sesiones" onclick="selectPlan('3 personas · 8 sesiones')">
+                <div class="planes-option-name">8 sesiones</div>
+                <div><div class="planes-option-price">$288.000</div><div class="planes-option-pt">Tu parte: $230.400</div></div>
+              </div>
+              <div class="planes-option" data-plan="3 personas · 12 sesiones" onclick="selectPlan('3 personas · 12 sesiones')">
+                <div class="planes-option-name">12 sesiones</div>
+                <div><div class="planes-option-price">$324.000</div><div class="planes-option-pt">Tu parte: $259.200</div></div>
+              </div>
+              <button class="prosp-save-btn" id="plan-save-btn" onclick="guardarPlan()" style="margin-top:12px">Registrar plan</button>
+            </div>
+            <div id="planes-lista"><div class="prosp-empty">Cargando...</div></div>
+          </div>
+        </div>` : prospectosHtml}
 
       <!-- RANKING -->
       <div class="section-block">
@@ -1198,6 +1290,7 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
   if (tipo !== 'pt') setTimeout(cargarProspectos, 400);
+  if (tipo === 'pt') setTimeout(cargarPlanes, 400);
 }
 
 function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
@@ -1362,6 +1455,26 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
         </div>
       </div>
       
+
+      <!-- PLANES PT ADMIN -->
+      <div class="section-block">
+        <div class="section-header" onclick="toggleSec('adm-planes'); setTimeout(cargarPlanesAdmin, 100)">
+          <div class="section-header-left">
+            <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">📋</div>
+            <div>
+              <div class="section-title-text">Planes personalizados PT</div>
+              <div class="section-subtitle">Luis · Diego · Javiera</div>
+            </div>
+          </div>
+          <div class="section-right">
+            <div class="planes-alerta" id="planes-admin-alerta" style="display:inline-block;background:none;border:none;padding:0;margin:0;font-size:0.75rem;font-weight:700;color:var(--red)"></div>
+            <span class="section-chev" id="chev-adm-planes">▼</span>
+          </div>
+        </div>
+        <div class="section-body" id="adm-planes">
+          <div id="planes-admin-lista"><div class="prosp-empty">Abre esta sección para cargar</div></div>
+        </div>
+      </div>
 
       <!-- SEGUIMIENTO PROSPECTOS -->
       <div class="section-block">
@@ -1851,6 +1964,197 @@ async function cargarProspectosAdmin() {
         </div>`;
     }).join('');
 
+  } catch(e) {
+    cont.innerHTML = '<div class="prosp-empty">Error al cargar</div>';
+  }
+}
+
+const PLANES_PRECIOS = {
+  '1 persona · 4 sesiones': 88000,
+  '1 persona · 8 sesiones': 160000,
+  '1 persona · 12 sesiones': 204000,
+  '2 personas · 4 sesiones': 152000,
+  '2 personas · 8 sesiones': 256000,
+  '2 personas · 12 sesiones': 288000,
+  '3 personas · 4 sesiones': 180000,
+  '3 personas · 8 sesiones': 288000,
+  '3 personas · 12 sesiones': 324000,
+};
+
+let planSeleccionado = null;
+
+function togglePlanesForm() {
+  const f = document.getElementById('planes-form');
+  f.classList.toggle('open');
+}
+
+function selectPlan(plan) {
+  planSeleccionado = plan;
+  document.querySelectorAll('.planes-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.plan === plan);
+  });
+}
+
+async function guardarPlan() {
+  const cliente = document.getElementById('plan-cliente').value.trim();
+  if (!cliente) { alert('Ingresa el nombre del cliente'); return; }
+  if (!planSeleccionado) { alert('Selecciona un plan'); return; }
+  const monto = PLANES_PRECIOS[planSeleccionado];
+  const btn = document.getElementById('plan-save-btn');
+  btn.textContent = 'Guardando...';
+  btn.disabled = true;
+  try {
+    await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'agregarPlan', pt: currentUserPersona, cliente, plan: planSeleccionado, monto }),
+    });
+    document.getElementById('plan-cliente').value = '';
+    planSeleccionado = null;
+    document.querySelectorAll('.planes-option').forEach(el => el.classList.remove('selected'));
+    document.getElementById('planes-form').classList.remove('open');
+    cargarPlanes();
+  } catch(e) { alert('Error al guardar'); }
+  btn.textContent = 'Registrar plan';
+  btn.disabled = false;
+}
+
+async function aprobarPlan(id) {
+  if (!confirm('¿Confirmas el pago de este plan?')) return;
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'aprobarPlan', id }),
+  });
+  cargarPlanes();
+  cargarPlanesAdmin();
+}
+
+async function eliminarPlan(id) {
+  if (!confirm('¿Eliminar este plan?')) return;
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'eliminarPlan', id }),
+  });
+  cargarPlanes();
+  cargarPlanesAdmin();
+}
+
+function renderPlanCard(p, esAdmin) {
+  const ptParte = p.ptParte || Math.round(p.monto * 0.8);
+  const gymParte = p.gymParte || Math.round(p.monto * 0.2);
+  return `
+    <div class="planes-card ${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
+      <div class="planes-card-header">
+        <div>
+          <div class="planes-card-nombre">${p.cliente}</div>
+          <div class="planes-card-pt">${esAdmin ? p.pt + ' · ' : ''}${p.plan}</div>
+        </div>
+        <button class="planes-del-btn" onclick="${esAdmin ? 'eliminarPlan' : 'eliminarPlan'}('${p.id}')">✕</button>
+      </div>
+      <div class="planes-montos">
+        <div class="planes-monto-box">
+          <div class="planes-monto-label">Total plan</div>
+          <div class="planes-monto-val" style="color:var(--white)">${fmt(p.monto)}</div>
+        </div>
+        <div class="planes-monto-box">
+          <div class="planes-monto-label">${esAdmin ? 'PT (80%)' : 'Tu parte (80%)'}</div>
+          <div class="planes-monto-val" style="color:var(--green)">${fmt(ptParte)}</div>
+        </div>
+        <div class="planes-monto-box">
+          <div class="planes-monto-label">Gym (20%)</div>
+          <div class="planes-monto-val" style="color:var(--amber)">${fmt(gymParte)}</div>
+        </div>
+        <div class="planes-monto-box">
+          <div class="planes-monto-label">Estado</div>
+          <div>
+            <span class="planes-estado ${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
+              ${p.estado === 'Pagado' ? '✓ Pagado' : '⏳ Pendiente'}
+            </span>
+          </div>
+        </div>
+      </div>
+      ${p.estado !== 'Pagado' && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')">✅ Aprobar pago</button>` : ''}
+    </div>`;
+}
+
+async function cargarPlanes() {
+  const cont = document.getElementById('planes-lista');
+  if (!cont) return;
+  try {
+    const res = await fetch(WEBAPP_URL + '?accion=listarPlanes');
+    const data = await res.json();
+    const misPlanes = (data.planes || []).filter(p => p.pt === currentUserPersona);
+    if (misPlanes.length === 0) {
+      cont.innerHTML = '<div class="prosp-empty">No tienes planes registrados este mes</div>';
+      return;
+    }
+    const pendientes = misPlanes.filter(p => p.estado !== 'Pagado');
+    const pagados = misPlanes.filter(p => p.estado === 'Pagado');
+    let html = '';
+    if (pendientes.length > 0) {
+      html += '<div class="planes-group-label">Pendientes de pago</div>';
+      html += pendientes.map(p => renderPlanCard(p, false)).join('');
+    }
+    if (pagados.length > 0) {
+      html += '<div class="planes-group-label">Pagados</div>';
+      html += pagados.map(p => renderPlanCard(p, false)).join('');
+    }
+    cont.innerHTML = html;
+  } catch(e) {
+    cont.innerHTML = '<div class="prosp-empty">Error al cargar</div>';
+  }
+}
+
+async function cargarPlanesAdmin() {
+  const cont = document.getElementById('planes-admin-lista');
+  const alerta = document.getElementById('planes-admin-alerta');
+  if (!cont) return;
+  try {
+    const res = await fetch(WEBAPP_URL + '?accion=listarPlanes');
+    const data = await res.json();
+    const planes = data.planes || [];
+    const pendientes = planes.filter(p => p.estado !== 'Pagado');
+
+    if (alerta) {
+      if (pendientes.length > 0) {
+        alerta.textContent = '🔴 ' + pendientes.length + ' plan' + (pendientes.length > 1 ? 'es' : '') + ' esperan tu aprobación';
+        alerta.classList.add('visible');
+      } else {
+        alerta.classList.remove('visible');
+      }
+    }
+
+    if (planes.length === 0) {
+      cont.innerHTML = '<div class="prosp-empty">No hay planes registrados</div>';
+      return;
+    }
+
+    // Agrupar por PT
+    const grupos = {};
+    planes.forEach(p => {
+      if (!grupos[p.pt]) grupos[p.pt] = [];
+      grupos[p.pt].push(p);
+    });
+
+    cont.innerHTML = Object.entries(grupos).map(([pt, pls]) => {
+      const pend = pls.filter(p => p.estado !== 'Pagado');
+      const totalPT = pls.reduce((s, p) => s + (p.ptParte || Math.round(p.monto * 0.8)), 0);
+      return `
+        <div class="admin-prosp-acord">
+          <div class="admin-prosp-header" onclick="toggleAcord('planes-pt-${pt}')">
+            <div>
+              <div class="admin-prosp-title">${pt}</div>
+              <div class="admin-prosp-meta">${pls.length} plan${pls.length !== 1 ? 'es' : ''} · Total PT: ${fmt(totalPT)}</div>
+            </div>
+            <div class="admin-prosp-badges">
+              ${pend.length > 0 ? `<span class="admin-badge-count admin-badge-urgente">🔴 ${pend.length} pendiente${pend.length > 1 ? 's' : ''}</span>` : '<span class="admin-badge-count admin-badge-ok">✓ Al día</span>'}
+              <span class="acord-chev" id="chev-planes-pt-${pt}">▼</span>
+            </div>
+          </div>
+          <div class="admin-prosp-body" id="planes-pt-${pt}">
+            ${pls.map(p => renderPlanCard(p, true)).join('')}
+          </div>
+        </div>`;
+    }).join('');
   } catch(e) {
     cont.innerHTML = '<div class="prosp-empty">Error al cargar</div>';
   }
