@@ -2071,9 +2071,12 @@ function renderPlanCard(p, esAdmin) {
           <div class="prog-v2-fill" style="width:${sesPct}%;background:${completado ? 'var(--green)' : sesPct > 60 ? 'var(--amber)' : 'var(--red)'}"></div>
         </div>
         ${!esAdmin && !completado ? `
-        <button class="planes-aprobar-btn" style="margin-top:10px;width:100%;background:rgba(192,57,43,0.15);color:var(--red);border:1px solid rgba(192,57,43,0.3)" onclick="sumarSesion('${p.id}', ${sesiones}, ${totalSesiones})">
-          ➕ Registrar sesión realizada
-        </button>` : ''}
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <button class="planes-aprobar-btn" style="flex:1;background:rgba(192,57,43,0.15);color:var(--red);border:1px solid rgba(192,57,43,0.3)" onclick="sumarSesion('${p.id}', ${sesiones}, ${totalSesiones})">
+            ➕ Registrar sesión
+          </button>
+          ${sesiones > 0 ? `<button class="planes-aprobar-btn" style="background:rgba(255,255,255,0.04);color:#666;border:1px solid #222;padding:7px 12px" onclick="restarSesion('${p.id}', ${sesiones})" title="Deshacer última sesión">➖</button>` : ''}
+        </div>` : ''}
       </div>` : ''}
 
       <div class="planes-montos">
@@ -2100,6 +2103,17 @@ function renderPlanCard(p, esAdmin) {
       </div>
       ${(p.estado !== 'Pagado' && p.estado !== 'Completado y Pagado') && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')" style="margin-top:8px">✅ Aprobar pago</button>` : ''}
     </div>`;
+}
+
+async function restarSesion(id, sesiones) {
+  if (sesiones <= 0) return;
+  if (!confirm('¿Deshacer la última sesión registrada?')) return;
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'restarSesion', id }),
+  });
+  cargarPlanes();
+  cargarPlanesAdmin();
 }
 
 async function sumarSesion(id, sesiones, totalSesiones) {
