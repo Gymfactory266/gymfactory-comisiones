@@ -789,74 +789,65 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
       <div class="guias-section">
         <div class="guias-section-title">&#128203; Guias de venta</div>
 
-        <!-- TARJETAS CORTAS -->
-        <div class="guias-group" id="grp-tarjetas">
-          <div class="guias-group-label">Tarjetas de bolsillo — imprimir y plastificar</div>
-          <div class="guias-tabs">
-            <button class="guias-tab active" onclick="switchGuiaTab('grp-tarjetas',0,['tarjeta_recepcion','tarjeta_pt','tabla_comisiones'])">Recepcion</button>
-            <button class="guias-tab" onclick="switchGuiaTab('grp-tarjetas',1,['tarjeta_recepcion','tarjeta_pt','tabla_comisiones'])">Profesores / PT</button>
-            <button class="guias-tab" onclick="switchGuiaTab('grp-tarjetas',2,['tarjeta_recepcion','tarjeta_pt','tabla_comisiones'])">Comisiones</button>
-          </div>
-          <div class="guias-panel active">
-            <div class="guias-hint">Vista previa — toca el boton para ver completo</div>
-            <div class="guias-preview" onclick="openGuia('tarjeta_recepcion')">
-              <iframe id="f-tar-rec" data-key="tarjeta_recepcion" scrolling="no"></iframe>
-              <div class="guias-preview-height"></div>
-              <div class="guias-preview-overlay"><span style="font-size:0.7rem;color:#aaa;background:#1a1a1a;padding:4px 10px;border-radius:20px">&#8599; Ver completo</span></div>
+        <div class="acord-group">
+          <div class="acord-group-label">Tarjetas de bolsillo — imprimir y plastificar</div>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-tar-rec')">
+              <span>Recepción</span><span class="acord-chev" id="chev-ac2-tar-rec">▼</span>
             </div>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir en pantalla completa</button>
-            <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar HTML</button>
-          </div>
-          <div class="guias-panel">
-            <div class="guias-hint">Vista previa — toca el boton para ver completo</div>
-            <div class="guias-preview" onclick="openGuia('tarjeta_pt')">
-              <iframe id="f-tar-pt" data-key="tarjeta_pt" scrolling="no"></iframe>
-              <div class="guias-preview-height"></div>
-              <div class="guias-preview-overlay"><span style="font-size:0.7rem;color:#aaa;background:#1a1a1a;padding:4px 10px;border-radius:20px">&#8599; Ver completo</span></div>
+            <div class="acord-body" id="ac2-tar-rec">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_recepcion')">&#8599; Abrir en pantalla completa</button>
+              <button class="guias-btn" onclick="downloadGuia('tarjeta_recepcion')">&#8595; Descargar HTML</button>
             </div>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir en pantalla completa</button>
-            <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar HTML</button>
           </div>
-          <div class="guias-panel">
-            <div class="guias-hint">Vista previa — toca el boton para ver completo</div>
-            <div class="guias-preview" onclick="openGuia('tabla_comisiones')">
-              <iframe id="f-tar-com" data-key="tabla_comisiones" scrolling="no"></iframe>
-              <div class="guias-preview-height"></div>
-              <div class="guias-preview-overlay"><span style="font-size:0.7rem;color:#aaa;background:#1a1a1a;padding:4px 10px;border-radius:20px">&#8599; Ver completo</span></div>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-tar-pt')">
+              <span>Profesores / PT</span><span class="acord-chev" id="chev-ac2-tar-pt">▼</span>
             </div>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('tabla_comisiones')">&#8599; Abrir en pantalla completa</button>
-            <button class="guias-btn" onclick="downloadGuia('tabla_comisiones')">&#8595; Descargar HTML</button>
+            <div class="acord-body" id="ac2-tar-pt">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('tarjeta_pt')">&#8599; Abrir en pantalla completa</button>
+              <button class="guias-btn" onclick="downloadGuia('tarjeta_pt')">&#8595; Descargar HTML</button>
+            </div>
           </div>
         </div>
 
-        <!-- GUIAS COMPLETAS PDF -->
-        <div class="guias-group" id="grp-pdfs">
-          <div class="guias-group-label">Guias completas — documentos PDF</div>
-          <div class="guias-tabs">
-            <button class="guias-tab active" onclick="switchGuiaTab('grp-pdfs',0,[])">Recepcion</button>
-            <button class="guias-tab" onclick="switchGuiaTab('grp-pdfs',1,[])">Profesores</button>
-            <button class="guias-tab" onclick="switchGuiaTab('grp-pdfs',2,[])">Protocolo Conjunto</button>
-            <button class="guias-tab" onclick="switchGuiaTab('grp-pdfs',3,[])">Servicios Premium</button>
+        <div class="acord-group" style="margin-top:1rem">
+          <div class="acord-group-label">Guías completas — documentos</div>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-rec')">
+              <span>Guía Recepción</span><span class="acord-chev" id="chev-ac2-rec">▼</span>
+            </div>
+            <div class="acord-body" id="ac2-rec">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar</button>
+            </div>
           </div>
-          <div class="guias-panel active">
-            <iframe id="f-pdf-rec" data-key="pdf_recepcion" class="guias-pdf-preview"></iframe>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_recepcion')">&#8599; Abrir PDF completo</button>
-            <button class="guias-btn" onclick="downloadGuia('pdf_recepcion')">&#8595; Descargar PDF</button>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-pro')">
+              <span>Guía Profesores</span><span class="acord-chev" id="chev-ac2-pro">▼</span>
+            </div>
+            <div class="acord-body" id="ac2-pro">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar</button>
+            </div>
           </div>
-          <div class="guias-panel">
-            <iframe id="f-pdf-pro" data-key="pdf_profesores" class="guias-pdf-preview"></iframe>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_profesores')">&#8599; Abrir PDF completo</button>
-            <button class="guias-btn" onclick="downloadGuia('pdf_profesores')">&#8595; Descargar PDF</button>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-con')">
+              <span>Protocolo Conjunto</span><span class="acord-chev" id="chev-ac2-con">▼</span>
+            </div>
+            <div class="acord-body" id="ac2-con">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar</button>
+            </div>
           </div>
-          <div class="guias-panel">
-            <iframe id="f-pdf-con" data-key="pdf_conjunto" class="guias-pdf-preview"></iframe>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_conjunto')">&#8599; Abrir PDF completo</button>
-            <button class="guias-btn" onclick="downloadGuia('pdf_conjunto')">&#8595; Descargar PDF</button>
-          </div>
-          <div class="guias-panel">
-            <iframe id="f-pdf-pre" data-key="pdf_premium" class="guias-pdf-preview"></iframe>
-            <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir PDF completo</button>
-            <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar PDF</button>
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-pre')">
+              <span>Servicios Premium</span><span class="acord-chev" id="chev-ac2-pre">▼</span>
+            </div>
+            <div class="acord-body" id="ac2-pre">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
+            </div>
           </div>
         </div>
 
