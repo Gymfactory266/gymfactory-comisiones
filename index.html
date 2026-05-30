@@ -2041,15 +2041,41 @@ async function eliminarPlan(id) {
 function renderPlanCard(p, esAdmin) {
   const ptParte = p.ptParte || Math.round(p.monto * 0.8);
   const gymParte = p.gymParte || Math.round(p.monto * 0.2);
+  const sesiones = p.sesiones || 0;
+  const matchSesiones = (p.plan || '').match(/(\d+) sesiones/);
+  const totalSesiones = matchSesiones ? parseInt(matchSesiones[1]) : 0;
+  const sesPct = totalSesiones > 0 ? Math.min(Math.round(sesiones / totalSesiones * 100), 100) : 0;
+  const completado = sesiones >= totalSesiones && totalSesiones > 0;
+  const estadoClass = p.estado === 'Pagado' || p.estado === 'Completado y Pagado' ? 'pagado' : completado ? 'pagado' : 'pendiente';
+
   return `
-    <div class="planes-card ${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
+    <div class="planes-card ${estadoClass}">
       <div class="planes-card-header">
         <div>
           <div class="planes-card-nombre">${p.cliente}</div>
           <div class="planes-card-pt">${esAdmin ? p.pt + ' · ' : ''}${p.plan}</div>
         </div>
-        <button class="planes-del-btn" onclick="${esAdmin ? 'eliminarPlan' : 'eliminarPlan'}('${p.id}')">✕</button>
+        <button class="planes-del-btn" onclick="eliminarPlan('${p.id}')">✕</button>
       </div>
+
+      ${totalSesiones > 0 ? `
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:0.75rem;color:#888">Sesiones realizadas</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:${completado ? 'var(--green)' : 'var(--white)'}">
+            ${sesiones} / ${totalSesiones}
+            ${completado ? ' ✅' : ''}
+          </span>
+        </div>
+        <div class="prog-v2-track" style="height:6px">
+          <div class="prog-v2-fill" style="width:${sesPct}%;background:${completado ? 'var(--green)' : sesPct > 60 ? 'var(--amber)' : 'var(--red)'}"></div>
+        </div>
+        ${!esAdmin && !completado ? `
+        <button class="planes-aprobar-btn" style="margin-top:10px;width:100%;background:rgba(192,57,43,0.15);color:var(--red);border:1px solid rgba(192,57,43,0.3)" onclick="sumarSesion('${p.id}', ${sesiones}, ${totalSesiones})">
+          ➕ Registrar sesión realizada
+        </button>` : ''}
+      </div>` : ''}
+
       <div class="planes-montos">
         <div class="planes-monto-box">
           <div class="planes-monto-label">Total plan</div>
@@ -2064,16 +2090,29 @@ function renderPlanCard(p, esAdmin) {
           <div class="planes-monto-val" style="color:var(--amber)">${fmt(gymParte)}</div>
         </div>
         <div class="planes-monto-box">
-          <div class="planes-monto-label">Estado</div>
+          <div class="planes-monto-label">Estado pago</div>
           <div>
-            <span class="planes-estado ${p.estado === 'Pagado' ? 'pagado' : 'pendiente'}">
-              ${p.estado === 'Pagado' ? '✓ Pagado' : '⏳ Pendiente'}
+            <span class="planes-estado ${estadoClass}">
+              ${p.estado === 'Pagado' || p.estado === 'Completado y Pagado' ? '✓ Pagado' : completado ? '✅ Completado' : '⏳ Pendiente'}
             </span>
           </div>
         </div>
       </div>
-      ${p.estado !== 'Pagado' && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')">✅ Aprobar pago</button>` : ''}
+      ${(p.estado !== 'Pagado' && p.estado !== 'Completado y Pagado') && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')" style="margin-top:8px">✅ Aprobar pago</button>` : ''}
     </div>`;
+}
+
+async function sumarSesion(id, sesiones, totalSesiones) {
+  if (sesiones >= totalSesiones) {
+    alert('Este plan ya está completado (' + totalSesiones + '/' + totalSesiones + ' sesiones)');
+    return;
+  }
+  await fetch(WEBAPP_URL, {
+    method: 'POST',
+    body: JSON.stringify({ accion: 'sumarSesion', id }),
+  });
+  cargarPlanes();
+  cargarPlanesAdmin();
 }
 
 async function cargarPlanes() {
