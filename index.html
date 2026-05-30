@@ -692,6 +692,16 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
               <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
             </div>
           </div>
+
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac-seg')">
+              <span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac-seg">▼</span>
+            </div>
+            <div class="acord-body" id="ac-seg">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -847,6 +857,16 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
             <div class="acord-body" id="ac2-pre">
               <button class="guias-btn guias-btn-primary" onclick="openGuia('pdf_premium')">&#8599; Abrir</button>
               <button class="guias-btn" onclick="downloadGuia('pdf_premium')">&#8595; Descargar</button>
+            </div>
+          </div>
+
+          <div class="acord-item">
+            <div class="acord-header" onclick="toggleAcord('ac2-seg')">
+              <span>Protocolo Seguimiento WhatsApp/Instagram</span><span class="acord-chev" id="chev-ac2-seg">▼</span>
+            </div>
+            <div class="acord-body" id="ac2-seg">
+              <button class="guias-btn guias-btn-primary" onclick="openGuia('seguimiento')">&#8599; Abrir</button>
+              <button class="guias-btn" onclick="downloadGuia('seguimiento')">&#8595; Descargar</button>
             </div>
           </div>
         </div>
