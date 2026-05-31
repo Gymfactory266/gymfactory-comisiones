@@ -2527,6 +2527,8 @@ async function cargarPlanesAdmin() {
     cont.innerHTML = '<div class="prosp-empty">Error al cargar</div>';
   }
 }
+
+
 // ============================================
 // AGENTE IA - Experto en ventas Gym Factory
 // ============================================
@@ -2622,24 +2624,17 @@ async function agenteEnviar() {
     const baseDoc = await fetchBaseConocimiento();
     const systemFinal = AGENTE_SYSTEM + (baseDoc ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY (leer antes de responder):\n════════════════════════════════════════\n' + baseDoc) : '');
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(WEBAPP_URL + '?accion=agente', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': AGENTE_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 600,
+        apiKey: AGENTE_API_KEY,
         system: systemFinal,
         messages: agenteHistorial
       })
     });
 
     const data = await res.json();
-    const respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude responder, intenta de nuevo.';
+    const respuesta = data.respuesta || data.error || 'No pude responder, intenta de nuevo.';
 
     // Agregar al historial
     agenteHistorial.push({ role: 'assistant', content: respuesta });
@@ -2703,17 +2698,10 @@ async function agenteEnviarAdm() {
     const baseDocAdm = await fetchBaseConocimiento();
     const systemAdm = AGENTE_SYSTEM + (baseDocAdm ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY:\n════════════════════════════════════════\n' + baseDocAdm) : '');
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(WEBAPP_URL + '?accion=agente', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': AGENTE_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 600,
+        apiKey: AGENTE_API_KEY,
         system: systemAdm,
         messages: agenteHistorialAdm
       })
