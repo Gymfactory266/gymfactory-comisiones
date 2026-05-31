@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asistente IA · Gym Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #C0392B; --black: #0D0D0D; --dark: #1A1A1A;
+    --gray: #2C2C2C; --white: #FFFFFF; --green: #1D9E75; --amber: #EF9F27;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); height: 100vh; display: flex; flex-direction: column; }
+
+  .header { background: var(--red); padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .header-icon { font-size: 1.4rem; }
+  .header-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: 2px; }
+  .header-sub { font-size: 0.72rem; opacity: 0.8; margin-top: 1px; }
+
+  .chat-area { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
+
+  .bienvenida { text-align: center; padding: 30px 20px; }
+  .bienvenida-icon { font-size: 3rem; margin-bottom: 12px; }
+  .bienvenida h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: var(--red); margin-bottom: 8px; }
+  .bienvenida p { font-size: 0.82rem; color: #666; line-height: 1.6; margin-bottom: 20px; }
+
+  .sugerencias { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .sugerencia { background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; border-radius: 20px; padding: 7px 14px; font-size: 0.75rem; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; text-align: left; }
+  .sugerencia:hover { border-color: var(--red); color: #ddd; background: rgba(192,57,43,0.08); }
+
+  .burbuja { max-width: 85%; padding: 11px 14px; border-radius: 14px; font-size: 0.83rem; line-height: 1.6; }
+  .burbuja.usuario { background: var(--red); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .burbuja.ia { background: #1a1a1a; border: 1px solid #242424; color: #ddd; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .burbuja.ia strong { color: white; }
+  .burbuja.typing { color: #555; font-style: italic; }
+
+  .input-area { padding: 12px 16px; border-top: 1px solid #1a1a1a; background: #111; flex-shrink: 0; }
+  .input-row { display: flex; gap: 8px; }
+  .input-txt { flex: 1; background: #1a1a1a; border: 1px solid #222; color: #ddd; border-radius: 12px; padding: 11px 14px; font-size: 0.83rem; font-family: 'DM Sans', sans-serif; resize: none; line-height: 1.4; max-height: 120px; }
+  .input-txt:focus { outline: none; border-color: #333; }
+  .input-btn { background: var(--red); color: white; border: none; border-radius: 12px; padding: 11px 18px; font-size: 0.83rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: opacity 0.15s; }
+  .input-btn:hover { opacity: 0.85; }
+  .input-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .input-hint { font-size: 0.68rem; color: #333; text-align: center; margin-top: 6px; }
+
+  .categoria { font-size: 0.65rem; color: #444; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin: 8px 0 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🤖</div>
+  <div>
+    <div class="header-title">Asistente de Ventas IA</div>
+    <div class="header-sub">Gym Factory · Experto en ventas y atención al cliente</div>
+  </div>
+</div>
+
+<div class="chat-area" id="chat">
+  <div class="bienvenida" id="bienvenida">
+    <div class="bienvenida-icon">💪</div>
+    <h2>Hola! Soy tu asistente</h2>
+    <p>Pregúntame qué decirle a un cliente, cómo manejar una objeción o qué suplemento recomendar. Tengo toda la info de Gym Factory.</p>
+    <div class="categoria">Objeciones frecuentes</div>
+    <div class="sugerencias">
+      <button class="sugerencia" onclick="usar(this.textContent)">💰 Un cliente dice que está muy caro, ¿qué le digo?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">🤔 El cliente quiere pensarlo, ¿cómo lo cierro?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">❓ No le gusta dar los datos de su tarjeta</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">🏃 Ya tuvo gym antes y lo abandonó</button>
+    </div>
+    <div class="categoria" style="margin-top:12px">Suplementos</div>
+    <div class="sugerencias">
+      <button class="sugerencia" onclick="usar(this.textContent)">💊 ¿Qué suplemento le recomiendo a alguien que quiere bajar de peso?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">💪 Cliente principiante, ¿qué le ofrezco primero?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">⚡ Cliente sin energía para entrenar, ¿qué le doy?</button>
+    </div>
+    <div class="categoria" style="margin-top:12px">Planes y ventas</div>
+    <div class="sugerencias">
+      <button class="sugerencia" onclick="usar(this.textContent)">📱 ¿Cómo explico el PAC sin que suene a cobro automático?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">💳 El cliente preguntó el precio, ¿cómo respondo?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">🎯 ¿Cómo uso la matrícula para cerrar una venta?</button>
+      <button class="sugerencia" onclick="usar(this.textContent)">❄️ El cliente dice que hace frío para ir al gym</button>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <textarea class="input-txt" id="txt" placeholder="Pregúntame cualquier cosa sobre ventas o el gym..." rows="1" onkeydown="tecla(event)"></textarea>
+    <button class="input-btn" id="btn" onclick="enviar()">Enviar</button>
+  </div>
+  <div class="input-hint">Enter para enviar · Shift+Enter para nueva línea</div>
+</div>
+
+<script>
+const WEBAPP = 'https://script.google.com/macros/s/AKfycbwo2WGGXoiKr_3Xy9BEqL3yhdNoD57j0TFD1nJbmBDQqCBDUtv9QaYpRh1ho4WUgVk3/exec';
+const API_KEY = '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';
+
+const SYSTEM = 'Eres el asistente experto en ventas de GYM FACTORY, un gimnasio premium en Membrillar 266, Rancagua. Ayudas a las recepcionistas y profesores a vender mejor. Respondes en español chileno natural, de forma directa y concreta. Das el mensaje exacto listo para usar con el cliente. Siempre terminas con una pregunta al cliente. Maximo 4 oraciones por respuesta.\n\nPLANES: PAC Mensual $34.990 (sin matricula, como Netflix), PAC Estudiante $29.990, Mensual $39.990+matricula, Semestral $182.990, Anual $305.990, Pase diario $6.990. Matricula $9.990 solo clientes nuevos - es palanca de cierre.\n\nCOMISIONES RECEPCION: PAC $2.000, Semestral tarjeta $4.000, transferencia $6.000, Anual tarjeta $6.000, transferencia $8.000.\n\nSUPLEMENTOS: Creatina 4Active 1kg com $3.000, 600gr com $2.000. Dragon Pharma/BPI ISO com $1.500. Hyde pre-entreno com $1.000. Cafeina com $1.500. Beta Alanina/Glutamina/Carbox/Magnesio com $2.000. HCA com $1.500. Gorro com $1.000.\n\nREGLAS VENTA: Diagnosticar antes de ofrecer. Max 2 opciones. Recorrido antes de precios. Matricula es palanca de cierre. Creatina siempre primero en suplementos. Nunca terminar con afirmacion, siempre con pregunta.\n\nOBJECIONES: Muy caro = por dia menos de $1200 menos que un cafe. Lo voy a pensar = hoy sin matricula $9990 menos. No le gusta dar tarjeta = igual que Netflix Mercado Pago protege todo. No va a ser constante = con PAC no pierdes plata si un mes no vas. Quiere probar = pase diario $6990 y si te gusta esta semana sin matricula.\n\nINSTALACIONES: Climatizado, camarines premium, duchas, lockers, mancuernas hasta 50kg, agua filtrada, sin esperar maquinas.\n\nHORARIOS: Lunes a viernes 6:00-23:00, sabado y domingo 9:00-19:00.';
+
+let historial = [];
+
+function usar(texto) {
+  document.getElementById('txt').value = texto;
+  enviar();
+}
+
+function tecla(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviar(); }
+}
+
+async function enviar() {
+  const txt = document.getElementById('txt');
+  const btn = document.getElementById('btn');
+  const chat = document.getElementById('chat');
+  const bienvenida = document.getElementById('bienvenida');
+  const texto = txt.value.trim();
+  if (!texto) return;
+
+  txt.value = '';
+  btn.disabled = true;
+  if (bienvenida) bienvenida.remove();
+
+  const bUser = document.createElement('div');
+  bUser.className = 'burbuja usuario';
+  bUser.textContent = texto;
+  chat.appendChild(bUser);
+
+  const bTyping = document.createElement('div');
+  bTyping.className = 'burbuja ia typing';
+  bTyping.textContent = 'Escribiendo...';
+  chat.appendChild(bTyping);
+  chat.scrollTop = chat.scrollHeight;
+
+  historial.push({ role: 'user', content: texto });
+
+  try {
+    const res = await fetch(WEBAPP + '?accion=agente', {
+      method: 'POST',
+      body: JSON.stringify({ apiKey: API_KEY, system: SYSTEM, messages: historial })
+    });
+    const data = await res.json();
+    const respuesta = data.respuesta || data.error || 'No pude responder, intenta de nuevo.';
+    historial.push({ role: 'assistant', content: respuesta });
+    bTyping.className = 'burbuja ia';
+    bTyping.innerHTML = respuesta.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    if (historial.length > 20) historial = historial.slice(-20);
+  } catch(e) {
+    bTyping.className = 'burbuja ia';
+    bTyping.textContent = 'Error de conexion. Intenta de nuevo.';
+  }
+
+  chat.scrollTop = chat.scrollHeight;
+  btn.disabled = false;
+  txt.focus();
+}
+</script>
+</body>
+</html>
