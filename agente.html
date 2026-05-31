@@ -138,9 +138,9 @@ async function enviar() {
   historial.push({ role: 'user', content: texto });
 
   try {
-    const res = await fetch(WEBAPP + '?accion=agente', {
+    const res = await fetch(WEBAPP, {
       method: 'POST',
-      body: JSON.stringify({ apiKey: API_KEY, system: SYSTEM, messages: historial })
+      body: JSON.stringify({ accion: 'agente', apiKey: API_KEY, system: SYSTEM, messages: historial })
     });
     const data = await res.json();
     const respuesta = data.respuesta || data.error || 'No pude responder, intenta de nuevo.';
