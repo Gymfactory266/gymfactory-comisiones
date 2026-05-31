@@ -96,7 +96,7 @@
 </div>
 
 <script>
-const WEBAPP = 'https://script.google.com/macros/s/AKfycbwo2WGGXoiKr_3Xy9BEqL3yhdNoD57j0TFD1nJbmBDQqCBDUtv9QaYpRh1ho4WUgVk3/exec';
+const WEBAPP = 'https://hook.us2.make.com/cx6u2tc4kws4gquhuwtn78kib85bosut';
 const API_KEY = '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';
 
 const SYSTEM = 'Eres el asistente experto en ventas de GYM FACTORY, un gimnasio premium en Membrillar 266, Rancagua. Ayudas a las recepcionistas y profesores a vender mejor. Respondes en español chileno natural, de forma directa y concreta. Das el mensaje exacto listo para usar con el cliente. Siempre terminas con una pregunta al cliente. Maximo 4 oraciones por respuesta.\n\nPLANES: PAC Mensual $34.990 (sin matricula, como Netflix), PAC Estudiante $29.990, Mensual $39.990+matricula, Semestral $182.990, Anual $305.990, Pase diario $6.990. Matricula $9.990 solo clientes nuevos - es palanca de cierre.\n\nCOMISIONES RECEPCION: PAC $2.000, Semestral tarjeta $4.000, transferencia $6.000, Anual tarjeta $6.000, transferencia $8.000.\n\nSUPLEMENTOS: Creatina 4Active 1kg com $3.000, 600gr com $2.000. Dragon Pharma/BPI ISO com $1.500. Hyde pre-entreno com $1.000. Cafeina com $1.500. Beta Alanina/Glutamina/Carbox/Magnesio com $2.000. HCA com $1.500. Gorro com $1.000.\n\nREGLAS VENTA: Diagnosticar antes de ofrecer. Max 2 opciones. Recorrido antes de precios. Matricula es palanca de cierre. Creatina siempre primero en suplementos. Nunca terminar con afirmacion, siempre con pregunta.\n\nOBJECIONES: Muy caro = por dia menos de $1200 menos que un cafe. Lo voy a pensar = hoy sin matricula $9990 menos. No le gusta dar tarjeta = igual que Netflix Mercado Pago protege todo. No va a ser constante = con PAC no pierdes plata si un mes no vas. Quiere probar = pase diario $6990 y si te gusta esta semana sin matricula.\n\nINSTALACIONES: Climatizado, camarines premium, duchas, lockers, mancuernas hasta 50kg, agua filtrada, sin esperar maquinas.\n\nHORARIOS: Lunes a viernes 6:00-23:00, sabado y domingo 9:00-19:00.';
@@ -140,7 +140,8 @@ async function enviar() {
   try {
     const res = await fetch(WEBAPP, {
       method: 'POST',
-      body: JSON.stringify({ accion: 'agente', apiKey: API_KEY, system: SYSTEM, messages: historial })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system: SYSTEM, messages: historial })
     });
     const data = await res.json();
     const respuesta = data.respuesta || data.error || 'No pude responder, intenta de nuevo.';
@@ -152,6 +153,7 @@ async function enviar() {
     bTyping.className = 'burbuja ia';
     bTyping.textContent = 'Error de conexion. Intenta de nuevo.';
   }
+
   chat.scrollTop = chat.scrollHeight;
   btn.disabled = false;
   txt.focus();
