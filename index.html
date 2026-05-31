@@ -1416,64 +1416,6 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
         </div>
       </div>
 
-      
-      <!-- AGENTE IA -->
-      <div class="section-block" style="border-color:rgba(192,57,43,0.2)">
-        <div class="section-header" onclick="toggleSec('sec-agente'); setTimeout(agenteInit, 100)">
-          <div class="section-header-left">
-            <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">🤖</div>
-            <div>
-              <div class="section-title-text">Asistente de ventas IA</div>
-              <div class="section-subtitle">Pregúntale qué decirle a un cliente</div>
-            </div>
-          </div>
-          <div class="section-right">
-            <span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">Activo</span>
-            <span class="section-chev" id="chev-sec-agente">▼</span>
-          </div>
-        </div>
-        <div class="section-body" id="sec-agente">
-          <div class="agente-wrap">
-            <div class="agente-chat">
-              <div class="agente-mensajes" id="agente-mensajes"></div>
-              <div class="agente-input-row">
-                <textarea class="agente-input" id="agente-input" placeholder="Ej: Un cliente dice que está muy caro, ¿qué le digo?" rows="1" onkeydown="agenteKeydown(event)"></textarea>
-                <button class="agente-send" id="agente-send" onclick="agenteEnviar()">Enviar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      
-      <!-- AGENTE IA ADMIN -->
-      <div class="section-block" style="border-color:rgba(192,57,43,0.2)">
-        <div class="section-header" onclick="toggleSec('sec-agente-adm'); setTimeout(agenteInitAdm, 100)">
-          <div class="section-header-left">
-            <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">🤖</div>
-            <div>
-              <div class="section-title-text">Asistente de ventas IA</div>
-              <div class="section-subtitle">Pregúntale qué decirle a un cliente</div>
-            </div>
-          </div>
-          <div class="section-right">
-            <span class="section-badge" style="background:rgba(29,158,117,0.15);color:var(--green)">Activo</span>
-            <span class="section-chev" id="chev-sec-agente-adm">▼</span>
-          </div>
-        </div>
-        <div class="section-body" id="sec-agente-adm">
-          <div class="agente-wrap">
-            <div class="agente-chat">
-              <div class="agente-mensajes" id="agente-mensajes-adm"></div>
-              <div class="agente-input-row">
-                <textarea class="agente-input" id="agente-input-adm" placeholder="Ej: ¿Cómo cierro a alguien que quiere pensarlo?" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();agenteEnviarAdm()}"></textarea>
-                <button class="agente-send" id="agente-send-adm" onclick="agenteEnviarAdm()">Enviar</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
     <div class="footer">Gym Factory · Membrillar 266, Rancagua</div>`;
@@ -2624,17 +2566,24 @@ async function agenteEnviar() {
     const baseDoc = await fetchBaseConocimiento();
     const systemFinal = AGENTE_SYSTEM + (baseDoc ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY (leer antes de responder):\n════════════════════════════════════════\n' + baseDoc) : '');
 
-    const res = await fetch(WEBAPP_URL + '?accion=agente', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': AGENTE_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        apiKey: AGENTE_API_KEY,
+        model: 'claude-haiku-4-5',
+        max_tokens: 600,
         system: systemFinal,
         messages: agenteHistorial
       })
     });
 
     const data = await res.json();
-    const respuesta = data.respuesta || data.error || 'No pude responder, intenta de nuevo.';
+    const respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude responder, intenta de nuevo.';
 
     // Agregar al historial
     agenteHistorial.push({ role: 'assistant', content: respuesta });
@@ -2698,16 +2647,23 @@ async function agenteEnviarAdm() {
     const baseDocAdm = await fetchBaseConocimiento();
     const systemAdm = AGENTE_SYSTEM + (baseDocAdm ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY:\n════════════════════════════════════════\n' + baseDocAdm) : '');
 
-    const res = await fetch(WEBAPP_URL + '?accion=agente', {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': AGENTE_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
-        apiKey: AGENTE_API_KEY,
+        model: 'claude-haiku-4-5',
+        max_tokens: 600,
         system: systemAdm,
         messages: agenteHistorialAdm
       })
     });
     const data = await res.json();
-    const respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude responder.';
+    const respuesta = (data.content && data.content[0]) ? data.content[0].text : (data.error ? JSON.stringify(data.error) : 'No pude responder.');
     agenteHistorialAdm.push({ role: 'assistant', content: respuesta });
     burbujaTyping.className = 'agente-burbuja ia';
     burbujaTyping.innerHTML = respuesta.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
