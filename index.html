@@ -1976,9 +1976,9 @@ function renderEstadoBadge(estado) {
 }
 
 function renderMensajesSection(id, dias, estado) {
-  if (estado === "Cerrado" || estado === "Descartado" || dias === 0) return "";
+  if (estado === "Cerrado" || estado === "Descartado") return "";
   var diaKey = getDiaKey(dias);
-  if (diaKey === "hoy") return "";
+  if (diaKey === "hoy") diaKey = "d1";
   var mensajes = MENSAJES_PROTOCOLO[diaKey] || [];
   if (!mensajes.length) return "";
 
@@ -2030,7 +2030,8 @@ function renderProspCard(p, esAdmin) {
   if (p.correo) contactoInfo.push("<a href=\"mailto:" + p.correo + "\">✉️ " + p.correo + "</a>");
   if (esAdmin && p.creadoPor) contactoInfo.push("👤 " + p.creadoPor);
 
-  var evoHtml = p.enEvo ?
+  var enEvo = p.enEvo === true || String(p.enEvo).toLowerCase() === "true";
+  var evoHtml = enEvo ?
     "<div class=\"p3-btn-evo done\">✅ En EVO</div>" :
     "<button class=\"p3-btn-evo\" onclick=\"marcarEvo('" + p.id + "')\">📋 Agregar a EVO</button>";
 
