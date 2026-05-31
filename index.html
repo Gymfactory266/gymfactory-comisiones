@@ -2546,15 +2546,17 @@ async function fetchBaseConocimiento() {
   }
   try {
     const url = 'https://docs.google.com/document/d/' + AGENTE_DOC_ID + '/export?format=txt';
-    const res = await fetch(url);
+    const res = await fetch(url, { mode: 'cors' });
     if (res.ok) {
       const texto = await res.text();
-      agenteDocCache = texto;
-      agenteDocCacheTime = ahora;
-      return texto;
+      if (texto && texto.length > 100) {
+        agenteDocCache = texto;
+        agenteDocCacheTime = ahora;
+        return texto;
+      }
     }
   } catch(e) {
-    console.log('No se pudo cargar el doc:', e);
+    console.log('Doc no disponible, usando conocimiento base:', e.message);
   }
   return null;
 }
@@ -2653,7 +2655,8 @@ async function agenteEnviar() {
 
   } catch(e) {
     burbujaTyping.className = 'agente-burbuja ia';
-    burbujaTyping.textContent = 'Error de conexión. Revisa tu internet e intenta de nuevo.';
+    burbujaTyping.textContent = 'Error: ' + e.message + '. Intenta de nuevo.';
+    console.error('Agente error:', e);
   }
 
   cont.scrollTop = cont.scrollHeight;
