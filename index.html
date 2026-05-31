@@ -1941,7 +1941,11 @@ function formatFecha(fechaISO) {
 function getDiaProspecto(p) {
   const ref = p.fechaUltContacto || p.fecha;
   if (!ref) return 0;
-  return Math.floor((Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60 * 24));
+  const horas = (Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60);
+  if (horas >= 168) return 7;
+  if (horas >= 72) return 3;
+  if (horas >= 8) return 1;
+  return 0;
 }
 
 function getDiaKey(dias) {
