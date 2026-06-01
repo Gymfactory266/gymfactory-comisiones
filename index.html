@@ -93,6 +93,15 @@
   .refresh-btn { display: block; width: 100%; margin-top: 1rem; background: var(--gray); color: #aaa; border: none; border-radius: 12px; padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
+  .cierre-card { background: var(--dark); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid rgba(192,57,43,0.25); }
+  .cierre-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+  .cierre-badge { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 6px; padding: 2px 10px; font-size: 0.68rem; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .cierre-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; font-weight: 600; }
+  .cierre-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
+  .cierre-row:last-child { border-bottom: none; }
+  .cierre-name { color: #ccc; font-weight: 500; }
+  .cierre-val { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--green); }
+  .cierre-footer { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.75rem; color: #555; }
   .hint { text-align: center; font-size: 0.72rem; color: #444; margin-bottom: 8px; }
   .personal-hero { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
   .personal-avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; flex-shrink: 0; }
@@ -676,6 +685,16 @@ try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY
 const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
 const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
 
+// Nombre del mes anterior para historial
+function getNombreMesAnterior() {
+  const hoy = new Date();
+  const mesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+  const nombre = mesAnterior.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+  return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+}
+const NOMBRE_MES_ANTERIOR = getNombreMesAnterior();
+const URL_CIERRE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(NOMBRE_MES_ANTERIOR)}`;
+
 const EMAIL_MAP = {
   'gonzaloescobarhidalgo89@gmail.com': null,
   'bea.sotopavez@hotmail.com': null,
@@ -817,9 +836,69 @@ async function loadData() {
     } else {
       renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
     }
+    // Cargar cierre del mes anterior en paralelo (no bloquea el dashboard)
+    loadCierreMes();
   } catch(e) {
     document.getElementById('main').innerHTML = `<div class="error-box"><strong>Error al cargar datos</strong><br>${e.message}</div>`;
   }
+}
+
+async function loadCierreMes() {
+  try {
+    const res = await fetch(URL_CIERRE + '&t=' + Date.now());
+    const text = await res.text();
+    const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
+    const rows = json.table ? json.table.rows : [];
+    if (!rows || rows.length < 2) return; // No hay datos del mes anterior
+
+    const nombres = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
+    const getV = (row, col) => (row && row.c && row.c[col] && row.c[col].v != null) ? Number(row.c[col].v) : 0;
+
+    const personas = [];
+    for (let i = 0; i < Math.min(6, rows.length - 1); i++) {
+      const row = rows[i];
+      if (!row || !row.c || !row.c[0] || !row.c[0].v) continue;
+      const nombre = String(row.c[0].v).trim();
+      if (!nombres.includes(nombre)) continue;
+      personas.push({ nombre, total: getV(row, 5) });
+    }
+    if (personas.length === 0) return;
+
+    // Datos adicionales del mes
+    const totalPac = rows[7] ? getV(rows[7], 2) : 0; // Total PAC equipo (col C fila 8)
+    const ventasSupl = rows[10] ? getV(rows[10], 1) : 0; // Ventas supl reales (fila 11)
+
+    personas.sort((a, b) => b.total - a.total);
+    renderCierreMes(personas, totalPac, ventasSupl);
+  } catch(e) {
+    // Si falla silenciosamente (pestaña no existe aún), no muestra error
+  }
+}
+
+function renderCierreMes(personas, totalPac, ventasSupl) {
+  const medallas = ['🥇','🥈','🥉','','',''];
+  const rows = personas.map((p, i) => `
+    <div class="cierre-row">
+      <span class="cierre-name">${medallas[i]} ${p.nombre}</span>
+      <span class="cierre-val">${fmt(p.total)}</span>
+    </div>`).join('');
+
+  const html = `
+    <div class="cierre-card">
+      <div class="cierre-header">
+        <span class="cierre-badge">Cierre</span>
+        <span class="cierre-title">${NOMBRE_MES_ANTERIOR}</span>
+      </div>
+      ${rows}
+      <div class="cierre-footer">
+        <span>PAC equipo: ${totalPac}</span>
+        <span>Supl: ${fmt(ventasSupl)}</span>
+      </div>
+    </div>`;
+
+  // Insertar después del leaderboard principal en el contenido
+  const container = document.getElementById('cierre-mes-container');
+  if (container) container.innerHTML = html;
 }
 
 function bonosHtml(p) {
@@ -1697,6 +1776,8 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
           </div>
         </div>
       </div>
+
+      <div id="cierre-mes-container"></div>
 
       <button class="refresh-btn" onclick="refresh()">&#8635; Actualizar datos</button>
     </div>
