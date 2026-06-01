@@ -93,10 +93,19 @@
   .refresh-btn { display: block; width: 100%; margin-top: 1rem; background: var(--gray); color: #aaa; border: none; border-radius: 12px; padding: 0.875rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; cursor: pointer; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; font-weight: 500; }
   .refresh-btn:hover { background: #333; color: var(--white); }
   .footer { text-align: center; padding: 2rem 1rem 1rem; font-size: 0.7rem; color: #444; text-transform: uppercase; letter-spacing: 0.1em; }
-  .cierre-card { background: var(--dark); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid rgba(192,57,43,0.25); }
-  .cierre-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
-  .cierre-badge { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 6px; padding: 2px 10px; font-size: 0.68rem; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
-  .cierre-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; font-weight: 600; }
+  .cierre-card { background: var(--dark); border-radius: 16px; margin-bottom: 1rem; border: 1px solid var(--gray); overflow: hidden; }
+
+  .cierre-acord-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; cursor: pointer; }
+  .cierre-acord-left { display: flex; align-items: center; gap: 10px; }
+  .cierre-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(192,57,43,0.12); color: var(--red); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .cierre-acord-title { font-weight: 600; font-size: 0.92rem; }
+  .cierre-acord-sub { font-size: 0.72rem; color: #666; margin-top: 1px; }
+  .cierre-badge { background: rgba(192,57,43,0.15); border: 1px solid rgba(192,57,43,0.3); border-radius: 20px; padding: 2px 10px; font-size: 0.68rem; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+  .cierre-chev { font-size: 0.8rem; color: #555; transition: transform 0.2s; }
+  .cierre-chev.open { transform: rotate(180deg); }
+  .cierre-body { display: none; padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--gray); }
+  .cierre-body.open { display: block; }
+
   .cierre-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.85rem; }
   .cierre-row:last-child { border-bottom: none; }
   .cierre-name { color: #ccc; font-weight: 500; }
@@ -877,29 +886,50 @@ async function loadCierreMes() {
 
 function renderCierreMes(personas, totalPac, ventasSupl) {
   const medallas = ['🥇','🥈','🥉','','',''];
-  const rows = personas.map((p, i) => `
+  const filas = personas.map((p, i) => `
     <div class="cierre-row">
       <span class="cierre-name">${medallas[i]} ${p.nombre}</span>
       <span class="cierre-val">${fmt(p.total)}</span>
     </div>`).join('');
 
+  const top3 = personas.slice(0,3).map(p => p.nombre).join(' · ');
+
   const html = `
     <div class="cierre-card">
-      <div class="cierre-header">
-        <span class="cierre-badge">Cierre</span>
-        <span class="cierre-title">${NOMBRE_MES_ANTERIOR}</span>
+      <div class="cierre-acord-header" onclick="toggleCierre()">
+        <div class="cierre-acord-left">
+          <div class="cierre-icon">🏁</div>
+          <div>
+            <div class="cierre-acord-title">Cierre ${NOMBRE_MES_ANTERIOR}</div>
+            <div class="cierre-acord-sub">${top3}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="cierre-badge">Cerrado</span>
+          <span class="cierre-chev" id="cierre-chev">▼</span>
+        </div>
       </div>
-      ${rows}
-      <div class="cierre-footer">
-        <span>PAC equipo: ${totalPac}</span>
-        <span>Supl: ${fmt(ventasSupl)}</span>
+      <div class="cierre-body" id="cierre-body">
+        ${filas}
+        <div class="cierre-footer">
+          <span>PAC equipo: ${totalPac}</span>
+          <span>Supl: ${fmt(ventasSupl)}</span>
+        </div>
       </div>
     </div>`;
 
-  // Insertar después del leaderboard principal en el contenido
   const container = document.getElementById('cierre-mes-container');
   if (container) container.innerHTML = html;
 }
+
+function toggleCierre() {
+  const body = document.getElementById('cierre-body');
+  const chev = document.getElementById('cierre-chev');
+  if (!body) return;
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
 
 function bonosHtml(p) {
   if (p.bonoPac <= 0 && p.bonoSupl <= 0) return '';
