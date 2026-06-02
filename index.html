@@ -2166,7 +2166,7 @@ function renderProspCard(p, esAdmin) {
   var archivado = p.estado === "Cerrado" || p.estado === "Descartado";
   var dias = getDiaProspecto(p);
   var diaKey = getDiaKey(dias);
-  var urgente = !archivado && dias >= 1;
+  var urgente = !archivado && (dias === 1 || dias === 3 || dias === 7);
   var cardClass = "p3-card" + (archivado ? " archivado" : urgente ? (" urgente-" + diaKey) : "");
 
   var historial = p.historial || [];
@@ -2251,7 +2251,7 @@ function renderProspCard(p, esAdmin) {
 function renderAlertaTurno(prospectos) {
   var urgentes = prospectos.filter(function(p) {
     if (p.estado === "Cerrado" || p.estado === "Descartado") return false;
-    return getDiaProspecto(p) >= 1;
+    var d = getDiaProspecto(p); return d === 1 || d === 3 || d === 7;
   });
   if (!urgentes.length) return "";
 
@@ -2287,7 +2287,7 @@ async function cargarProspectos() {
     var todos = data.prospectos;
     var activos = todos.filter(function(p) { return p.estado !== "Cerrado" && p.estado !== "Descartado"; });
     var archivados = todos.filter(function(p) { return p.estado === "Cerrado" || p.estado === "Descartado"; });
-    var urgentes = activos.filter(function(p) { return getDiaProspecto(p) >= 1; });
+    var urgentes = activos.filter(function(p) { var d = getDiaProspecto(p); return d === 1 || d === 3 || d === 7; });
 
     if (alerta) {
       if (urgentes.length > 0) {
