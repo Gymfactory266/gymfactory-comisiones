@@ -2078,7 +2078,7 @@ function formatFecha(fechaISO) {
 }
 
 function getDiaProspecto(p) {
-  const ref = p.fechaUltContacto || p.fecha;
+  const ref = p.fecha;
   if (!ref) return 0;
   const horas = (Date.now() - new Date(ref).getTime()) / (1000 * 60 * 60);
   if (horas >= 168) return 7;
