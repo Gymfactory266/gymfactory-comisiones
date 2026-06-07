@@ -1,99 +1,307 @@
-<!DOCTYPE html>
+
+        document.getElementById("btnEnviar").addEventListener("click"<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agente Gym Factory</title>
+    <title>🤖 Asistente Gym Factory</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #e74c3c; --light: #f8f9fa; --border: #e0e0e0; --text: #333; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--light); color: var(--text); min-height: 100vh; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, var(--primary) 0%, #c0392b 100%); color: white; padding: 30px; border-radius: 12px; margin-bottom: 30px; }
-        .header h1 { font-size: 28px; margin-bottom: 5px; }
-        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
-        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); border: 1px solid var(--border); }
-        .card h2 { font-size: 18px; margin-bottom: 15px; color: var(--primary); }
-        .chat-area { grid-column: 1 / -1; display: flex; flex-direction: column; height: 600px; }
-        .messages { flex: 1; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 15px; background: #fafafa; margin-bottom: 15px; }
-        .message { margin-bottom: 15px; display: flex; animation: slideIn 0.3s ease; }
-        .message.usuario { justify-content: flex-end; }
-        .message-bubble { max-width: 80%; padding: 12px 15px; border-radius: 8px; word-wrap: break-word; font-size: 14px; line-height: 1.4; }
-        .message.usuario .message-bubble { background: var(--primary); color: white; }
-        .message.agente .message-bubble { background: white; color: var(--text); border: 1px solid var(--border); }
-        .input-group { display: flex; gap: 10px; }
-        #pregunta { flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
-        #pregunta:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1); }
-        .btn-enviar { padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-enviar:hover:not(:disabled) { background: #c0392b; }
-        .btn-enviar:disabled { opacity: 0.6; cursor: not-allowed; }
-        .eventos-recientes { max-height: 300px; overflow-y: auto; }
-        .evento-item { padding: 12px; background: var(--light); border-radius: 6px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 13px; }
-        .evento-item strong { color: var(--primary); display: block; margin-bottom: 3px; }
-        .no-eventos { color: #999; text-align: center; padding: 20px; }
-        .loading { display: none; text-align: center; color: var(--primary); }
-        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(231, 76, 60, 0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.6s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .messages {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #fafafa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.usuario {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 75%;
+            padding: 12px 15px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.usuario .bubble {
+            background: #e74c3c;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.agente .bubble {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        #pregunta {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        #pregunta:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 14px;
+        }
+
+        button:hover:not(:disabled) {
+            background: #c0392b;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            color: #e74c3c;
+            font-size: 14px;
+            text-align: center;
+            padding: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar .card {
+            padding: 15px;
+        }
+
+        .sidebar h3 {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .quick-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .quick-btn {
+            background: #f0f0f0;
+            color: #333;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .quick-btn:hover {
+            background: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🤖 Asistente Gym Factory</h1>
-            <p>Pregunta sobre eventos, protocolos, planes y todo lo que necesites</p>
+            <p>Tu ayudante inteligente para eventos, protocolos y dudas del gym</p>
         </div>
-        <div class="main-content">
-            <div class="card chat-area" style="grid-column: 1 / -1;">
+
+        <div class="content">
+            <div class="card">
                 <h2>💬 Chat</h2>
                 <div class="messages" id="messages"></div>
-                <div class="loading" id="loading"><div class="spinner"></div> Pensando...</div>
+                <div class="loading" id="loading">⏳ Pensando...</div>
                 <div class="input-group">
-                    <input type="text" id="pregunta" placeholder="¿Qué pasó con...?" autocomplete="off">
-                    <button class="btn-enviar" id="btnEnviar">Enviar</button>
+                    <input type="text" id="pregunta" placeholder="Pregunta algo... (ej: ¿Cuáles son los planes?)" autocomplete="off">
+                    <button id="btnEnviar">Enviar</button>
                 </div>
             </div>
-            <div class="card">
-                <h2>📋 Eventos</h2>
-                <div class="eventos-recientes" id="eventosRecientes"><div class="no-eventos">Cargando...</div></div>
+
+            <div class="sidebar">
+                <div class="card">
+                    <h3>📌 Preguntas Rápidas</h3>
+                    <div class="quick-buttons">
+                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cuáles son los planes de membresía?')">Planes</button>
+                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cuál es el protocolo de venta?')">Protocolo</button>
+                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cómo son las comisiones?')">Comisiones</button>
+                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Qué suplementos vendemos?')">Suplementos</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>ℹ️ Información</h3>
+                    <p style="font-size: 12px; color: #666; line-height: 1.6;">
+                        Este asistente te ayuda con protocolos, planes, comisiones y más. Funciona directamente sin Apps Script.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg8TWMZCTEKBm1BRQfZCtkRRKPEX9aNSB7WEHOSEjJ2R-CSwDbuG_S2lW_ahtK85ti/exec";
-        let eventos = [];
-        let conversacion = [];
+        const CLAUDE_API_KEY = "sk-ant-v1-EIcZ_tuUqqfIPRgHSETsNGDysdIeLxNo37vhI_Lj4-nMahhdH1U77GqXkc5PlyRTwZUEGhBVCZR-32ikbT5Xrw-kQZUSwAA";
+        const CLAUDE_MODEL = "claude-3-5-sonnet-20241022";
 
-        async function cargarEventos() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + "?accion=obtenerEventos");
-                eventos = await response.json();
-                mostrarEventosRecientes();
-            } catch (error) {
-                console.error("Error cargando eventos:", error);
-            }
-        }
+        const BASE_DE_CONOCIMIENTO = `
+GYM FACTORY - BASE DE CONOCIMIENTO
 
-        function mostrarEventosRecientes() {
-            const container = document.getElementById("eventosRecientes");
-            if (eventos.length === 0) {
-                container.innerHTML = '<div class="no-eventos">No hay eventos</div>';
-                return;
-            }
-            const ultimos = eventos.slice(-5).reverse();
-            container.innerHTML = ultimos.map(e => `
-                <div class="evento-item">
-                    <strong>${e.nombre}</strong>
-                    <br><small>${e.fecha} ${e.hora}</small>
-                    <br><small style="color: var(--primary);">${e.tipoEvento}</small>
-                </div>
-            `).join('');
-        }
+PLANES DE MEMBRESÍA:
+- PAC: $34,990 (sin matrícula)
+- PAC Estudiante: $29,990 (con carnet)
+- Mensual: $39,990 (matrícula $9,990)
+- Trimestral: $107,990 (matrícula $9,990)
+- Semestral: $182,990 (matrícula $9,990)
+- Anual: $305,990 (matrícula $9,990)
 
-        async function enviarPregunta(texto = null) {
+PROTOCOLO DE VENTA:
+1. DIAGNÓSTICO - 2 preguntas clave antes de ofrecer
+2. MAX 2 OPCIONES - Nunca más de 2 planes a la vez
+3. ESCUCHA - Entender el pain point
+4. CIERRE - Confirmar y procesar pago
+
+COMISIONES (Si gym supera $20M CLP/mes):
+- PAC: $2,000
+- PAC Estudiante: $1,500
+- Semestral: $4,000 (tarjeta) / $6,000 (transferencia)
+- Anual: $6,000 (tarjeta) / $8,000 (transferencia)
+
+SUPLEMENTOS:
+- 4Active Creatina: Valor/precio
+- Nutriversum: Creapure certificado
+
+HORARIOS:
+- Lunes-Viernes: 6:00-22:00
+- Sábados: 8:00-20:00
+- Domingos: 8:00-18:00
+
+UBICACIÓN: Membrillar 266, Rancagua
+`;
+
+        function enviarPregunta() {
             const input = document.getElementById("pregunta");
-            const pregunta = texto || input.value.trim();
+            const pregunta = input.value.trim();
             if (!pregunta) return;
 
             agregarMensaje(pregunta, "usuario");
@@ -101,49 +309,61 @@
             document.getElementById("loading").style.display = "block";
             document.getElementById("btnEnviar").disabled = true;
 
+            consultarClaude(pregunta);
+        }
+
+        function enviarPreguntaRapida(pregunta) {
+            document.getElementById("pregunta").value = pregunta;
+            enviarPregunta();
+        }
+
+        async function consultarClaude(pregunta) {
             try {
-                const response = await fetch(APPS_SCRIPT_URL, {
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
                     method: "POST",
+                    headers: {
+                        "x-api-key": CLAUDE_API_KEY,
+                        "anthropic-version": "2023-06-01",
+                        "content-type": "application/json"
+                    },
                     body: JSON.stringify({
-                        accion: "consultar",
-                        pregunta: pregunta
+                        model: CLAUDE_MODEL,
+                        max_tokens: 1024,
+                        system: "Eres un asistente amable de Gym Factory. Responde en español de forma clara y concisa.",
+                        messages: [{
+                            role: "user",
+                            content: `BASE DE CONOCIMIENTO:\n${BASE_DE_CONOCIMIENTO}\n\nPregunta: ${pregunta}`
+                        }]
                     })
                 });
 
                 const data = await response.json();
-                
-                if (data.exito) {
-                    agregarMensaje(data.respuesta, "agente");
-                    conversacion.push({ role: "user", content: pregunta });
-                    conversacion.push({ role: "assistant", content: data.respuesta });
+
+                if (data.content && data.content[0] && data.content[0].text) {
+                    agregarMensaje(data.content[0].text, "agente");
                 } else {
-                    agregarMensaje("Error: " + (data.error || "No sé qué pasó"), "agente");
+                    agregarMensaje("No pude procesar la respuesta. Intenta de nuevo.", "agente");
                 }
             } catch (error) {
                 agregarMensaje("Error: " + error.message, "agente");
             } finally {
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("btnEnviar").disabled = false;
-                document.getElementById("pregunta").focus();
             }
         }
 
         function agregarMensaje(texto, tipo) {
             const messages = document.getElementById("messages");
             const div = document.createElement("div");
-            div.className = `message ${tipo}`;
-            div.innerHTML = `<div class="message-bubble">${escapeHtml(texto)}</div>`;
+            div.className = "message " + tipo;
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = texto;
+            div.appendChild(bubble);
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
         }
-
-        function escapeHtml(text) {
-            const div = document.createElement("div");
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        document.getElementById("btnEnviar").addEventListener("click", () => enviarPregunta());
+, enviarPregunta);
         document.getElementById("pregunta").addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
@@ -151,8 +371,7 @@
             }
         });
 
-        cargarEventos();
-        setInterval(cargarEventos, 30000);
+        agregarMensaje("¡Hola! Soy tu asistente de Gym Factory. ¿Qué necesitas saber?", "agente");
     </script>
 </body>
 </html>
