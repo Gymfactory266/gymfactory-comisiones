@@ -1,314 +1,77 @@
-
-        document.getElementById("btnEnviar").addEventListener("click"<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🤖 Asistente Gym Factory</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-            color: white;
-            padding: 40px 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3);
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .card h2 {
-            color: #e74c3c;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .messages {
-            height: 500px;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: #fafafa;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            display: flex;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.usuario {
-            justify-content: flex-end;
-        }
-
-        .bubble {
-            max-width: 75%;
-            padding: 12px 15px;
-            border-radius: 12px;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .message.usuario .bubble {
-            background: #e74c3c;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.agente .bubble {
-            background: white;
-            border: 1px solid #e0e0e0;
-            color: #333;
-            border-bottom-left-radius: 4px;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        #pregunta {
-            flex: 1;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        #pregunta:focus {
-            outline: none;
-            border-color: #e74c3c;
-        }
-
-        button {
-            padding: 12px 25px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-size: 14px;
-        }
-
-        button:hover:not(:disabled) {
-            background: #c0392b;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: none;
-            color: #e74c3c;
-            font-size: 14px;
-            text-align: center;
-            padding: 10px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .sidebar .card {
-            padding: 15px;
-        }
-
-        .sidebar h3 {
-            color: #e74c3c;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-
-        .quick-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .quick-btn {
-            background: #f0f0f0;
-            color: #333;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: left;
-        }
-
-        .quick-btn:hover {
-            background: #e74c3c;
-            color: white;
-            border-color: #e74c3c;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 24px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 40px 30px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3); text-align: center; }
+        .header h1 { font-size: 32px; margin-bottom: 10px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+        .content { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); }
+        .card h2 { color: #e74c3c; margin-bottom: 15px; font-size: 18px; }
+        .messages { height: 500px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+        .message { margin-bottom: 15px; display: flex; }
+        .message.usuario { justify-content: flex-end; }
+        .bubble { max-width: 75%; padding: 12px 15px; border-radius: 12px; word-wrap: break-word; font-size: 14px; }
+        .message.usuario .bubble { background: #e74c3c; color: white; border-bottom-right-radius: 4px; }
+        .message.agente .bubble { background: white; border: 1px solid #e0e0e0; color: #333; border-bottom-left-radius: 4px; }
+        .input-group { display: flex; gap: 10px; }
+        #pregunta { flex: 1; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        #pregunta:focus { outline: none; border-color: #e74c3c; }
+        button { padding: 12px 25px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        button:hover:not(:disabled) { background: #c0392b; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .loading { display: none; color: #e74c3c; font-size: 14px; text-align: center; }
+        .quick-btn { background: #f0f0f0; color: #333; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 12px; cursor: pointer; width: 100%; text-align: left; }
+        .quick-btn:hover { background: #e74c3c; color: white; }
+        @media (max-width: 768px) { .content { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🤖 Asistente Gym Factory</h1>
-            <p>Tu ayudante inteligente para eventos, protocolos y dudas del gym</p>
+            <p>Tu ayudante para planes, protocolos y dudas del gym</p>
         </div>
-
         <div class="content">
             <div class="card">
                 <h2>💬 Chat</h2>
                 <div class="messages" id="messages"></div>
                 <div class="loading" id="loading">⏳ Pensando...</div>
                 <div class="input-group">
-                    <input type="text" id="pregunta" placeholder="Pregunta algo... (ej: ¿Cuáles son los planes?)" autocomplete="off">
+                    <input type="text" id="pregunta" placeholder="Pregunta algo...">
                     <button id="btnEnviar">Enviar</button>
                 </div>
             </div>
-
-            <div class="sidebar">
+            <div style="display: flex; flex-direction: column; gap: 15px;">
                 <div class="card">
-                    <h3>📌 Preguntas Rápidas</h3>
-                    <div class="quick-buttons">
-                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cuáles son los planes de membresía?')">Planes</button>
-                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cuál es el protocolo de venta?')">Protocolo</button>
-                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cómo son las comisiones?')">Comisiones</button>
-                        <button class="quick-btn" onclick="enviarPreguntaRapida('¿Qué suplementos vendemos?')">Suplementos</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>ℹ️ Información</h3>
-                    <p style="font-size: 12px; color: #666; line-height: 1.6;">
-                        Este asistente te ayuda con protocolos, planes, comisiones y más. Funciona directamente sin Apps Script.
-                    </p>
+                    <h2 style="font-size: 14px;">📌 Rápidas</h2>
+                    <button class="quick-btn" onclick="enviarPreguntaRapida('¿Cuáles son los planes?')">Planes</button>
+                    <button class="quick-btn" onclick="enviarPreguntaRapida('¿Protocolo de venta?')">Protocolo</button>
+                    <button class="quick-btn" onclick="enviarPreguntaRapida('¿Comisiones?')">Comisiones</button>
+                    <button class="quick-btn" onclick="enviarPreguntaRapida('¿Suplementos?')">Suplementos</button>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
         const CLAUDE_API_KEY = "sk-ant-v1-EIcZ_tuUqqfIPRgHSETsNGDysdIeLxNo37vhI_Lj4-nMahhdH1U77GqXkc5PlyRTwZUEGhBVCZR-32ikbT5Xrw-kQZUSwAA";
         const CLAUDE_MODEL = "claude-3-5-sonnet-20241022";
-
-        const BASE_DE_CONOCIMIENTO = `
-GYM FACTORY - BASE DE CONOCIMIENTO
-
-PLANES DE MEMBRESÍA:
-- PAC: $34,990 (sin matrícula)
-- PAC Estudiante: $29,990 (con carnet)
-- Mensual: $39,990 (matrícula $9,990)
-- Trimestral: $107,990 (matrícula $9,990)
-- Semestral: $182,990 (matrícula $9,990)
-- Anual: $305,990 (matrícula $9,990)
-
-PROTOCOLO DE VENTA:
-1. DIAGNÓSTICO - 2 preguntas clave antes de ofrecer
-2. MAX 2 OPCIONES - Nunca más de 2 planes a la vez
-3. ESCUCHA - Entender el pain point
-4. CIERRE - Confirmar y procesar pago
-
-COMISIONES (Si gym supera $20M CLP/mes):
-- PAC: $2,000
-- PAC Estudiante: $1,500
-- Semestral: $4,000 (tarjeta) / $6,000 (transferencia)
-- Anual: $6,000 (tarjeta) / $8,000 (transferencia)
-
-SUPLEMENTOS:
-- 4Active Creatina: Valor/precio
-- Nutriversum: Creapure certificado
-
-HORARIOS:
-- Lunes-Viernes: 6:00-22:00
-- Sábados: 8:00-20:00
-- Domingos: 8:00-18:00
-
-UBICACIÓN: Membrillar 266, Rancagua
-`;
+        const CONTEXTO = "GYM FACTORY - PLANES: PAC $34,990 | PAC Est $29,990 | Mensual $39,990 | Trimestral $107,990 | Semestral $182,990 | Anual $305,990. COMISIONES: PAC $2k, PAC Est $1.5k, Semestral $4k-6k, Anual $6k-8k. PROTOCOLO: 1) Diagnóstico, 2) Max 2 opciones, 3) Cierre. SUPLEMENTOS: 4Active, Nutriversum. HORARIOS: L-V 6-22, S 8-20, D 8-18.";
 
         function enviarPregunta() {
             const input = document.getElementById("pregunta");
             const pregunta = input.value.trim();
             if (!pregunta) return;
-
             agregarMensaje(pregunta, "usuario");
             input.value = "";
             document.getElementById("loading").style.display = "block";
             document.getElementById("btnEnviar").disabled = true;
-
             consultarClaude(pregunta);
         }
 
@@ -329,20 +92,18 @@ UBICACIÓN: Membrillar 266, Rancagua
                     body: JSON.stringify({
                         model: CLAUDE_MODEL,
                         max_tokens: 1024,
-                        system: "Eres un asistente amable de Gym Factory. Responde en español de forma clara y concisa.",
+                        system: "Eres asistente de Gym Factory. Responde en español claro y conciso.",
                         messages: [{
                             role: "user",
-                            content: `BASE DE CONOCIMIENTO:\n${BASE_DE_CONOCIMIENTO}\n\nPregunta: ${pregunta}`
+                            content: `CONTEXTO: ${CONTEXTO}\n\nPregunta: ${pregunta}`
                         }]
                     })
                 });
-
                 const data = await response.json();
-
-                if (data.content && data.content[0] && data.content[0].text) {
+                if (data.content && data.content[0]) {
                     agregarMensaje(data.content[0].text, "agente");
                 } else {
-                    agregarMensaje("No pude procesar la respuesta. Intenta de nuevo.", "agente");
+                    agregarMensaje("Error procesando. Intenta de nuevo.", "agente");
                 }
             } catch (error) {
                 agregarMensaje("Error: " + error.message, "agente");
@@ -363,7 +124,8 @@ UBICACIÓN: Membrillar 266, Rancagua
             messages.appendChild(div);
             messages.scrollTop = messages.scrollHeight;
         }
-, enviarPregunta);
+
+        document.getElementById("btnEnviar").addEventListener("click", enviarPregunta);
         document.getElementById("pregunta").addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
@@ -371,7 +133,7 @@ UBICACIÓN: Membrillar 266, Rancagua
             }
         });
 
-        agregarMensaje("¡Hola! Soy tu asistente de Gym Factory. ¿Qué necesitas saber?", "agente");
+        agregarMensaje("¡Hola! Soy tu asistente. ¿Qué necesitas saber?", "agente");
     </script>
 </body>
 </html>
