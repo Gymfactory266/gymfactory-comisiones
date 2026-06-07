@@ -24,10 +24,13 @@
         .message.agente .message-bubble { background: white; color: var(--text); border: 1px solid var(--border); }
         .input-group { display: flex; gap: 10px; }
         #pregunta { flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        #pregunta:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1); }
         .btn-enviar { padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-enviar:hover { background: #c0392b; }
+        .btn-enviar:hover:not(:disabled) { background: #c0392b; }
+        .btn-enviar:disabled { opacity: 0.6; cursor: not-allowed; }
         .eventos-recientes { max-height: 300px; overflow-y: auto; }
         .evento-item { padding: 12px; background: var(--light); border-radius: 6px; margin-bottom: 10px; border-left: 4px solid var(--primary); font-size: 13px; }
+        .evento-item strong { color: var(--primary); display: block; margin-bottom: 3px; }
         .no-eventos { color: #999; text-align: center; padding: 20px; }
         .loading { display: none; text-align: center; color: var(--primary); }
         .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(231, 76, 60, 0.3); border-radius: 50%; border-top-color: var(--primary); animation: spin 0.6s linear infinite; }
@@ -58,8 +61,7 @@
         </div>
     </div>
     <script>
-        const API_KEY = "sk-ant-v1-EIcZ_tuUqqfIPRgHSETsNGDysdIeLxNo37vhI_Lj4-nMahhdH1U77GqXkc5PlyRTwZUEGhBVCZR-32ikbT5Xrw-kQZUSwAA";
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_c6XnCYXm1SHwbi-NINAbAuczaaLalzgsdB2BwfGA0NsVp7bjPaGrl0BHhO1EV6sX/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg8TWMZCTEKBm1BRQfZCtkRRKPEX9aNSB7WEHOSEjJ2R-CSwDbuG_S2lW_ahtK85ti/exec";
         let eventos = [];
         let conversacion = [];
 
@@ -69,7 +71,7 @@
                 eventos = await response.json();
                 mostrarEventosRecientes();
             } catch (error) {
-                console.error("Error:", error);
+                console.error("Error cargando eventos:", error);
             }
         }
 
@@ -80,7 +82,13 @@
                 return;
             }
             const ultimos = eventos.slice(-5).reverse();
-            container.innerHTML = ultimos.map(e => `<div class="evento-item"><strong>${e.nombre}</strong><br><small>${e.fecha} ${e.hora}</small></div>`).join('');
+            container.innerHTML = ultimos.map(e => `
+                <div class="evento-item">
+                    <strong>${e.nombre}</strong>
+                    <br><small>${e.fecha} ${e.hora}</small>
+                    <br><small style="color: var(--primary);">${e.tipoEvento}</small>
+                </div>
+            `).join('');
         }
 
         async function enviarPregunta(texto = null) {
@@ -94,33 +102,29 @@
             document.getElementById("btnEnviar").disabled = true;
 
             try {
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                const response = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "x-api-key": API_KEY,
-                        "anthropic-version": "2023-06-01"
-                    },
                     body: JSON.stringify({
-                        model: "claude-3-5-sonnet-20241022",
-                        max_tokens: 1024,
-                        system: "Eres asistente de Gym Factory. Ayuda con eventos, protocolos, planes y suplementos.",
-                        messages: [...conversacion, { role: "user", content: pregunta }]
+                        accion: "consultar",
+                        pregunta: pregunta
                     })
                 });
 
                 const data = await response.json();
-                if (data.content && data.content[0]) {
-                    const respuesta = data.content[0].text;
-                    agregarMensaje(respuesta, "agente");
+                
+                if (data.exito) {
+                    agregarMensaje(data.respuesta, "agente");
                     conversacion.push({ role: "user", content: pregunta });
-                    conversacion.push({ role: "assistant", content: respuesta });
+                    conversacion.push({ role: "assistant", content: data.respuesta });
+                } else {
+                    agregarMensaje("Error: " + (data.error || "No sé qué pasó"), "agente");
                 }
             } catch (error) {
                 agregarMensaje("Error: " + error.message, "agente");
             } finally {
                 document.getElementById("loading").style.display = "none";
                 document.getElementById("btnEnviar").disabled = false;
+                document.getElementById("pregunta").focus();
             }
         }
 
