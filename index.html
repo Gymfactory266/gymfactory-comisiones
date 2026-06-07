@@ -2072,7 +2072,7 @@ function formatFecha(fechaISO) {
 }
 
 function getDiaProspecto(p) {
-  const ref = p.fechaUltContacto || p.fecha;
+  const ref = p.fecha; // Siempre desde la fecha de creacion (no se reinicia al contactar)
   if (!ref) return 0;
   // Fecha de referencia a medianoche (cuenta solo el dia de calendario, no la hora)
   const fechaRef = new Date(ref);
