@@ -818,6 +818,7 @@ async function loadData() {
     const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
     const bonoSuplTotal    = rows[9]  ? getV(rows[9], 1) : 0;
     const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
+    const ventasSuplPT     = rows[10] ? getV(rows[10], 2) : 0;
     const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
     const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
     const transfDetalle = [];
@@ -832,9 +833,9 @@ async function loadData() {
       const miData = data.find(d => d.name === currentUserPersona);
       const sorted = [...data].sort((a,b) => b.total - a.total);
       const miRank = sorted.findIndex(d => d.name === currentUserPersona) + 1;
-      renderPersonal(miData, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, sorted);
+      renderPersonal(miData, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, sorted, ventasSuplPT);
     } else {
-      renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle);
+      renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSuplReales, suplFaltan550k, transferenciasPend, transfDetalle, ventasSuplPT);
     }
     // Cargar cierre del mes anterior en paralelo (no bloquea el dashboard)
     loadCierreMes();
@@ -1015,14 +1016,14 @@ function toggleDetalle(name) {
   if (chev) chev.classList.toggle('open');
 }
 
-function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, sorted) {
+function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, sorted, ventasSuplPT) {
   if (!p) { document.getElementById('main').innerHTML = '<div class="error-box">No se encontraron datos para tu usuario.</div>'; return; }
   const style = PERSONAS[p.name] || {color:'#888', bg:'rgba(136,136,136,0.15)', rol:'Equipo'};
   const tipo = ['Massiel','Sara'].includes(p.name) ? 'recepcion' : p.name === 'Camila' ? 'recepcion_part' : 'pt';
   const suplActivo = ventasSupl >= 550000;
   const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
   const suplPct550 = Math.min(Math.round(ventasSupl / 550000 * 100), 100);
-  const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
+  const suplPct700 = Math.min(Math.round((ventasSuplPT||0) / 700000 * 100), 100);
   const medalStr = miRank <= 3 ? medals[miRank-1] : '#' + miRank;
 
   const maxCom = Math.max(...sorted.map(d => d.total), 1);
@@ -1434,13 +1435,14 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
             <div class="prog-v2-track"><div class="prog-v2-fill" style="width:${suplPct550}%;background:${suplActivo?'var(--green)':'var(--red)'}"></div></div>
           </div>
           ${suplActivo?'<div class="ok-box" style="margin:10px 0">Comisiones individuales al 100% activadas</div>':`<div class="alert-box" style="margin:10px 0">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
-          <div class="prog-v2" style="margin-top:8px">
+          <div style="font-size:0.72rem;color:#888;margin:8px 0 4px">Bono grupal · solo PT (Luis · Diego · Javiera) — ${fmt(ventasSuplPT||0)} vendidos</div>
+          <div class="prog-v2" style="margin-top:4px">
             <div class="prog-v2-track"><div class="prog-v2-fill" style="width:${suplPct700}%;background:var(--amber)"></div></div>
           </div>
           <div style="margin-top:10px">
-            <div class="bonus-row-v2"><span>$700k–$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
-            <div class="bonus-row-v2"><span>$850k–$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
-            <div class="bonus-row-v2"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>$700k–$850k → $20.000</span><span>${(ventasSuplPT||0)>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-(ventasSuplPT||0)))+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>$850k–$1M → $30.000</span><span>${(ventasSuplPT||0)>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-(ventasSuplPT||0)))+'</span>'}</span></div>
+            <div class="bonus-row-v2"><span>Sobre $1M → $40.000</span><span>${(ventasSuplPT||0)>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-(ventasSuplPT||0)))+'</span>'}</span></div>
           </div>
           ${bonoSuplTotal>0?`<div class="ok-box" style="margin-top:10px">Bono activado — tu parte: ${fmt(p.bonoSupl)}</div>`:''}
         </div>
@@ -1526,12 +1528,12 @@ function renderPersonal(p, miRank, totalPacGrupal, totalPacReal, bonoPacTotal, p
   if (tipo === 'pt') setTimeout(cargarPlanes, 400);
 }
 
-function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle) {
+function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTotal, pacSiguiente, bonoSuplTotal, ventasSupl, suplFaltan550k, transferenciasPend, transfDetalle, ventasSuplPT) {
   const sorted = [...data].sort((a,b) => b.total - a.total);
   const maxCom = Math.max(...data.map(d => d.total), 1);
   const pacGrupalPct = Math.min(Math.round(totalPacGrupal / 70 * 100), 100);
   const suplPct550 = Math.min(Math.round(ventasSupl / 550000 * 100), 100);
-  const suplPct700 = Math.min(Math.round(ventasSupl / 700000 * 100), 100);
+  const suplPct700 = Math.min(Math.round((ventasSuplPT||0) / 700000 * 100), 100);
   const mes = new Date().toLocaleDateString('es-CL',{month:'long',year:'numeric'});
   const suplActivo = ventasSupl >= 550000;
 
@@ -1649,12 +1651,12 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
         </div>
         ${suplActivo?'<div class="ok-box">Comisiones individuales al 100% activadas</div>':`<div class="alert-box">Comisiones al 50% · Faltan ${fmt(suplFaltan550k)} para activar el 100%</div>`}
         <div style="margin-top:1rem">
-          <div class="prog-labels"><span>Bono grupal</span><span>Meta $700k: ${suplPct700}%</span></div>
+          <div class="prog-labels"><span>Bono grupal · solo PT (${fmt(ventasSuplPT||0)})</span><span>Meta $700k: ${suplPct700}%</span></div>
           <div class="prog-track"><div class="prog-fill" style="width:${suplPct700}%"></div></div>
         </div>
-        <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${ventasSupl>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-ventasSupl))+'</span>'}</span></div>
-        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${ventasSupl>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-ventasSupl))+'</span>'}</span></div>
-        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${ventasSupl>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-ventasSupl))+'</span>'}</span></div>
+        <div class="bonus-row" style="margin-top:0.75rem"><span>$700k-$850k → $20.000</span><span>${(ventasSuplPT||0)>=700000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,700000-(ventasSuplPT||0)))+'</span>'}</span></div>
+        <div class="bonus-row"><span>$850k-$1M → $30.000</span><span>${(ventasSuplPT||0)>=850000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,850000-(ventasSuplPT||0)))+'</span>'}</span></div>
+        <div class="bonus-row"><span>Sobre $1M → $40.000</span><span>${(ventasSuplPT||0)>=1000000?'<span class="badge badge-ok">Activado</span>':'<span class="badge badge-no">Faltan '+fmt(Math.max(0,1000000-(ventasSuplPT||0)))+'</span>'}</span></div>
           ${bonoSuplTotal>0?`<div class="ok-box" style="margin-top:8px">Bono suplementos activado: ${fmt(bonoSuplTotal)} repartido proporcionalmente</div>`:''}
         </div>
       </div>
@@ -2072,7 +2074,7 @@ function formatFecha(fechaISO) {
 }
 
 function getDiaProspecto(p) {
-  const ref = p.fecha; // Siempre desde la fecha de creacion (no se reinicia al contactar)
+  const ref = p.fechaUltContacto || p.fecha;
   if (!ref) return 0;
   // Fecha de referencia a medianoche (cuenta solo el dia de calendario, no la hora)
   const fechaRef = new Date(ref);
@@ -2080,8 +2082,10 @@ function getDiaProspecto(p) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   const dias = Math.round((hoy - fechaRef) / (1000 * 60 * 60 * 24));
-  if (isNaN(dias) || dias < 0) return 0;
-  return dias; // dia real exacto desde la creacion
+  if (dias >= 7) return 7;
+  if (dias >= 3) return 3;
+  if (dias >= 1) return 1;
+  return 0;
 }
 
 function getDiaKey(dias) {
@@ -2091,17 +2095,12 @@ function getDiaKey(dias) {
   return "hoy";
 }
 
-function esContactarHoy(dias) {
-  // Solo los dias del protocolo: 1, 3 y 7
-  return dias === 1 || dias === 3 || dias === 7;
-}
-
 function renderDiaBadge(dias, estado) {
   if (estado === "Cerrado" || estado === "Descartado") return "";
   if (dias === 0) return "<span class=\"p3-dia-badge hoy\">✓ Hoy</span>";
-  if (dias >= 7) return "<span class=\"p3-dia-badge d7\">🔴 Dia " + dias + "</span>";
-  if (dias >= 3) return "<span class=\"p3-dia-badge d3\">🟠 Dia " + dias + "</span>";
-  if (dias >= 1) return "<span class=\"p3-dia-badge d1\">🟡 Dia " + dias + "</span>";
+  if (dias >= 7) return "<span class=\"p3-dia-badge d7\">🔴 Dia 7</span>";
+  if (dias >= 3) return "<span class=\"p3-dia-badge d3\">🟠 Dia 3</span>";
+  if (dias >= 1) return "<span class=\"p3-dia-badge d1\">🟡 Dia 1</span>";
   return "";
 }
 
@@ -2157,7 +2156,7 @@ function renderProspCard(p, esAdmin) {
   var archivado = p.estado === "Cerrado" || p.estado === "Descartado";
   var dias = getDiaProspecto(p);
   var diaKey = getDiaKey(dias);
-  var urgente = !archivado && esContactarHoy(dias);
+  var urgente = !archivado && dias >= 1;
   var cardClass = "p3-card" + (archivado ? " archivado" : urgente ? (" urgente-" + diaKey) : "");
 
   var historial = p.historial || [];
@@ -2242,14 +2241,14 @@ function renderProspCard(p, esAdmin) {
 function renderAlertaTurno(prospectos) {
   var urgentes = prospectos.filter(function(p) {
     if (p.estado === "Cerrado" || p.estado === "Descartado") return false;
-    return esContactarHoy(getDiaProspecto(p));
+    return getDiaProspecto(p) >= 1;
   });
   if (!urgentes.length) return "";
 
   var items = urgentes.map(function(p) {
     var dias = getDiaProspecto(p);
     var diaKey = getDiaKey(dias);
-    var label = "Dia " + dias;
+    var label = diaKey === "d7" ? "Dia 7" : diaKey === "d3" ? "Dia 3" : "Dia 1";
     return "<div class=\"p3-alerta-item\">" +
       "<span class=\"p3-alerta-nombre\">" + p.nombre + "</span>" +
       "<span class=\"p3-dia-badge " + diaKey + "\">" + label + "</span>" +
@@ -2278,7 +2277,7 @@ async function cargarProspectos() {
     var todos = data.prospectos;
     var activos = todos.filter(function(p) { return p.estado !== "Cerrado" && p.estado !== "Descartado"; });
     var archivados = todos.filter(function(p) { return p.estado === "Cerrado" || p.estado === "Descartado"; });
-    var urgentes = activos.filter(function(p) { return esContactarHoy(getDiaProspecto(p)); });
+    var urgentes = activos.filter(function(p) { return getDiaProspecto(p) >= 1; });
 
     if (alerta) {
       if (urgentes.length > 0) {
