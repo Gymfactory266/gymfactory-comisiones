@@ -1724,6 +1724,19 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
           </div>
         </div>
         <div class="section-body" id="adm-prosp">
+          <button class="prosp-add-btn" onclick="toggleProspForm()">➕ Nuevo prospecto</button>
+          <div class="prosp-form" id="prosp-form">
+            <input class="prosp-input" id="prosp-nombre" placeholder="Nombre *" type="text">
+            <input class="prosp-input" id="prosp-telefono" placeholder="Teléfono (opcional)" type="tel">
+            <input class="prosp-input" id="prosp-correo-campo" placeholder="Correo (opcional)" type="email">
+            <select class="prosp-select" id="prosp-canal">
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+            <input class="prosp-input" id="prosp-consulta" placeholder="¿Qué preguntó? (opcional)" type="text">
+            <button class="prosp-save-btn" id="prosp-save-btn" onclick="guardarProspecto()">Guardar prospecto</button>
+          </div>
           <div id="admin-prosp-lista"><div class="prosp-empty">Abre esta sección para cargar</div></div>
         </div>
       </div>
@@ -1947,6 +1960,22 @@ const MENSAJES_PROTOCOLO = {
 let prospCache = [];
 let prospCargado = false;
 let ultimaInteraccionProsp = 0;
+let prospGrupos = { evo: false, arch: false }; // grupos colapsables (cerrados por defecto)
+
+function toggleGrupoProsp(k) {
+  prospGrupos[k] = !prospGrupos[k];
+  ultimaInteraccionProsp = Date.now();
+  renderProspListas();
+}
+
+function renderGrupoProsp(key, titulo, contenido) {
+  const abierto = !!prospGrupos[key];
+  return '<div class="p3-grupo">' +
+    '<div class="p3-grupo-header" onclick="toggleGrupoProsp(\'' + key + '\')">' +
+    '<span>' + titulo + '</span><span class="p3-grupo-chev">' + (abierto ? '▲' : '▼') + '</span></div>' +
+    (abierto ? '<div class="p3-grupo-body">' + contenido + '</div>' : '') +
+    '</div>';
+}
 
 document.addEventListener('input', function(e) {
   if (e.target && e.target.closest && e.target.closest('.p3-card, .prosp-form')) ultimaInteraccionProsp = Date.now();
@@ -1967,7 +1996,17 @@ document.addEventListener('click', function(e) {
     ".p3-toast.err { background: #C0392B; }\n" +
     ".p3-msg-wsp { width: 100%; margin-top: 6px; background: rgba(29,158,117,0.15); color: #1D9E75; border: 1px solid rgba(29,158,117,0.3); border-radius: 7px; padding: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }\n" +
     ".p3-msg-wsp:hover { background: rgba(29,158,117,0.25); }\n" +
-    ".p3-card.p3-guardando { opacity: 0.55; }\n";
+    ".p3-card.p3-guardando { opacity: 0.55; }\n" +
+    ".p3-grupo { margin-top: 14px; }\n" +
+    ".p3-grupo-header { display: flex; justify-content: space-between; align-items: center; background: #141414; border: 1px solid #222; border-radius: 10px; padding: 10px 14px; cursor: pointer; font-size: 0.78rem; color: #999; font-weight: 600; user-select: none; }\n" +
+    ".p3-grupo-header:hover { background: #1a1a1a; color: #ccc; }\n" +
+    ".p3-grupo-chev { color: #555; font-size: 0.7rem; }\n" +
+    ".p3-grupo-body { padding-top: 8px; }\n" +
+    ".planes-grupo-header { display: flex; justify-content: space-between; align-items: center; background: #141414; border: 1px solid #222; border-radius: 10px; padding: 9px 13px; cursor: pointer; font-size: 0.76rem; color: #999; font-weight: 600; user-select: none; margin-top: 10px; }\n" +
+    ".planes-grupo-header:hover { background: #1a1a1a; color: #ccc; }\n" +
+    ".planes-fecha { font-size: 0.7rem; color: #666; margin-top: 2px; }\n" +
+    ".planes-terminar-btn { width: 100%; margin-top: 8px; background: rgba(29,158,117,0.12); color: #1D9E75; border: 1px solid rgba(29,158,117,0.3); border-radius: 8px; padding: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: 'DM Sans', sans-serif; }\n" +
+    ".planes-terminar-btn:hover { background: rgba(29,158,117,0.22); }\n";
   document.head.appendChild(st);
 })();
 
@@ -2001,7 +2040,7 @@ function postProsp(payload) {
   return fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify(payload) });
 }
 function nuevaEntradaHist(accion, nota) {
-  return { fecha: new Date().toISOString(), quien: currentUserPersona || 'Recepcion', accion: accion, nota: nota || '' };
+  return { fecha: new Date().toISOString(), quien: currentUserPersona || 'Admin', accion: accion, nota: nota || '' };
 }
 
 // ---- Preservar lo que la persona tiene abierto/escrito ----
@@ -2065,19 +2104,31 @@ function renderProspLista(contId, esAdmin) {
   }
 
   const todos = prospCache;
-  const activos = todos.filter(function(p) { return p.estado !== 'Cerrado' && p.estado !== 'Descartado'; });
-  const archivados = todos.filter(function(p) { return p.estado === 'Cerrado' || p.estado === 'Descartado'; });
+  const noArchivado = function(p) { return p.estado !== 'Cerrado' && p.estado !== 'Descartado'; };
+  const esEvo = function(p) { return p.enEvo === true || String(p.enEvo).toLowerCase() === 'true'; };
+
+  const activos = todos.filter(function(p) { return noArchivado(p) && !esEvo(p); });
+  const enEvoLista = todos.filter(function(p) { return noArchivado(p) && esEvo(p); });
+  const archivados = todos.filter(function(p) { return !noArchivado(p); });
   activos.sort(function(a, b) { return getDiaProspecto(b) - getDiaProspecto(a); });
+  enEvoLista.sort(function(a, b) { return getDiaProspecto(b) - getDiaProspecto(a); });
 
   let html = renderAlertaTurno(todos);
   if (activos.length > 0) {
-    html += '<div class="p3-seccion">📋 En seguimiento (' + activos.length + ')</div>';
+    html += '<div class="p3-seccion">📋 Por trabajar (' + activos.length + ')</div>';
     html += activos.map(function(p) { return renderProspCard(p, esAdmin); }).join('');
+  } else {
+    html += '<div class="p3-empty">✅ No hay prospectos pendientes por trabajar</div>';
+  }
+  if (enEvoLista.length > 0) {
+    const urgEvo = enEvoLista.filter(function(p) { return getDiaProspecto(p) >= 1; }).length;
+    const tituloEvo = '📁 En EVO (' + enEvoLista.length + ')' +
+      (urgEvo > 0 ? ' <span style="color:var(--red)">· 🔔 ' + urgEvo + ' por contactar</span>' : '');
+    html += renderGrupoProsp('evo', tituloEvo, enEvoLista.map(function(p) { return renderProspCard(p, esAdmin); }).join(''));
   }
   if (archivados.length > 0) {
     const listaArch = esAdmin ? archivados.slice(0, 20) : archivados;
-    html += '<div class="p3-seccion" style="color:#2a2a2a">Cerrados / Descartados (' + archivados.length + ')</div>';
-    html += listaArch.map(function(p) { return renderProspCard(p, esAdmin); }).join('');
+    html += renderGrupoProsp('arch', '🗂 Cerrados / Descartados (' + archivados.length + ')', listaArch.map(function(p) { return renderProspCard(p, esAdmin); }).join(''));
   }
   cont.innerHTML = html || '<div class="p3-empty">No hay prospectos activos</div>';
 
@@ -2162,7 +2213,7 @@ async function guardarProspecto() {
   const consulta = document.getElementById('prosp-consulta').value.trim();
   const telefono = document.getElementById('prosp-telefono').value.trim();
   const correo = document.getElementById('prosp-correo-campo').value.trim();
-  const creadoPor = currentUserPersona || 'Recepcion';
+  const creadoPor = currentUserPersona || 'Admin';
   if (!nombre) { toastProsp('Ingresa el nombre del prospecto', true); return; }
   const btn = document.getElementById('prosp-save-btn');
   btn.textContent = 'Guardando...'; btn.disabled = true;
@@ -2246,14 +2297,14 @@ async function marcarEvo(id) {
   const prev = { enEvo: p.enEvo, histLen: (p.historial || []).length };
   p.enEvo = true;
   p.historial = (p.historial || []).concat([nuevaEntradaHist('Agregado a EVO')]);
-  patchProspCards(id);
+  renderProspListas(); // la tarjeta se mueve al grupo "En EVO"
   try {
     await postProsp({ accion: 'marcarEvo', id: id, quien: currentUserPersona });
-    toastProsp('Marcado en EVO');
+    toastProsp('📁 Movido a la lista En EVO');
   } catch(e) {
     p.enEvo = prev.enEvo;
     p.historial = (p.historial || []).slice(0, prev.histLen);
-    patchProspCards(id);
+    renderProspListas();
     toastProsp('No se pudo marcar en EVO', true);
   }
 }
@@ -2303,7 +2354,7 @@ async function cerrarVenta(id) {
   const prev = { estado: p.estado, fechaUlt: p.fechaUltContacto, histLen: (p.historial || []).length, planVendido: p.planVendido, cerradoPor: p.cerradoPor };
   p.estado = 'Cerrado';
   p.planVendido = plan;
-  p.cerradoPor = currentUserPersona || 'Recepcion';
+  p.cerradoPor = currentUserPersona || 'Admin';
   p.fechaUltContacto = new Date().toISOString();
   p.historial = (p.historial || []).concat([nuevaEntradaHist('VENTA CERRADA', plan + (nota ? ' — ' + nota : ''))]);
   renderProspListas();
@@ -2684,6 +2735,52 @@ async function eliminarPlan(id) {
   cargarPlanesAdmin();
 }
 
+// ---- Helpers de planes PT ----
+const planesGruposAbiertos = new Set();
+
+function esPlanPagado(p) {
+  return p.estado === 'Pagado' || p.estado === 'Completado y Pagado';
+}
+function esPlanTerminado(p) {
+  const match = (p.plan || '').match(/(\d+) sesiones/);
+  const total = match ? parseInt(match[1]) : 0;
+  const ses = p.sesiones || 0;
+  return (total > 0 && ses >= total) || String(p.estado || '').indexOf('Completado') === 0;
+}
+function fechaPlan(p) {
+  const n = Number(p.id);
+  if (!isFinite(n) || String(p.id).length < 12) return null;
+  const d = new Date(n);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function togglePlanesGrupo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const abierto = !planesGruposAbiertos.has(id);
+  if (abierto) planesGruposAbiertos.add(id); else planesGruposAbiertos.delete(id);
+  el.style.display = abierto ? 'block' : 'none';
+  const ch = document.getElementById('gchev-' + id);
+  if (ch) ch.textContent = abierto ? '▲' : '▼';
+}
+
+function renderGrupoPlanes(id, titulo, contenido) {
+  const abierto = planesGruposAbiertos.has(id);
+  return '<div class="planes-grupo-header" onclick="togglePlanesGrupo(\'' + id + '\')">' +
+    '<span>' + titulo + '</span><span class="p3-grupo-chev" id="gchev-' + id + '">' + (abierto ? '▲' : '▼') + '</span></div>' +
+    '<div id="' + id + '" style="display:' + (abierto ? 'block' : 'none') + ';padding-top:8px">' + contenido + '</div>';
+}
+
+function togglePlanesAcord(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+  const ch = document.getElementById('chev-' + id);
+  if (ch) ch.classList.toggle('open');
+  if (el.classList.contains('open')) planesGruposAbiertos.add('acord:' + id);
+  else planesGruposAbiertos.delete('acord:' + id);
+}
+
 function renderPlanCard(p, esAdmin) {
   const ptParte = p.ptParte || Math.round(p.monto * 0.8);
   const gymParte = p.gymParte || Math.round(p.monto * 0.2);
@@ -2691,8 +2788,11 @@ function renderPlanCard(p, esAdmin) {
   const matchSesiones = (p.plan || '').match(/(\d+) sesiones/);
   const totalSesiones = matchSesiones ? parseInt(matchSesiones[1]) : 0;
   const sesPct = totalSesiones > 0 ? Math.min(Math.round(sesiones / totalSesiones * 100), 100) : 0;
-  const completado = sesiones >= totalSesiones && totalSesiones > 0;
-  const estadoClass = p.estado === 'Pagado' || p.estado === 'Completado y Pagado' ? 'pagado' : completado ? 'pagado' : 'pendiente';
+  const completado = esPlanTerminado(p);
+  const pagado = esPlanPagado(p);
+  const estadoClass = pagado || completado ? 'pagado' : 'pendiente';
+  const fReg = fechaPlan(p);
+  const fechaHtml = fReg ? '<div class="planes-fecha">📅 Registrado el ' + formatFecha(fReg.toISOString()) + ' · ' + tiempoTranscurrido(fReg.toISOString()).toLowerCase() + '</div>' : '';
 
   return `
     <div class="planes-card ${estadoClass}">
@@ -2700,6 +2800,7 @@ function renderPlanCard(p, esAdmin) {
         <div>
           <div class="planes-card-nombre">${p.cliente}</div>
           <div class="planes-card-pt">${esAdmin ? p.pt + ' · ' : ''}${p.plan}</div>
+          ${fechaHtml}
         </div>
         <button class="planes-del-btn" onclick="eliminarPlan('${p.id}')">✕</button>
       </div>
@@ -2723,6 +2824,7 @@ function renderPlanCard(p, esAdmin) {
           </button>
           ${sesiones > 0 ? `<button class="planes-aprobar-btn" style="background:rgba(255,255,255,0.04);color:#666;border:1px solid #222;padding:7px 12px" onclick="restarSesion('${p.id}', ${sesiones})" title="Deshacer última sesión">➖</button>` : ''}
         </div>` : ''}
+        ${!completado ? `<button class="planes-terminar-btn" onclick="terminarSesiones('${p.id}', ${totalSesiones}, '${(p.cliente || '').replace(/'/g, '')}')">🏁 Terminé todas las sesiones</button>` : ''}
       </div>` : ''}
 
       <div class="planes-montos">
@@ -2742,13 +2844,34 @@ function renderPlanCard(p, esAdmin) {
           <div class="planes-monto-label">Estado pago</div>
           <div>
             <span class="planes-estado ${estadoClass}">
-              ${p.estado === 'Pagado' || p.estado === 'Completado y Pagado' ? '✓ Pagado' : completado ? '✅ Completado' : '⏳ Pendiente'}
+              ${pagado ? '✓ Pagado' : completado ? '✅ Completado' : '⏳ Pendiente'}
             </span>
           </div>
         </div>
       </div>
-      ${(p.estado !== 'Pagado' && p.estado !== 'Completado y Pagado') && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')" style="margin-top:8px">✅ Aprobar pago</button>` : ''}
+      ${!pagado && esAdmin ? `<button class="planes-aprobar-btn" onclick="aprobarPlan('${p.id}')" style="margin-top:8px">✅ Aprobar pago</button>` : ''}
     </div>`;
+}
+
+async function terminarSesiones(id, total, cliente) {
+  if (!confirm('¿Confirmas que se terminaron TODAS las sesiones de ' + cliente + (total ? ' (' + total + ' sesiones)' : '') + '? El plan pasará a la lista de Terminados.')) return;
+  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'terminarPlan', id }),
+    });
+    let j = null;
+    try { j = await res.json(); } catch(e2) {}
+    if (j && j.ok === false) {
+      alert('Esta función necesita la versión nueva del Apps Script. Avísale al administrador.');
+      return;
+    }
+  } catch(e) {
+    alert('Error de conexión, intenta de nuevo');
+    return;
+  }
+  cargarPlanes();
+  cargarPlanesAdmin();
 }
 
 async function restarSesion(id, sesiones) {
@@ -2786,16 +2909,19 @@ async function cargarPlanes() {
       cont.innerHTML = '<div class="prosp-empty">No tienes planes registrados este mes</div>';
       return;
     }
-    const pendientes = misPlanes.filter(p => p.estado !== 'Pagado');
-    const pagados = misPlanes.filter(p => p.estado === 'Pagado');
+    const enCurso = misPlanes.filter(p => !esPlanTerminado(p));
+    const terminados = misPlanes.filter(p => esPlanTerminado(p));
     let html = '';
-    if (pendientes.length > 0) {
-      html += '<div class="planes-group-label">Pendientes de pago</div>';
-      html += pendientes.map(p => renderPlanCard(p, false)).join('');
+    if (enCurso.length > 0) {
+      html += '<div class="planes-group-label">En curso</div>';
+      html += enCurso.map(p => renderPlanCard(p, false)).join('');
+    } else {
+      html += '<div class="prosp-empty">No tienes planes en curso</div>';
     }
-    if (pagados.length > 0) {
-      html += '<div class="planes-group-label">Pagados</div>';
-      html += pagados.map(p => renderPlanCard(p, false)).join('');
+    if (terminados.length > 0) {
+      const sinPagar = terminados.filter(p => !esPlanPagado(p)).length;
+      const titulo = '🏁 Terminados (' + terminados.length + ')' + (sinPagar > 0 ? ' <span style="color:var(--amber)">· ' + sinPagar + ' por pagar</span>' : '');
+      html += renderGrupoPlanes('planes-term-pt', titulo, terminados.map(p => renderPlanCard(p, false)).join(''));
     }
     cont.innerHTML = html;
   } catch(e) {
@@ -2811,7 +2937,7 @@ async function cargarPlanesAdmin() {
     const res = await fetch(WEBAPP_URL + '?accion=listarPlanes');
     const data = await res.json();
     const planes = data.planes || [];
-    const pendientes = planes.filter(p => p.estado !== 'Pagado');
+    const pendientes = planes.filter(p => !esPlanPagado(p));
 
     if (alerta) {
       if (pendientes.length > 0) {
@@ -2835,22 +2961,36 @@ async function cargarPlanesAdmin() {
     });
 
     cont.innerHTML = Object.entries(grupos).map(([pt, pls]) => {
-      const pend = pls.filter(p => p.estado !== 'Pagado');
+      const pend = pls.filter(p => !esPlanPagado(p));
       const totalPT = pls.reduce((s, p) => s + (p.ptParte || Math.round(p.monto * 0.8)), 0);
+      const activosPT = pls.filter(p => !esPlanTerminado(p));
+      const terminadosPT = pls.filter(p => esPlanTerminado(p));
+      const abierto = planesGruposAbiertos.has('acord:planes-pt-' + pt);
+      let bodyHtml = '';
+      if (activosPT.length > 0) {
+        bodyHtml += activosPT.map(p => renderPlanCard(p, true)).join('');
+      } else {
+        bodyHtml += '<div class="prosp-empty" style="padding:8px 0">Sin planes en curso</div>';
+      }
+      if (terminadosPT.length > 0) {
+        const sinPagar = terminadosPT.filter(p => !esPlanPagado(p)).length;
+        const tituloTerm = '🏁 Terminados (' + terminadosPT.length + ')' + (sinPagar > 0 ? ' <span style="color:var(--amber)">· ' + sinPagar + ' por pagar</span>' : '');
+        bodyHtml += renderGrupoPlanes('planes-term-' + pt, tituloTerm, terminadosPT.map(p => renderPlanCard(p, true)).join(''));
+      }
       return `
         <div class="admin-prosp-acord">
-          <div class="admin-prosp-header" onclick="toggleAcord('planes-pt-${pt}')">
+          <div class="admin-prosp-header" onclick="togglePlanesAcord('planes-pt-${pt}')">
             <div>
               <div class="admin-prosp-title">${pt}</div>
-              <div class="admin-prosp-meta">${pls.length} plan${pls.length !== 1 ? 'es' : ''} · Total PT: ${fmt(totalPT)}</div>
+              <div class="admin-prosp-meta">${activosPT.length} en curso · ${terminadosPT.length} terminado${terminadosPT.length !== 1 ? 's' : ''} · Total PT: ${fmt(totalPT)}</div>
             </div>
             <div class="admin-prosp-badges">
               ${pend.length > 0 ? `<span class="admin-badge-count admin-badge-urgente">🔴 ${pend.length} pendiente${pend.length > 1 ? 's' : ''}</span>` : '<span class="admin-badge-count admin-badge-ok">✓ Al día</span>'}
-              <span class="acord-chev" id="chev-planes-pt-${pt}">▼</span>
+              <span class="acord-chev${abierto ? ' open' : ''}" id="chev-planes-pt-${pt}">▼</span>
             </div>
           </div>
-          <div class="admin-prosp-body" id="planes-pt-${pt}">
-            ${pls.map(p => renderPlanCard(p, true)).join('')}
+          <div class="admin-prosp-body${abierto ? ' open' : ''}" id="planes-pt-${pt}">
+            ${bodyHtml}
           </div>
         </div>`;
     }).join('');
