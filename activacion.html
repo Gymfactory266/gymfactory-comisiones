@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Factory · Activación</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+:root {
+--red: #C0392B; --red-dark: #922B21; --red-light: #FDECEA;
+--black: #0D0D0D; --dark: #1A1A1A; --gray: #2C2C2C;
+--white: #FFFFFF; --green: #1D9E75; --amber: #EF9F27;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+.login-box { background: var(--dark); border: 1px solid var(--gray); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; }
+.login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--red); letter-spacing: 2px; margin-bottom: 4px; }
+.login-sub { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 32px; }
+.login-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 6px; display: block; }
+.login-input { width: 100%; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--white); font-family: 'DM Sans', sans-serif; margin-bottom: 16px; }
+.login-input:focus { outline: none; border-color: var(--red); }
+.login-btn { width: 100%; background: var(--red); color: white; border: none; border-radius: 8px; padding: 13px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.login-err { color: var(--red); font-size: 0.8rem; margin-top: 12px; display: none; }
+.header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--gray); flex-wrap: wrap; gap: 8px; }
+.header h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--red); letter-spacing: 2px; }
+.header p { font-size: 0.7rem; color: #777; text-transform: uppercase; letter-spacing: 2px; }
+.logout-btn { background: none; border: 1px solid var(--gray); color: #888; border-radius: 8px; padding: 7px 12px; font-size: 0.72rem; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.stat { background: var(--dark); border: 1px solid var(--gray); border-radius: 10px; padding: 10px 8px; text-align: center; }
+.stat .n { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; }
+.stat .l { font-size: 0.6rem; color: #777; text-transform: uppercase; letter-spacing: 1px; }
+.chips { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.chip { background: var(--gray); border: none; color: #999; border-radius: 999px; padding: 7px 14px; font-size: 0.75rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+.chip.active { background: var(--red); color: white; }
+.card { background: var(--dark); border: 1px solid var(--gray); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.card.frio { border-color: rgba(192,57,43,0.6); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
+.card h3 { font-size: 1rem; font-weight: 600; }
+.card .sub { font-size: 0.75rem; color: #888; margin-top: 2px; }
+.badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 999px; padding: 4px 10px; white-space: nowrap; }
+.b-curso { background: rgba(239,159,39,0.15); color: var(--amber); }
+.b-frio { background: rgba(192,57,43,0.2); color: #E74C3C; }
+.b-ok { background: rgba(29,158,117,0.15); color: var(--green); }
+.b-no { background: rgba(120,120,120,0.2); color: #999; }
+.madrina-tag { font-size: 0.68rem; font-weight: 700; border-radius: 6px; padding: 2px 8px; display: inline-block; margin-top: 4px; }
+.visitas-row { display: flex; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap; font-size: 0.7rem; color: #999; }
+.visitas-row span { background: #111; border: 1px solid #222; border-radius: 6px; padding: 3px 8px; }
+.visitas-row span.hit { border-color: rgba(29,158,117,0.5); color: var(--green); }
+.acciones { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+.acc-btn { border: none; border-radius: 8px; padding: 9px 13px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; text-decoration: none; display: inline-block; }
+.acc-wsp { background: #128C7E; color: white; }
+.acc-ok { background: var(--gray); color: #ccc; }
+.acc-save { background: var(--red); color: white; }
+.num-input { width: 64px; background: #111; border: 1px solid var(--gray); border-radius: 8px; padding: 8px; color: white; font-size: 0.85rem; font-family: 'DM Sans', sans-serif; }
+.num-input:focus { outline: none; border-color: var(--red); }
+.hint { font-size: 0.72rem; color: #888; margin-top: 6px; }
+.empty { text-align: center; color: #666; padding: 40px 20px; font-size: 0.85rem; }
+.loading { text-align: center; padding: 60px 20px; color: #666; }
+.spinner { border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; border-radius: 10px; padding: 10px 18px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 99; }
+</style>
+</head>
+<body>
+
+<div class="login-wrap" id="login-screen">
+<div class="login-box">
+<div class="login-logo">GYM FACTORY</div>
+<div class="login-sub">Activación socios nuevos</div>
+<label class="login-label">Correo</label>
+<input class="login-input" id="login-email" type="email" autocomplete="email">
+<label class="login-label">Contraseña</label>
+<input class="login-input" id="login-pass" type="password" autocomplete="current-password">
+<button class="login-btn" id="login-btn" onclick="doLogin()">Ingresar</button>
+<div class="login-err" id="login-error">Correo o contraseña incorrectos</div>
+</div>
+</div>
+
+<div id="app-screen" style="display:none">
+<div class="header">
+<div>
+<h1>Gym Factory</h1>
+<p>Activación socios nuevos · primeros 30 días</p>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<div id="hdr-user" style="font-size:0.75rem;color:#999"></div>
+<button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+</div>
+</div>
+<div class="wrap">
+<div class="stats" id="stats"></div>
+<div class="chips" id="chips"></div>
+<div id="lista"><div class="loading"><div class="spinner"></div>Cargando cartera...</div></div>
+<p class="hint" style="margin-top:14px">Regla de oro: 5+ visitas en el primer mes = socio que se queda (~90% de retención). Comisión $1.500 por socio activado de tu cartera — el frío debe tener su contacto marcado.</p>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
+const API = 'https://script.google.com/macros/s/AKfycbwyrFmbmVLLFYoqAnWMn3n8g5OJDU2b7JwEp4i8x_ML_0E457CApPWjRGu1RFNw-d5V/exec';
+
+const EMAIL_MAP = {
+'gonzaloescobarhidalgo89@gmail.com': null,
+'bea.sotopavez@hotmail.com': null,
+'massiel.olivares.olea@gmail.com': 'Massiel',
+'saricep93@gmail.com': 'Sara',
+'cami_olivos@outlook.es': 'Camila',
+'luis.caceres.martinez@gmail.com': 'Luis',
+'diegomunozchacon@gmail.com': 'Diego',
+'javierasep.o@gmail.com': 'Javiera',
+};
+const PERSONAS = {
+Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)' },
+Sara: { color: '#1D9E75', bg: 'rgba(29,158,117,0.2)' },
+Camila: { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)' },
+};
+
+let db;
+try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error(e); }
+
+let currentUserPersona = null;
+let socios = [];
+let filtro = 'pendientes'; // pendientes | mios | todos
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
+  const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+  if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
+  iniciar(email);
+}
+
+async function doLogout() { try { await db.auth.signOut(); } catch(e){} location.reload(); }
+
+async function checkSesion() {
+  try {
+    const { data } = await db.auth.getSession();
+    if (data && data.session && data.session.user) { iniciar(data.session.user.email); }
+  } catch(e){}
+}
+checkSesion();
+
+function iniciar(email) {
+  currentUserPersona = EMAIL_MAP[(email||'').toLowerCase()] !== undefined ? EMAIL_MAP[(email||'').toLowerCase()] : null;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+  document.getElementById('hdr-user').textContent = currentUserPersona ? ('Cartera de ' + currentUserPersona) : 'Vista completa (admin)';
+  filtro = currentUserPersona ? 'mios' : 'pendientes';
+  cargar();
+}
+
+async function cargar() {
+  document.getElementById('lista').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando cartera...</div>';
+  try {
+    const r = await fetch(API + '?accion=listarActivacion');
+    const j = await r.json();
+    socios = (j.socios || []).sort((a,b) => (b.frio - a.frio) || (a.dia < b.dia ? 1 : -1));
+    render();
+  } catch(e) {
+    document.getElementById('lista').innerHTML = '<div class="empty">No se pudo cargar. Revisa tu conexión y recarga.</div>';
+  }
+}
+
+function post(payload) {
+  return fetch(API, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2200);
+}
+
+function render() {
+  const mes = (new Date().getMonth()+1) + '-' + new Date().getFullYear();
+  const mios = currentUserPersona ? socios.filter(s => s.madrina === currentUserPersona) : socios;
+  const enCurso = mios.filter(s => s.estado === 'EN CURSO');
+  const activadosMes = mios.filter(s => s.estado === 'ACTIVADO' && String(s.mesPago) === mes);
+  const cerrados = mios.filter(s => s.estado !== 'EN CURSO');
+  const pct = cerrados.length ? Math.round(mios.filter(s => s.estado === 'ACTIVADO').length / cerrados.length * 100) : null;
+  const plata = activadosMes.reduce((sum,s) => sum + (Number(s.comision)||0), 0);
+
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><div class="n" style="color:var(--amber)">' + enCurso.length + '</div><div class="l">En curso</div></div>' +
+    '<div class="stat"><div class="n" style="color:var(--green)">' + activadosMes.length + '</div><div class="l">Activados mes</div></div>' +
+    '<div class="stat"><div class="n">' + (pct === null ? '—' : pct + '%') + '</div><div class="l">% activación</div></div>' +
+    '<div class="stat"><div class="n" style="color:var(--green)">$' + plata.toLocaleString('es-CL') + '</div><div class="l">Comisiones mes</div></div>';
+
+  const chips = [];
+  if (currentUserPersona) chips.push(['mios', 'Mi cartera']);
+  chips.push(['pendientes', 'Con tarea hoy']);
+  chips.push(['todos', 'Todos']);
+  document.getElementById('chips').innerHTML = chips.map(c =>
+    '<button class="chip ' + (filtro === c[0] ? 'active' : '') + '" onclick="setFiltro(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
+
+  let lista = socios;
+  if (filtro === 'mios' && currentUserPersona) lista = socios.filter(s => s.madrina === currentUserPersona);
+  if (filtro === 'pendientes') {
+    lista = (currentUserPersona ? socios.filter(s => s.madrina === currentUserPersona) : socios)
+      .filter(s => s.estado === 'EN CURSO' && (s.accion === 'contactar' || s.accion === 'anotar_visitas'));
+  }
+
+  if (!lista.length) {
+    document.getElementById('lista').innerHTML = '<div class="empty">' +
+      (filtro === 'pendientes' ? '🎉 Nada pendiente por ahora. Los socios nuevos aparecen solos cuando se registra la venta.' : 'Sin socios registrados todavía.') + '</div>';
+    return;
+  }
+
+  document.getElementById('lista').innerHTML = lista.map(s => {
+    const p = PERSONAS[s.madrina] || { color: '#999', bg: 'rgba(150,150,150,0.15)' };
+    let badge = '<span class="badge b-curso">En curso · día ' + s.dia + '</span>';
+    if (s.estado === 'ACTIVADO') badge = '<span class="badge b-ok">✓ Activado' + (Number(s.comision) ? ' · $' + Number(s.comision).toLocaleString('es-CL') : '') + '</span>';
+    else if (s.estado === 'NO ACTIVADO') badge = '<span class="badge b-no">No activado</span>';
+    else if (s.frio) badge = '<span class="badge b-frio">🔴 Frío · ' + s.ventana + '</span>';
+
+    const vis = ['<span class="' + (s.v7 !== '' && s.v7 >= 2 ? 'hit' : '') + '">D7: ' + (s.v7 === '' ? '—' : s.v7) + '</span>',
+                 '<span class="' + (s.v14 !== '' && s.v14 >= 3 ? 'hit' : '') + '">D14: ' + (s.v14 === '' ? '—' : s.v14) + '</span>',
+                 '<span class="' + (s.v21 !== '' && s.v21 >= 4 ? 'hit' : '') + '">D21: ' + (s.v21 === '' ? '—' : s.v21) + '</span>',
+                 '<span class="' + (s.v30 !== '' && s.v30 >= 5 ? 'hit' : '') + '">D30: ' + (s.v30 === '' ? '—' : s.v30) + '</span>'].join('');
+
+    let acciones = '';
+    if (s.estado === 'EN CURSO' && s.ventanaNum) {
+      acciones += '<input class="num-input" type="number" min="0" max="60" id="v-' + s.id + '" placeholder="' + s.ventana.replace(' — CIERRE','') + '">' +
+        '<button class="acc-btn acc-save" onclick="guardarVisitas(\'' + s.id + '\',' + s.ventanaNum + ')">Anotar visitas</button>';
+      if (s.frio) {
+        if (s.linkWsp) acciones += '<a class="acc-btn acc-wsp" href="' + s.linkWsp + '" target="_blank">📲 WhatsApp listo</a>';
+        if (s.ventanaNum !== 30) acciones += '<button class="acc-btn acc-ok" onclick="marcarContacto(\'' + s.id + '\',' + s.ventanaNum + ')">✓ Ya contacté</button>';
+      }
+      if (!s.telefono) acciones += '<button class="acc-btn acc-ok" onclick="pedirTelefono(\'' + s.id + '\')">＋ Teléfono</button>';
+    }
+
+    return '<div class="card ' + (s.frio ? 'frio' : '') + '">' +
+      '<div class="card-top"><div><h3>' + s.socio + '</h3>' +
+      '<div class="sub">' + s.plan + (s.telefono ? ' · 📞 ' + s.telefono : '') + '</div>' +
+      '<span class="madrina-tag" style="color:' + p.color + ';background:' + p.bg + '">' + s.madrina + '</span></div>' +
+      badge + '</div>' +
+      '<div class="visitas-row">' + vis + '</div>' +
+      (acciones ? '<div class="acciones">' + acciones + '</div>' : '') +
+      '</div>';
+  }).join('');
+}
+
+function setFiltro(f) { filtro = f; render(); }
+
+async function guardarVisitas(id, ventana) {
+  const el = document.getElementById('v-' + id);
+  const v = el ? el.value : '';
+  if (v === '' || isNaN(Number(v))) { toast('Escribe el número de visitas (según EVO)'); return; }
+  toast('Guardando...');
+  const r = await post({ accion: 'anotarVisitasActivacion', id: id, ventana: ventana, visitas: Number(v) });
+  if (r.ok) { toast(r.estado === 'ACTIVADO' ? '🎉 ¡Socio ACTIVADO!' : 'Visitas guardadas'); cargar(); }
+  else toast('Error: ' + (r.error || 'intenta de nuevo'));
+}
+
+async function marcarContacto(id, ventana) {
+  toast('Guardando...');
+  const r = await post({ accion: 'marcarContactoActivacion', id: id, ventana: ventana });
+  if (r.ok) { toast('Contacto registrado ✓'); cargar(); }
+  else toast('Error: ' + (r.error || 'intenta de nuevo'));
+}
+
+async function pedirTelefono(id) {
+  const t = prompt('Teléfono del socio (WhatsApp, ej: 912345678):');
+  if (!t) return;
+  const r = await post({ accion: 'telefonoActivacion', id: id, telefono: t });
+  if (r.ok) { toast('Teléfono guardado'); cargar(); }
+}
+</script>
+</body>
+</html>
