@@ -28,6 +28,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(
 .header p { font-size: 0.7rem; color: #777; text-transform: uppercase; letter-spacing: 2px; }
 .logout-btn { background: none; border: 1px solid var(--gray); color: #888; border-radius: 8px; padding: 7px 12px; font-size: 0.72rem; cursor: pointer; font-family: 'DM Sans', sans-serif; }
 .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+.turno-banner { background: var(--dark); border: 1px solid var(--gray); border-left: 3px solid var(--red); border-radius: 10px; padding: 10px 14px; font-size: 0.78rem; color: #bbb; margin-bottom: 14px; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
 .stat { background: var(--dark); border: 1px solid var(--gray); border-radius: 10px; padding: 10px 8px; text-align: center; }
 .stat .n { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; }
@@ -45,7 +46,6 @@ body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(
 .b-frio { background: rgba(192,57,43,0.2); color: #E74C3C; }
 .b-ok { background: rgba(29,158,117,0.15); color: var(--green); }
 .b-no { background: rgba(120,120,120,0.2); color: #999; }
-.madrina-tag { font-size: 0.68rem; font-weight: 700; border-radius: 6px; padding: 2px 8px; display: inline-block; margin-top: 4px; }
 .visitas-row { display: flex; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap; font-size: 0.7rem; color: #999; }
 .visitas-row span { background: #111; border: 1px solid #222; border-radius: 6px; padding: 3px 8px; }
 .visitas-row span.hit { border-color: rgba(29,158,117,0.5); color: var(--green); }
@@ -85,16 +85,14 @@ body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(
 <h1>Gym Factory</h1>
 <p>Activación socios nuevos · primeros 30 días</p>
 </div>
-<div style="display:flex;align-items:center;gap:10px">
-<div id="hdr-user" style="font-size:0.75rem;color:#999"></div>
 <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
 </div>
-</div>
 <div class="wrap">
+<div class="turno-banner">📌 El seguimiento del día lo hace la recepcionista del <b>turno de mañana</b>. Fin de semana: <b>Camila</b>.</div>
 <div class="stats" id="stats"></div>
 <div class="chips" id="chips"></div>
-<div id="lista"><div class="loading"><div class="spinner"></div>Cargando cartera...</div></div>
-<p class="hint" style="margin-top:14px">Regla de oro: 5+ visitas en el primer mes = socio que se queda (~90% de retención). Comisión $1.500 por socio activado de tu cartera — el frío debe tener su contacto marcado.</p>
+<div id="lista"><div class="loading"><div class="spinner"></div>Cargando socios...</div></div>
+<p class="hint" style="margin-top:14px">Regla de oro: 5+ visitas en el primer mes = socio que se queda (~90% de retención). Anota las visitas de EVO en cada control y contacta a los fríos con el botón de WhatsApp.</p>
 </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -104,28 +102,11 @@ const SUPABASE_URL = 'https://plncbeggdlnsqwthzrmw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
 const API = 'https://script.google.com/macros/s/AKfycbwyrFmbmVLLFYoqAnWMn3n8g5OJDU2b7JwEp4i8x_ML_0E457CApPWjRGu1RFNw-d5V/exec';
 
-const EMAIL_MAP = {
-'gonzaloescobarhidalgo89@gmail.com': null,
-'bea.sotopavez@hotmail.com': null,
-'massiel.olivares.olea@gmail.com': 'Massiel',
-'saricep93@gmail.com': 'Sara',
-'cami_olivos@outlook.es': 'Camila',
-'luis.caceres.martinez@gmail.com': 'Luis',
-'diegomunozchacon@gmail.com': 'Diego',
-'javierasep.o@gmail.com': 'Javiera',
-};
-const PERSONAS = {
-Massiel: { color: '#378ADD', bg: 'rgba(55,138,221,0.2)' },
-Sara: { color: '#1D9E75', bg: 'rgba(29,158,117,0.2)' },
-Camila: { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)' },
-};
-
 let db;
 try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error(e); }
 
-let currentUserPersona = null;
 let socios = [];
-let filtro = 'pendientes'; // pendientes | mios | todos
+let filtro = 'pendientes'; // pendientes | todos
 
 document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
@@ -137,7 +118,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
-  iniciar(email);
+  iniciar();
 }
 
 async function doLogout() { try { await db.auth.signOut(); } catch(e){} location.reload(); }
@@ -145,26 +126,23 @@ async function doLogout() { try { await db.auth.signOut(); } catch(e){} location
 async function checkSesion() {
   try {
     const { data } = await db.auth.getSession();
-    if (data && data.session && data.session.user) { iniciar(data.session.user.email); }
+    if (data && data.session && data.session.user) { iniciar(); }
   } catch(e){}
 }
 checkSesion();
 
-function iniciar(email) {
-  currentUserPersona = EMAIL_MAP[(email||'').toLowerCase()] !== undefined ? EMAIL_MAP[(email||'').toLowerCase()] : null;
+function iniciar() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
-  document.getElementById('hdr-user').textContent = currentUserPersona ? ('Cartera de ' + currentUserPersona) : 'Vista completa (admin)';
-  filtro = currentUserPersona ? 'mios' : 'pendientes';
   cargar();
 }
 
 async function cargar() {
-  document.getElementById('lista').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando cartera...</div>';
+  document.getElementById('lista').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando socios...</div>';
   try {
     const r = await fetch(API + '?accion=listarActivacion');
     const j = await r.json();
-    socios = (j.socios || []).sort((a,b) => (b.frio - a.frio) || (a.dia < b.dia ? 1 : -1));
+    socios = (j.socios || []).sort((a,b) => (b.frio - a.frio) || (b.dia - a.dia));
     render();
   } catch(e) {
     document.getElementById('lista').innerHTML = '<div class="empty">No se pudo cargar. Revisa tu conexión y recarga.</div>';
@@ -183,32 +161,24 @@ function toast(msg) {
 
 function render() {
   const mes = (new Date().getMonth()+1) + '-' + new Date().getFullYear();
-  const mios = currentUserPersona ? socios.filter(s => s.madrina === currentUserPersona) : socios;
-  const enCurso = mios.filter(s => s.estado === 'EN CURSO');
-  const activadosMes = mios.filter(s => s.estado === 'ACTIVADO' && String(s.mesPago) === mes);
-  const cerrados = mios.filter(s => s.estado !== 'EN CURSO');
-  const pct = cerrados.length ? Math.round(mios.filter(s => s.estado === 'ACTIVADO').length / cerrados.length * 100) : null;
-  const plata = activadosMes.reduce((sum,s) => sum + (Number(s.comision)||0), 0);
+  const enCurso = socios.filter(s => s.estado === 'EN CURSO');
+  const activadosMes = socios.filter(s => s.estado === 'ACTIVADO' && String(s.mesPago) === mes);
+  const cerrados = socios.filter(s => s.estado !== 'EN CURSO');
+  const pct = cerrados.length ? Math.round(socios.filter(s => s.estado === 'ACTIVADO').length / cerrados.length * 100) : null;
+  const pendientes = enCurso.filter(s => s.accion === 'contactar' || s.accion === 'anotar_visitas');
 
   document.getElementById('stats').innerHTML =
+    '<div class="stat"><div class="n" style="color:var(--red)">' + pendientes.length + '</div><div class="l">Tareas hoy</div></div>' +
     '<div class="stat"><div class="n" style="color:var(--amber)">' + enCurso.length + '</div><div class="l">En curso</div></div>' +
     '<div class="stat"><div class="n" style="color:var(--green)">' + activadosMes.length + '</div><div class="l">Activados mes</div></div>' +
-    '<div class="stat"><div class="n">' + (pct === null ? '—' : pct + '%') + '</div><div class="l">% activación</div></div>' +
-    '<div class="stat"><div class="n" style="color:var(--green)">$' + plata.toLocaleString('es-CL') + '</div><div class="l">Comisiones mes</div></div>';
+    '<div class="stat"><div class="n">' + (pct === null ? '—' : pct + '%') + '</div><div class="l">% activación</div></div>';
 
-  const chips = [];
-  if (currentUserPersona) chips.push(['mios', 'Mi cartera']);
-  chips.push(['pendientes', 'Con tarea hoy']);
-  chips.push(['todos', 'Todos']);
+  const chips = [['pendientes', 'Con tarea hoy'], ['todos', 'Todos']];
   document.getElementById('chips').innerHTML = chips.map(c =>
     '<button class="chip ' + (filtro === c[0] ? 'active' : '') + '" onclick="setFiltro(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
 
   let lista = socios;
-  if (filtro === 'mios' && currentUserPersona) lista = socios.filter(s => s.madrina === currentUserPersona);
-  if (filtro === 'pendientes') {
-    lista = (currentUserPersona ? socios.filter(s => s.madrina === currentUserPersona) : socios)
-      .filter(s => s.estado === 'EN CURSO' && (s.accion === 'contactar' || s.accion === 'anotar_visitas'));
-  }
+  if (filtro === 'pendientes') lista = pendientes;
 
   if (!lista.length) {
     document.getElementById('lista').innerHTML = '<div class="empty">' +
@@ -217,9 +187,8 @@ function render() {
   }
 
   document.getElementById('lista').innerHTML = lista.map(s => {
-    const p = PERSONAS[s.madrina] || { color: '#999', bg: 'rgba(150,150,150,0.15)' };
     let badge = '<span class="badge b-curso">En curso · día ' + s.dia + '</span>';
-    if (s.estado === 'ACTIVADO') badge = '<span class="badge b-ok">✓ Activado' + (Number(s.comision) ? ' · $' + Number(s.comision).toLocaleString('es-CL') : '') + '</span>';
+    if (s.estado === 'ACTIVADO') badge = '<span class="badge b-ok">✓ Activado</span>';
     else if (s.estado === 'NO ACTIVADO') badge = '<span class="badge b-no">No activado</span>';
     else if (s.frio) badge = '<span class="badge b-frio">🔴 Frío · ' + s.ventana + '</span>';
 
@@ -241,8 +210,7 @@ function render() {
 
     return '<div class="card ' + (s.frio ? 'frio' : '') + '">' +
       '<div class="card-top"><div><h3>' + s.socio + '</h3>' +
-      '<div class="sub">' + s.plan + (s.telefono ? ' · 📞 ' + s.telefono : '') + '</div>' +
-      '<span class="madrina-tag" style="color:' + p.color + ';background:' + p.bg + '">' + s.madrina + '</span></div>' +
+      '<div class="sub">' + s.plan + (s.telefono ? ' · 📞 ' + s.telefono : '') + '</div></div>' +
       badge + '</div>' +
       '<div class="visitas-row">' + vis + '</div>' +
       (acciones ? '<div class="acciones">' + acciones + '</div>' : '') +
