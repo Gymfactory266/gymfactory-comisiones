@@ -3259,7 +3259,93 @@ setInterval(function() {
   if (refrescoSeguro()) loadData();
 }, 120000);
 </script>
+
+<!-- ============ CHECKLIST DIARIO DE RECEPCIÓN (02-ago-2026) ============ -->
+<button id="chk-fab" onclick="chkAbrir()" style="position:fixed;bottom:114px;right:18px;background:#333;color:#fff;border:none;font-family:sans-serif;font-weight:600;font-size:13px;padding:12px 18px;border-radius:999px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:9999">✅ CHECKLIST</button>
+
+<div id="chk-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)chkCerrar()">
+  <div style="background:#1A1A1A;border:1px solid #2C2C2C;border-radius:16px;padding:22px;width:100%;max-width:440px;font-family:sans-serif;color:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <div style="font-size:1.05rem;font-weight:700">✅ Checklist del día <span id="chk-fecha" style="color:#888;font-weight:400;font-size:.8rem"></span></div>
+      <button onclick="chkCerrar()" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer">✕</button>
+    </div>
+    <div style="font-size:.75rem;color:#999;margin-bottom:14px">Marca cada tarea cuando esté HECHA. El aviso a Talo sale solo al completar las 3 (queda con fecha, hora y quién).</div>
+    <div id="chk-lista"><div style="color:#888;text-align:center;padding:18px">Cargando…</div></div>
+    <div id="chk-completo" style="display:none;margin-top:12px;background:rgba(29,158,117,.12);border:1px solid rgba(29,158,117,.4);color:#1D9E75;border-radius:10px;padding:10px 12px;font-size:.8rem;font-weight:600;text-align:center">🎉 Checklist del día completo — aviso enviado a Talo</div>
+  </div>
+</div>
+
+<script>
+var chkEstado = null;
+
+function chkQuien() {
+  if (typeof currentUserPersona !== 'undefined' && currentUserPersona) return currentUserPersona;
+  return 'equipo';
+}
+
+function chkAbrir() {
+  document.getElementById('chk-overlay').style.display = 'flex';
+  chkCargar();
+}
+function chkCerrar() { document.getElementById('chk-overlay').style.display = 'none'; }
+
+function chkBadge() {
+  var fab = document.getElementById('chk-fab');
+  if (!chkEstado) { fab.textContent = '✅ CHECKLIST'; return; }
+  var n = chkEstado.items.filter(function (x) { return x.hecho; }).length;
+  fab.textContent = '✅ CHECKLIST ' + n + '/' + chkEstado.items.length;
+  fab.style.background = chkEstado.completo ? '#1D9E75' : (n > 0 ? '#EF9F27' : '#333');
+  fab.style.color = '#fff';
+}
+
+function chkEsc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+function chkRender() {
+  if (!chkEstado) return;
+  document.getElementById('chk-fecha').textContent = '· ' + chkEstado.fecha;
+  document.getElementById('chk-lista').innerHTML = chkEstado.items.map(function (x, i) {
+    var izq = x.hecho
+      ? '<span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:#1D9E75;color:#fff;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0">✓</span>'
+      : '<span style="display:inline-flex;width:26px;height:26px;border-radius:50%;border:2px solid #555;flex-shrink:0"></span>';
+    var det = x.hecho
+      ? '<div style="font-size:.7rem;color:#1D9E75;margin-top:2px">✔ ' + chkEsc(x.quien) + ' · ' + chkEsc(x.hora) + ' hrs</div>'
+      : '<div style="font-size:.7rem;color:#777;margin-top:2px">Pendiente</div>';
+    var btn = x.hecho ? '' :
+      '<button id="chk-btn-' + i + '" onclick="chkMarcar(' + i + ')" style="background:#C0392B;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:sans-serif;flex-shrink:0">Marcar ✓</button>';
+    return '<div style="display:flex;align-items:center;gap:12px;background:#111;border:1px solid ' + (x.hecho ? 'rgba(29,158,117,.4)' : '#2C2C2C') + ';border-radius:10px;padding:12px;margin-bottom:8px">' +
+      izq + '<div style="flex:1;min-width:0"><div style="font-size:.85rem;font-weight:600">' + (i + 1) + '. ' + chkEsc(x.item) + '</div>' + det + '</div>' + btn + '</div>';
+  }).join('');
+  document.getElementById('chk-completo').style.display = chkEstado.completo ? 'block' : 'none';
+  chkBadge();
+}
+
+function chkCargar() {
+  fetch(WEBAPP_URL + '?accion=checklistHoy').then(function (r) { return r.json(); }).then(function (j) {
+    if (j && j.ok) { chkEstado = j; chkRender(); }
+  }).catch(function () {
+    document.getElementById('chk-lista').innerHTML = '<div style="color:#888;text-align:center;padding:18px">No se pudo cargar. Recarga la página.</div>';
+  });
+}
+
+function chkMarcar(i) {
+  var item = chkEstado.items[i];
+  if (!item || item.hecho) return;
+  if (!confirm('¿Confirmas que "' + item.item + '" ya está HECHA hoy?')) return;
+  var btn = document.getElementById('chk-btn-' + i);
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+  fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify({ accion: 'marcarChecklist', item: item.item, quien: chkQuien() }) })
+    .then(function (r) { return r.json(); })
+    .then(function (j) {
+      if (j && j.ok) { chkEstado = j; chkRender(); }
+      else { alert('No se pudo guardar: ' + ((j && j.error) || 'intenta de nuevo')); chkRender(); }
+    })
+    .catch(function () { alert('No se pudo guardar. Revisa tu conexión.'); chkRender(); });
+}
+
+// El contador del botón se carga al abrir la página (la lectura es liviana)
+chkCargar();
+</script>
 <a href="protocolo.html" style="position:fixed;bottom:66px;right:18px;background:#14140f;color:#fff;font-family:sans-serif;font-weight:600;font-size:13px;padding:12px 18px;border-radius:999px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:9999">📋 PROTOCOLO</a>
-<a href="activacion.html" style="position:fixed;bottom:18px;right:18px;background:#C0392B;color:#fff;font-family:sans-serif;font-weight:600;font-size:13px;padding:12px 18px;border-radius:999px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:9999">💪 ACTIVACIÓN</a>a>
+<a href="activacion.html" style="position:fixed;bottom:18px;right:18px;background:#C0392B;color:#fff;font-family:sans-serif;font-weight:600;font-size:13px;padding:12px 18px;border-radius:999px;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.5);z-index:9999">💪 ACTIVACIÓN</a>
 </body>
 </html>
