@@ -62,6 +62,11 @@ body { font-family: 'DM Sans', sans-serif; background: var(--black); color: var(
 .spinner { border: 3px solid var(--gray); border-top-color: var(--red); border-radius: 50%; width: 28px; height: 28px; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: white; border-radius: 10px; padding: 10px 18px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 99; }
+.grupo { display: flex; align-items: center; gap: 8px; margin: 18px 0 8px; font-size: 0.85rem; font-weight: 600; }
+.grupo .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.grupo .cnt { color: #777; font-weight: 400; font-size: 0.75rem; }
+.card.ok-dim { opacity: 0.85; }
+.fecha-sub { font-size: 0.7rem; color: #777; margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -159,12 +164,78 @@ function toast(msg) {
   setTimeout(() => t.style.display = 'none', 2200);
 }
 
+// Escapa datos antes de meterlos al HTML (nombres, planes, etc.)
+const esc = x => String(x == null ? '' : x).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const MESES = ['', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+// mesPago viene como "8-2026" → "Agosto 2026"
+function mesLabel(mp) {
+  const p = String(mp || '').split('-');
+  if (p.length < 2 || !MESES[Number(p[0])]) return 'Sin mes registrado';
+  return MESES[Number(p[0])] + ' ' + p[1];
+}
+// Para ordenar meses del más nuevo al más viejo: "8-2026" → 202608
+function mesOrden(mp) {
+  const p = String(mp || '').split('-');
+  if (p.length < 2) return 0;
+  return Number(p[1]) * 100 + Number(p[0]);
+}
+function fechaCorta(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+const fechaNum = s => { const d = new Date(s.fecha || 0); return isNaN(d) ? 0 : d.getTime(); };
+
+// Una tarjeta de socio (la misma para todas las pestañas)
+function cardHTML(s) {
+  let badge = '<span class="badge b-curso">En curso · día ' + s.dia + '</span>';
+  if (s.estado === 'ACTIVADO') badge = '<span class="badge b-ok">✓ Activado</span>';
+  else if (s.estado === 'NO ACTIVADO') badge = '<span class="badge b-no">No activado</span>';
+  else if (s.frio) badge = '<span class="badge b-frio">🔴 Frío · ' + esc(s.ventana) + '</span>';
+
+  const vis = ['<span class="' + (s.v7 !== '' && s.v7 >= 2 ? 'hit' : '') + '">D7: ' + (s.v7 === '' ? '—' : s.v7) + '</span>',
+               '<span class="' + (s.v14 !== '' && s.v14 >= 3 ? 'hit' : '') + '">D14: ' + (s.v14 === '' ? '—' : s.v14) + '</span>',
+               '<span class="' + (s.v21 !== '' && s.v21 >= 4 ? 'hit' : '') + '">D21: ' + (s.v21 === '' ? '—' : s.v21) + '</span>',
+               '<span class="' + (s.v30 !== '' && s.v30 >= 5 ? 'hit' : '') + '">D30: ' + (s.v30 === '' ? '—' : s.v30) + '</span>'].join('');
+
+  let acciones = '';
+  if (s.estado === 'EN CURSO' && s.ventanaNum) {
+    acciones += '<input class="num-input" type="number" min="0" max="60" id="v-' + s.id + '" placeholder="' + esc(s.ventana.replace(' — CIERRE','')) + '">' +
+      '<button class="acc-btn acc-save" onclick="guardarVisitas(\'' + s.id + '\',' + s.ventanaNum + ')">Anotar visitas</button>';
+    if (s.frio) {
+      if (s.linkWsp) acciones += '<a class="acc-btn acc-wsp" href="' + esc(s.linkWsp) + '" target="_blank">📲 WhatsApp listo</a>';
+      if (s.ventanaNum !== 30) acciones += '<button class="acc-btn acc-ok" onclick="marcarContacto(\'' + s.id + '\',' + s.ventanaNum + ')">✓ Ya contacté</button>';
+    }
+    if (!s.telefono) acciones += '<button class="acc-btn acc-ok" onclick="pedirTelefono(\'' + s.id + '\')">＋ Teléfono</button>';
+  }
+
+  const ini = fechaCorta(s.fecha);
+  return '<div class="card ' + (s.frio ? 'frio' : '') + (s.estado === 'ACTIVADO' ? ' ok-dim' : '') + '">' +
+    '<div class="card-top"><div><h3>' + esc(s.socio) + '</h3>' +
+    '<div class="sub">' + esc(s.plan) + (s.telefono ? ' · 📞 ' + esc(s.telefono) : '') + '</div>' +
+    (ini ? '<div class="fecha-sub">🗓 inscrito el ' + ini + '</div>' : '') + '</div>' +
+    badge + '</div>' +
+    '<div class="visitas-row">' + vis + '</div>' +
+    (acciones ? '<div class="acciones">' + acciones + '</div>' : '') +
+    '</div>';
+}
+
+function grupoHTML(titulo, color, filas) {
+  if (!filas.length) return '';
+  return '<div class="grupo"><span class="dot" style="background:' + color + '"></span>' + titulo +
+    ' <span class="cnt">(' + filas.length + ')</span></div>' + filas.map(cardHTML).join('');
+}
+
 function render() {
   const mes = (new Date().getMonth()+1) + '-' + new Date().getFullYear();
   const enCurso = socios.filter(s => s.estado === 'EN CURSO');
-  const activadosMes = socios.filter(s => s.estado === 'ACTIVADO' && String(s.mesPago) === mes);
+  const activados = socios.filter(s => s.estado === 'ACTIVADO');
+  const noActivados = socios.filter(s => s.estado === 'NO ACTIVADO');
+  const activadosMes = activados.filter(s => String(s.mesPago) === mes);
   const cerrados = socios.filter(s => s.estado !== 'EN CURSO');
-  const pct = cerrados.length ? Math.round(socios.filter(s => s.estado === 'ACTIVADO').length / cerrados.length * 100) : null;
+  const pct = cerrados.length ? Math.round(activados.length / cerrados.length * 100) : null;
   const pendientes = enCurso.filter(s => s.accion === 'contactar' || s.accion === 'anotar_visitas');
 
   document.getElementById('stats').innerHTML =
@@ -173,49 +244,42 @@ function render() {
     '<div class="stat"><div class="n" style="color:var(--green)">' + activadosMes.length + '</div><div class="l">Activados mes</div></div>' +
     '<div class="stat"><div class="n">' + (pct === null ? '—' : pct + '%') + '</div><div class="l">% activación</div></div>';
 
-  const chips = [['pendientes', 'Con tarea hoy'], ['todos', 'Todos']];
+  const chips = [['pendientes', 'Con tarea hoy'], ['todos', 'Todos (' + (enCurso.length + noActivados.length) + ')'], ['activados', '✓ Activados (' + activados.length + ')']];
   document.getElementById('chips').innerHTML = chips.map(c =>
     '<button class="chip ' + (filtro === c[0] ? 'active' : '') + '" onclick="setFiltro(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
 
-  let lista = socios;
-  if (filtro === 'pendientes') lista = pendientes;
+  const lista = document.getElementById('lista');
 
-  if (!lista.length) {
-    document.getElementById('lista').innerHTML = '<div class="empty">' +
-      (filtro === 'pendientes' ? '🎉 Nada pendiente por ahora. Los socios nuevos aparecen solos cuando se registra la venta.' : 'Sin socios registrados todavía.') + '</div>';
+  // ---- Con tarea hoy: igual que siempre (fríos primero, ya viene ordenado) ----
+  if (filtro === 'pendientes') {
+    lista.innerHTML = pendientes.length ? pendientes.map(cardHTML).join('')
+      : '<div class="empty">🎉 Nada pendiente por ahora. Los socios nuevos aparecen solos cuando se registra la venta.</div>';
     return;
   }
 
-  document.getElementById('lista').innerHTML = lista.map(s => {
-    let badge = '<span class="badge b-curso">En curso · día ' + s.dia + '</span>';
-    if (s.estado === 'ACTIVADO') badge = '<span class="badge b-ok">✓ Activado</span>';
-    else if (s.estado === 'NO ACTIVADO') badge = '<span class="badge b-no">No activado</span>';
-    else if (s.frio) badge = '<span class="badge b-frio">🔴 Frío · ' + s.ventana + '</span>';
+  // ---- Activados: en su propia pestaña, agrupados por mes (el más nuevo arriba) ----
+  if (filtro === 'activados') {
+    if (!activados.length) { lista.innerHTML = '<div class="empty">Todavía no hay socios activados. El primero que llegue a 5 visitas aparece acá. 💪</div>'; return; }
+    const porMes = {};
+    activados.forEach(s => { const k = String(s.mesPago || ''); (porMes[k] = porMes[k] || []).push(s); });
+    const meses = Object.keys(porMes).sort((a, b) => mesOrden(b) - mesOrden(a));
+    lista.innerHTML = meses.map(k =>
+      grupoHTML('✓ Activados en ' + mesLabel(k), 'var(--green)', porMes[k].sort((a, b) => fechaNum(b) - fechaNum(a)))
+    ).join('');
+    return;
+  }
 
-    const vis = ['<span class="' + (s.v7 !== '' && s.v7 >= 2 ? 'hit' : '') + '">D7: ' + (s.v7 === '' ? '—' : s.v7) + '</span>',
-                 '<span class="' + (s.v14 !== '' && s.v14 >= 3 ? 'hit' : '') + '">D14: ' + (s.v14 === '' ? '—' : s.v14) + '</span>',
-                 '<span class="' + (s.v21 !== '' && s.v21 >= 4 ? 'hit' : '') + '">D21: ' + (s.v21 === '' ? '—' : s.v21) + '</span>',
-                 '<span class="' + (s.v30 !== '' && s.v30 >= 5 ? 'hit' : '') + '">D30: ' + (s.v30 === '' ? '—' : s.v30) + '</span>'].join('');
-
-    let acciones = '';
-    if (s.estado === 'EN CURSO' && s.ventanaNum) {
-      acciones += '<input class="num-input" type="number" min="0" max="60" id="v-' + s.id + '" placeholder="' + s.ventana.replace(' — CIERRE','') + '">' +
-        '<button class="acc-btn acc-save" onclick="guardarVisitas(\'' + s.id + '\',' + s.ventanaNum + ')">Anotar visitas</button>';
-      if (s.frio) {
-        if (s.linkWsp) acciones += '<a class="acc-btn acc-wsp" href="' + s.linkWsp + '" target="_blank">📲 WhatsApp listo</a>';
-        if (s.ventanaNum !== 30) acciones += '<button class="acc-btn acc-ok" onclick="marcarContacto(\'' + s.id + '\',' + s.ventanaNum + ')">✓ Ya contacté</button>';
-      }
-      if (!s.telefono) acciones += '<button class="acc-btn acc-ok" onclick="pedirTelefono(\'' + s.id + '\')">＋ Teléfono</button>';
-    }
-
-    return '<div class="card ' + (s.frio ? 'frio' : '') + '">' +
-      '<div class="card-top"><div><h3>' + s.socio + '</h3>' +
-      '<div class="sub">' + s.plan + (s.telefono ? ' · 📞 ' + s.telefono : '') + '</div></div>' +
-      badge + '</div>' +
-      '<div class="visitas-row">' + vis + '</div>' +
-      (acciones ? '<div class="acciones">' + acciones + '</div>' : '') +
-      '</div>';
-  }).join('');
+  // ---- Todos: EN SEGUIMIENTO organizado (los activados viven en su pestaña) ----
+  if (!enCurso.length && !noActivados.length) {
+    lista.innerHTML = '<div class="empty">Sin socios en seguimiento todavía.</div>';
+    return;
+  }
+  const frios = enCurso.filter(s => s.frio).sort((a, b) => b.dia - a.dia);
+  const enRitmo = enCurso.filter(s => !s.frio).sort((a, b) => b.dia - a.dia);
+  lista.innerHTML =
+    grupoHTML('🔴 Fríos — contactar primero', 'var(--red)', frios) +
+    grupoHTML('🟠 En curso, al día', 'var(--amber)', enRitmo) +
+    grupoHTML('⚪ No activados (ciclo cerrado sin 5 visitas)', '#777', noActivados.sort((a, b) => fechaNum(b) - fechaNum(a)));
 }
 
 function setFiltro(f) { filtro = f; render(); }
