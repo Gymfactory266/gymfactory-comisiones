@@ -704,7 +704,6 @@ const EMAIL_MAP = {
   'cami_olivos@outlook.es': 'Camila',
   'luis.caceres.martinez@gmail.com': 'Luis',
   'diegomunozchacon@gmail.com': 'Diego',
-  'javierasep.o@gmail.com': 'Javiera',
 };
 
 const PERSONAS = {
@@ -713,7 +712,6 @@ const PERSONAS = {
   Camila:  { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)', rol: 'Recepcion' },
   Luis:    { color: '#7F77DD', bg: 'rgba(127,119,221,0.2)', rol: 'Profesor/PT' },
   Diego:   { color: '#D85A30', bg: 'rgba(216,90,48,0.2)', rol: 'Profesor/PT' },
-  Javiera: { color: '#D4537E', bg: 'rgba(212,83,126,0.2)', rol: 'Profesor/PT' },
 };
 
 const COM_PLANES = {
@@ -790,38 +788,52 @@ async function loadData() {
     const json = JSON.parse(match[1]);
     const rows = json.table.rows;
 
-    const names = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
-    const data = names.map((name, i) => ({
-      name,
-      comisiones:        getV(rows[i], 1),
-      pacPagados:        getV(rows[i], 2),
-      bonoPac:           getV(rows[i], 3), // columna D — bono PAC individual
-      bonoSupl:          getV(rows[i], 4), // columna E — bono supl individual
-      total:             getV(rows[i], 5),
-      suplTexto:         getTxt(rows[i], 6),
-      pacGrupal:         getV(rows[i], 7),
-      pacMensual:        getV(rows[i], 8),
-      semTarjeta:        getV(rows[i], 9),
-      semTransf:         getV(rows[i], 10),
-      anuTarjeta:        getV(rows[i], 11),
-      anuTransf:         getV(rows[i], 12),
-      pacTotalReal:      getV(rows[i], 13),
-      pacFaltanSig:      getV(rows[i], 14),
-      ventasSuplPersona: getV(rows[i], 15),
-      comisionSupl:      getV(rows[i], 16),
-    }));
+    // FIX 02-ago-2026: la hoja se lee POR NOMBRE DE FILA, no por posición.
+    // Antes la página esperaba 6 personas fijas y, al salir Javiera del
+    // cálculo (30-jul), TODAS las filas se corrieron y el panel mostraba
+    // cualquier cosa. Con esto, agregar o quitar personas nunca más
+    // descuadra la página (solo hay que mantener la lista `names`).
+    const porEtiqueta = {};
+    rows.forEach((r, idx) => {
+      const k = (r && r.c && r.c[0] && r.c[0].v != null) ? String(r.c[0].v).trim() : '';
+      if (k && !(k in porEtiqueta)) porEtiqueta[k] = { row: r, idx: idx };
+    });
+    const filaDe = k => porEtiqueta[k] ? porEtiqueta[k].row : null;
 
-    const totalPacGrupal   = rows[6]  ? getV(rows[6], 2) : 0;
-    const totalCom         = rows[6]  ? getV(rows[6], 5) : 0;
-    const totalPacReal     = rows[6]  ? getV(rows[6], 13) : 0;
-    const bonoPacTotal     = rows[7]  ? getV(rows[7], 1) : 0;
-    const pacSiguiente     = rows[8]  ? getTxt(rows[8], 1) : '';
-    const bonoSuplTotal    = rows[9]  ? getV(rows[9], 1) : 0;
-    const ventasSuplReales = rows[10] ? getV(rows[10], 1) : 0;
-    const suplFaltan550k   = rows[11] ? getV(rows[11], 1) : 0;
-    const transferenciasPend = rows[12] ? getV(rows[12], 1) : 0;
+    const names = ['Massiel','Sara','Camila','Luis','Diego'];
+    const data = names.map(name => { const f = filaDe(name); return {
+      name,
+      comisiones:        getV(f, 1),
+      pacPagados:        getV(f, 2),
+      bonoPac:           getV(f, 3), // columna D — bono PAC individual
+      bonoSupl:          getV(f, 4), // columna E — bono supl individual
+      total:             getV(f, 5),
+      suplTexto:         getTxt(f, 6),
+      pacGrupal:         getV(f, 7),
+      pacMensual:        getV(f, 8),
+      semTarjeta:        getV(f, 9),
+      semTransf:         getV(f, 10),
+      anuTarjeta:        getV(f, 11),
+      anuTransf:         getV(f, 12),
+      pacTotalReal:      getV(f, 13),
+      pacFaltanSig:      getV(f, 14),
+      ventasSuplPersona: getV(f, 15),
+      comisionSupl:      getV(f, 16),
+    }; });
+
+    const fTotal = filaDe('Total equipo');
+    const totalPacGrupal   = getV(fTotal, 2);
+    const totalCom         = getV(fTotal, 5);
+    const totalPacReal     = getV(fTotal, 13);
+    const bonoPacTotal     = getV(filaDe('Bono pac total'), 1);
+    const pacSiguiente     = getTxt(filaDe('PAC para siguiente bono'), 1);
+    const bonoSuplTotal    = getV(filaDe('Bono suplementos total'), 1);
+    const ventasSuplReales = getV(filaDe('Ventas supl reales'), 1);
+    const suplFaltan550k   = getV(filaDe('Supl faltan 550k'), 1);
+    const transferenciasPend = getV(filaDe('Transferencias pendientes'), 1);
     const transfDetalle = [];
-    for (let r = 13; r < rows.length; r++) {
+    const iTransf = porEtiqueta['Transferencias pendientes'] ? porEtiqueta['Transferencias pendientes'].idx : -1;
+    if (iTransf >= 0) for (let r = iTransf + 1; r < rows.length; r++) {
       if (!rows[r] || !rows[r].c || !rows[r].c[0] || !rows[r].c[0].v) break;
       const txt = rows[r].c[0].v;
       if (txt === '--- Detalle transferencias ---' || txt === 'Sin transferencias pendientes') continue;
@@ -851,22 +863,24 @@ async function loadCierreMes() {
     const rows = json.table ? json.table.rows : [];
     if (!rows || rows.length < 2) return; // No hay datos del mes anterior
 
-    const nombres = ['Massiel','Sara','Camila','Luis','Diego','Javiera'];
+    const nombres = ['Massiel','Sara','Camila','Luis','Diego','Javiera']; // Javiera se deja: los meses viejos cerrados pueden traerla
     const getV = (row, col) => (row && row.c && row.c[col] && row.c[col].v != null) ? Number(row.c[col].v) : 0;
 
     const personas = [];
-    for (let i = 0; i < Math.min(6, rows.length - 1); i++) {
+    const cierrePorEtiqueta = {};
+    for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       if (!row || !row.c || !row.c[0] || !row.c[0].v) continue;
       const nombre = String(row.c[0].v).trim();
-      if (!nombres.includes(nombre)) continue;
-      personas.push({ nombre, total: getV(row, 5) });
+      if (!(nombre in cierrePorEtiqueta)) cierrePorEtiqueta[nombre] = row;
+      if (nombres.includes(nombre) && !personas.some(p => p.nombre === nombre)) personas.push({ nombre, total: getV(row, 5) });
     }
     if (personas.length === 0) return;
 
-    // Datos adicionales del mes
-    const totalPac = rows[7] ? getV(rows[7], 2) : 0; // Total PAC equipo (col C fila 8)
-    const ventasSupl = rows[10] ? getV(rows[10], 1) : 0; // Ventas supl reales (fila 11)
+    // Datos adicionales del mes — por ETIQUETA de fila, no por posición
+    // (mismo fix del 02-ago: si cambia el nº de personas, no se corre nada)
+    const totalPac = getV(cierrePorEtiqueta['Total equipo'], 2);
+    const ventasSupl = getV(cierrePorEtiqueta['Ventas supl reales'], 1);
 
     personas.sort((a, b) => b.total - a.total);
     renderCierreMes(personas, totalPac, ventasSupl);
@@ -1696,7 +1710,7 @@ function renderDashboard(data, totalCom, totalPacGrupal, totalPacReal, bonoPacTo
             <div class="section-icon" style="background:rgba(192,57,43,0.12);color:var(--red)">📋</div>
             <div>
               <div class="section-title-text">Planes personalizados PT</div>
-              <div class="section-subtitle">Luis · Diego · Javiera</div>
+              <div class="section-subtitle">Luis · Diego</div>
             </div>
           </div>
           <div class="section-right">
@@ -3291,7 +3305,7 @@ function chkCerrar() { document.getElementById('chk-overlay').style.display = 'n
 
 function chkBadge() {
   var fab = document.getElementById('chk-fab');
-  if (!chkEstado) { fab.textContent = '✅ CHECKLIST'; return; }
+  if (!chkEstado || !chkEstado.items || !chkEstado.items.length) { fab.textContent = '✅ CHECKLIST'; return; }
   var n = chkEstado.items.filter(function (x) { return x.hecho; }).length;
   fab.textContent = '✅ CHECKLIST ' + n + '/' + chkEstado.items.length;
   fab.style.background = chkEstado.completo ? '#1D9E75' : (n > 0 ? '#EF9F27' : '#333');
