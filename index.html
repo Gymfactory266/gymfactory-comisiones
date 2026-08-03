@@ -682,8 +682,17 @@ const SUPABASE_KEY = 'sb_publishable_YNiL8p5nP1NAfRsk8cgtRQ_9_zlN1Ve';
 let db;
 try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.error(e); }
 
-const SHEET_ID = '1vzB0wssprNnXEHi-Tx3fc_ZfVpkudUsuGOEu_JhnGT4';
-const URL_SHEET = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Comisiones`;
+// SEGURIDAD 02-ago-2026: los datos ya NO se leen directo de Google Sheets (la
+// planilla ahora es privada y el ID salió de esta página). Todo pasa por el
+// Apps Script /exec, que exige el token de la sesión: solo las cuentas que
+// crea Talo en Supabase pueden leer o escribir.
+let TOK = '';
+async function refrescarTok() {
+  try { const { data } = await db.auth.getSession(); TOK = (data && data.session) ? data.session.access_token : ''; }
+  catch (e) { TOK = ''; }
+}
+setInterval(refrescarTok, 10 * 60 * 1000);
+function conTok(url) { return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'tok=' + encodeURIComponent(TOK); }
 
 // Nombre del mes anterior para historial
 function getNombreMesAnterior() {
@@ -693,11 +702,9 @@ function getNombreMesAnterior() {
   return nombre.charAt(0).toUpperCase() + nombre.slice(1);
 }
 const NOMBRE_MES_ANTERIOR = getNombreMesAnterior();
-const URL_CIERRE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(NOMBRE_MES_ANTERIOR)}`;
 
 const EMAIL_MAP = {
   'gonzaloescobarhidalgo89@gmail.com': null,
-  'bea.sotopavez@hotmail.com': null,
   'bea.sotopavez@hotmail.com': null,
   'massiel.olivares.olea@gmail.com': 'Massiel',
   'saricep93@gmail.com': 'Sara',
@@ -739,7 +746,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; }
-  else { currentUserPersona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null; showApp(); }
+  else { currentUserPersona = EMAIL_MAP[email.toLowerCase()] ?? EMAIL_MAP[email] ?? null; await refrescarTok(); showApp(); }
 }
 
 async function doLogout() {
@@ -762,6 +769,7 @@ function showApp() {
 db.auth.getSession().then(async ({ data: { session } }) => {
   if (session) {
     currentUserPersona = EMAIL_MAP[session.user.email.toLowerCase()] ?? EMAIL_MAP[session.user.email] ?? null;
+    TOK = session.access_token;
     showApp();
   }
 });
@@ -781,11 +789,10 @@ function getTxt(row, col) {
 
 async function loadData() {
   try {
-    const res = await fetch(URL_SHEET + '&t=' + Date.now());
-    const text = await res.text();
-    const match = text.match(/google\.visualization\.Query\.setResponse\((.*)\)/s);
-    if (!match) throw new Error('No se pudo leer Google Sheets');
-    const json = JSON.parse(match[1]);
+    const res = await fetch(conTok(WEBAPP_URL + '?accion=hoja&nombre=Comisiones') + '&t=' + Date.now());
+    const json = await res.json();
+    if (!json || json.ok === false) throw new Error((json && json.error) || 'No se pudo leer los datos');
+    if (!json.table) throw new Error('No se pudo leer la hoja Comisiones');
     const rows = json.table.rows;
 
     // FIX 02-ago-2026: la hoja se lee POR NOMBRE DE FILA, no por posición.
@@ -857,10 +864,9 @@ async function loadData() {
 
 async function loadCierreMes() {
   try {
-    const res = await fetch(URL_CIERRE + '&t=' + Date.now());
-    const text = await res.text();
-    const json = JSON.parse(text.replace(/^[^(]+\(/, '').replace(/\);?\s*$/, ''));
-    const rows = json.table ? json.table.rows : [];
+    const res = await fetch(conTok(WEBAPP_URL + '?accion=hoja&nombre=' + encodeURIComponent(NOMBRE_MES_ANTERIOR)) + '&t=' + Date.now());
+    const json = await res.json();
+    const rows = (json && json.table) ? json.table.rows : [];
     if (!rows || rows.length < 2) return; // No hay datos del mes anterior
 
     const nombres = ['Massiel','Sara','Camila','Luis','Diego','Javiera']; // Javiera se deja: los meses viejos cerrados pueden traerla
@@ -2047,6 +2053,7 @@ function personalizarMensaje(texto, nombre) {
   return n ? texto.split('[Nombre]').join(n).split('[nombre]').join(n) : texto;
 }
 function escAttr(s) { return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+function esc(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; } // SEGURIDAD 02-ago: escapar datos antes de innerHTML
 function telWhatsApp(t) {
   let d = String(t || '').replace(/\D/g, '');
   if (!d) return '';
@@ -2056,7 +2063,7 @@ function telWhatsApp(t) {
   return d;
 }
 function postProsp(payload) {
-  return fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify(payload) });
+  return fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify(payload) });
 }
 function nuevaEntradaHist(accion, nota) {
   return { fecha: new Date().toISOString(), quien: currentUserPersona || 'Admin', accion: accion, nota: nota || '' };
@@ -2199,7 +2206,7 @@ async function fetchProspectos(silencioso) {
     conts.forEach(function(c) { if (!c.querySelector('.p3-card')) c.innerHTML = '<div class="p3-empty">Cargando...</div>'; });
   }
   try {
-    const res = await fetch(WEBAPP_URL + '?accion=listar');
+    const res = await fetch(conTok(WEBAPP_URL + '?accion=listar'));
     const data = await res.json();
     prospCache = (data && data.prospectos) ? data.prospectos : [];
     prospCargado = true;
@@ -2542,7 +2549,7 @@ function renderMensajesSection(p, dias) {
   return '<div id="pmsg-' + p.id + '" class="p3-msg-wrap" data-nombre="' + escAttr(primerNombre(p.nombre)) + '" data-dia="' + diaKey + '" data-tel="' + telW + '">' +
     '<div class="p3-msg-label">💬 ' + label + '</div>' +
     '<div class="p3-msg-tabs">' + tabs + '</div>' +
-    '<div class="p3-msg-text">' + personalizarMensaje(mensajes[0].texto, p.nombre) + '</div>' +
+    '<div class="p3-msg-text">' + esc(personalizarMensaje(mensajes[0].texto, p.nombre)) + '</div>' +
     '<button class="p3-msg-copy" onclick="copiarMensaje(\'' + p.id + '\',\'' + diaKey + '\')">📋 Copiar mensaje</button>' +
     wspBtn +
     '</div>';
@@ -2557,11 +2564,11 @@ function renderHistorial(historial) {
     var color = esVenta ? 'rgba(29,158,117,0.06)' : esEvo ? 'rgba(127,119,221,0.06)' : esWsp ? 'rgba(29,158,117,0.04)' : 'transparent';
     return '<div class="p3-hist-item" style="background:' + color + ';border-radius:5px;padding:3px 5px">' +
       '<div class="p3-hist-meta">' +
-      '<span class="p3-hist-quien">' + (h.quien || '?') + '</span>' +
-      '<span class="p3-hist-accion">' + h.accion + '</span>' +
+      '<span class="p3-hist-quien">' + esc(h.quien || '?') + '</span>' +
+      '<span class="p3-hist-accion">' + esc(h.accion) + '</span>' +
       '<span class="p3-hist-tiempo">' + tiempoTranscurrido(h.fecha) + '</span>' +
       '</div>' +
-      (h.nota ? '<div class="p3-hist-nota">' + h.nota + '</div>' : '') +
+      (h.nota ? '<div class="p3-hist-nota">' + esc(h.nota) + '</div>' : '') +
       '</div>';
   }).join('');
 }
@@ -2576,13 +2583,13 @@ function renderProspCard(p, esAdmin) {
   var historial = p.historial || [];
   var ultimaNota = historial.length > 0 ? historial[historial.length - 1] : null;
   var ultimaNotaHtml = (ultimaNota && ultimaNota.accion !== 'Prospecto creado' && (ultimaNota.nota || ultimaNota.accion)) ?
-    '<div class="p3-ultima-nota">💬 ' + (ultimaNota.nota || ultimaNota.accion) + '</div>' : '';
+    '<div class="p3-ultima-nota">💬 ' + esc(ultimaNota.nota || ultimaNota.accion) + '</div>' : '';
 
   var contactoInfo = [];
   if (p.canal) contactoInfo.push('📱 ' + p.canal);
-  if (p.telefono) contactoInfo.push('<a href="tel:' + p.telefono + '">📞 ' + p.telefono + '</a>');
-  if (p.correo) contactoInfo.push('<a href="mailto:' + p.correo + '">✉️ ' + p.correo + '</a>');
-  if (esAdmin && p.creadoPor) contactoInfo.push('👤 ' + p.creadoPor);
+  if (p.telefono) contactoInfo.push('<a href="tel:' + escAttr(p.telefono) + '">📞 ' + esc(p.telefono) + '</a>');
+  if (p.correo) contactoInfo.push('<a href="mailto:' + escAttr(p.correo) + '">✉️ ' + esc(p.correo) + '</a>');
+  if (esAdmin && p.creadoPor) contactoInfo.push('👤 ' + esc(p.creadoPor));
 
   var enEvo = p.enEvo === true || String(p.enEvo).toLowerCase() === 'true';
   var evoHtml = enEvo ?
@@ -2627,16 +2634,16 @@ function renderProspCard(p, esAdmin) {
   } else {
     accionesHtml = (p.planVendido || p.cerradoPor) ?
       '<div style="font-size:0.75rem;color:#444;font-style:italic;padding:3px 0">' +
-      (p.planVendido ? '🏆 ' + p.planVendido : '') +
-      (p.cerradoPor ? ' · Cerrado por ' + p.cerradoPor : '') + '</div>' : '';
+      (p.planVendido ? '🏆 ' + esc(p.planVendido) : '') +
+      (p.cerradoPor ? ' · Cerrado por ' + esc(p.cerradoPor) : '') + '</div>' : '';
   }
 
   return '<div class="' + cardClass + '" data-id="' + p.id + '" data-admin="' + (esAdmin ? '1' : '0') + '">' +
     '<div class="p3-top">' +
     '<div class="p3-info">' +
-    '<div class="p3-nombre">' + p.nombre + '</div>' +
+    '<div class="p3-nombre">' + esc(p.nombre) + '</div>' +
     '<div class="p3-contacto">' + contactoInfo.join(' · ') + '</div>' +
-    (p.consulta ? '<div class="p3-consulta">' + p.consulta + '</div>' : '') +
+    (p.consulta ? '<div class="p3-consulta">' + esc(p.consulta) + '</div>' : '') +
     ultimaNotaHtml +
     '</div>' +
     '<div class="p3-right">' +
@@ -2666,7 +2673,7 @@ function renderAlertaTurno(prospectos) {
     var diaKey = getDiaKey(dias);
     var label = diaKey === 'd7' ? 'Dia 7' : diaKey === 'd3' ? 'Dia 3' : 'Dia 1';
     return '<div class="p3-alerta-item">' +
-      '<span class="p3-alerta-nombre">' + p.nombre + '</span>' +
+      '<span class="p3-alerta-nombre">' + esc(p.nombre) + '</span>' +
       '<span class="p3-dia-badge ' + diaKey + '">' + label + '</span>' +
       '</div>';
   }).join('');
@@ -2720,7 +2727,7 @@ async function guardarPlan() {
   btn.textContent = 'Guardando...';
   btn.disabled = true;
   try {
-    await fetch(WEBAPP_URL, {
+    await fetch(conTok(WEBAPP_URL), {
       method: 'POST',
       body: JSON.stringify({ accion: 'agregarPlan', pt: currentUserPersona, cliente, plan: planSeleccionado, monto }),
     });
@@ -2736,7 +2743,7 @@ async function guardarPlan() {
 
 async function aprobarPlan(id) {
   if (!confirm('¿Confirmas el pago de este plan?')) return;
-  await fetch(WEBAPP_URL, {
+  await fetch(conTok(WEBAPP_URL), {
     method: 'POST',
     body: JSON.stringify({ accion: 'aprobarPlan', id }),
   });
@@ -2746,7 +2753,7 @@ async function aprobarPlan(id) {
 
 async function eliminarPlan(id) {
   if (!confirm('¿Eliminar este plan?')) return;
-  await fetch(WEBAPP_URL, {
+  await fetch(conTok(WEBAPP_URL), {
     method: 'POST',
     body: JSON.stringify({ accion: 'eliminarPlan', id }),
   });
@@ -2875,7 +2882,7 @@ function renderPlanCard(p, esAdmin) {
 async function terminarSesiones(id, total, cliente) {
   if (!confirm('¿Confirmas que se terminaron TODAS las sesiones de ' + cliente + (total ? ' (' + total + ' sesiones)' : '') + '? El plan pasará a la lista de Terminados.')) return;
   try {
-    const res = await fetch(WEBAPP_URL, {
+    const res = await fetch(conTok(WEBAPP_URL), {
       method: 'POST',
       body: JSON.stringify({ accion: 'terminarPlan', id }),
     });
@@ -2896,7 +2903,7 @@ async function terminarSesiones(id, total, cliente) {
 async function restarSesion(id, sesiones) {
   if (sesiones <= 0) return;
   if (!confirm('¿Deshacer la última sesión registrada?')) return;
-  await fetch(WEBAPP_URL, {
+  await fetch(conTok(WEBAPP_URL), {
     method: 'POST',
     body: JSON.stringify({ accion: 'restarSesion', id }),
   });
@@ -2909,7 +2916,7 @@ async function sumarSesion(id, sesiones, totalSesiones) {
     alert('Este plan ya está completado (' + totalSesiones + '/' + totalSesiones + ' sesiones)');
     return;
   }
-  await fetch(WEBAPP_URL, {
+  await fetch(conTok(WEBAPP_URL), {
     method: 'POST',
     body: JSON.stringify({ accion: 'sumarSesion', id }),
   });
@@ -2921,7 +2928,7 @@ async function cargarPlanes() {
   const cont = document.getElementById('planes-lista');
   if (!cont) return;
   try {
-    const res = await fetch(WEBAPP_URL + '?accion=listarPlanes');
+    const res = await fetch(conTok(WEBAPP_URL + '?accion=listarPlanes'));
     const data = await res.json();
     const misPlanes = (data.planes || []).filter(p => p.pt === currentUserPersona);
     if (misPlanes.length === 0) {
@@ -2953,7 +2960,7 @@ async function cargarPlanesAdmin() {
   const alerta = document.getElementById('planes-admin-alerta');
   if (!cont) return;
   try {
-    const res = await fetch(WEBAPP_URL + '?accion=listarPlanes');
+    const res = await fetch(conTok(WEBAPP_URL + '?accion=listarPlanes'));
     const data = await res.json();
     const planes = data.planes || [];
     const pendientes = planes.filter(p => !esPlanPagado(p));
@@ -3023,35 +3030,12 @@ async function cargarPlanesAdmin() {
 // AGENTE IA - Experto en ventas Gym Factory
 // ============================================
 
-const AGENTE_API_KEY = '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';
-const AGENTE_DOC_ID = '1TYtBKW08Vo3g30GjK43mcr5ex_nDUiLkZhMWnmCKjws';
-let agenteDocCache = null;
-let agenteDocCacheTime = 0;
-const AGENTE_DOC_TTL = 5 * 60 * 1000; // 5 minutos de cache
+// SEGURIDAD 02-ago-2026: la llave de la API y el prompt del asistente ya no
+// viven en esta página (repo público). El Apps Script /exec hace la llamada a
+// Claude con su propia llave (Script Property ANTHROPIC_KEY) y esta página
+// solo le manda la conversación, con el token de sesión.
 
-async function fetchBaseConocimiento() {
-  const ahora = Date.now();
-  if (agenteDocCache && (ahora - agenteDocCacheTime) < AGENTE_DOC_TTL) {
-    return agenteDocCache;
-  }
-  try {
-    const url = 'https://docs.google.com/document/d/' + AGENTE_DOC_ID + '/export?format=txt';
-    const res = await fetch(url, { mode: 'cors' });
-    if (res.ok) {
-      const texto = await res.text();
-      if (texto && texto.length > 100) {
-        agenteDocCache = texto;
-        agenteDocCacheTime = ahora;
-        return texto;
-      }
-    }
-  } catch(e) {
-    console.log('Doc no disponible, usando conocimiento base:', e.message);
-  }
-  return null;
-}
 
-const AGENTE_SYSTEM = 'Eres el asistente experto en ventas de GYM FACTORY, un gimnasio premium ubicado en Membrillar 266, Rancagua. Tu trabajo es ayudar a las recepcionistas y profesores a vender más y mejor, respondiendo sus preguntas con respuestas concretas, listas para usar.\n\nSOBRE GYM FACTORY:\n- Slogan: "Fitness, el lujo de la nueva era"\n- 550 clientes activos, capacidad 900-1000\n- Meta: convertirse en cadena premium\n\nPLANES Y PRECIOS:\n- PAC Mensual: $34.990/mes (sin matrícula, el más popular, funciona como Netflix)\n- PAC Estudiante: $29.990/mes (con carnet vigente)\n- Mensual normal: $39.990 + matrícula $9.990\n- Trimestral: $107.990 + matrícula $9.990\n- Semestral: $182.990 + matrícula $9.990 (2 invitados/mes)\n- Anual: $305.990 + matrícula $9.990 (4 invitados/mes)\n- Pase diario: $6.990\n- Matrícula: $9.990 (NO está en el letrero, es palanca de cierre)\n\nCOMISIONES RECEPCIÓN:\n- PAC Mensual: $2.000\n- PAC Estudiante: $1.500\n- Semestral tarjeta: $4.000\n- Semestral transferencia: $6.000\n- Anual tarjeta: $6.000\n- Anual transferencia: $8.000\n\nSUPLEMENTOS Y COMISIONES:\n- Creatina 4Active 1kg: $3.000 comisión\n- Creatina 4Active 600gr: $2.000\n- Creatina Inner/300gr: $1.500\n- Dragon Pharma/BPI ISO: $1.500\n- PS Whey: $1.200\n- Pure Whey/Isox: $1.000\n- Hyde Nightmare pre-entreno: $1.000\n- Cafeína caps: $1.500\n- Carbox/Beta Alanina/Glutamina/Magnesio: $2.000\n- HCA: $1.500\n- Gorro: $1.000\n- Toalla: $500\n\nTÉCNICAS DE VENTA CLAVES:\n1. DIAGNOSTICAR antes de ofrecer — hacer 2 preguntas primero\n2. Máximo 2 opciones por conversación\n3. Recorrido ANTES de los precios\n4. La matrícula es palanca de cierre — "si te inscribes hoy no la pagas"\n5. El PAC se vende como Netflix — automático, cancelable, más barato\n6. Creatina va SIEMPRE primero en suplementos\n7. Nunca terminar con una afirmación — siempre con una pregunta\n\nPROTOCOLO DE SEGUIMIENTO:\n- Día 0: respuesta + intento de cierre\n- Día 1: "¿Pudiste revisar la info?"\n- Día 3: gancho con matrícula gratis venciendo\n- Día 7: último intento corto\n- Después: archivar en EVO\n\nOBJECIONES COMUNES Y RESPUESTAS:\n- "Está muy caro" → "Por día son menos de $1.200 — menos que un café"\n- "Lo voy a pensar" → "Si te inscribes hoy no pagas matrícula — $9.990 menos"\n- "No me gusta dar mi tarjeta" → "Funciona igual que Netflix, Mercado Pago protege todo"\n- "No voy a ser constante" → "Con el PAC no pierdes plata si un mes no puedes venir"\n- "Quiero probar primero" → "Para eso está el pase diario a $6.990"\n- "Ya tuve gym y lo abandoné" → "El PAC no te presiona, cancelas cuando quieras"\n- "No necesito suplementos" → "No los necesitas pero aceleran los resultados"\n- "No quiero ponerme muy grande" → "La creatina no te hace crecer, solo rendir mejor"\n\nÁRBOL DE DECISIÓN PLANES:\n- Quiere constancia + adulto → PAC Mensual\n- Estudiante → PAC Estudiante\n- Quiere probar → Pase diario\n- Tiene presupuesto → Semestral o Anual\n- Ya tiene mensual → Convertir a PAC (ahorra $5.000/mes)\n\nÁRBOL SUPLEMENTOS:\n- Principiante → Creatina 600gr + Pure Whey\n- Ganar músculo → Creatina 1kg + Dragon Pharma\n- Bajar de peso → Pure Whey + Cafeína\n- Sin energía → Cafeína o Hyde\n- Mayor 50 → Creatina + Magnesio\n- Calambres → Magnesio\n- Ansiedad comida → HCA\n\nREGLAS DE RESPUESTA:\n- Sé directa y concreta — da la respuesta lista para usar\n- Si te piden qué decirle a un cliente, da el mensaje EXACTO que pueden copiar\n- Usa emojis con moderación para que los mensajes se vean naturales\n- Siempre termina con una pregunta al cliente\n- Máximo 3-4 oraciones por respuesta para que sea fácil de leer rápido\n- Habla en español chileno natural';
 
 let agenteHistorial = [];
 
@@ -3111,27 +3095,9 @@ async function agenteEnviar() {
   agenteHistorial.push({ role: 'user', content: texto });
 
   try {
-    const baseDoc = await fetchBaseConocimiento();
-    const systemFinal = AGENTE_SYSTEM + (baseDoc ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY (leer antes de responder):\n════════════════════════════════════════\n' + baseDoc) : '');
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': AGENTE_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 600,
-        system: systemFinal,
-        messages: agenteHistorial
-      })
-    });
-
+    const res = await fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify({ accion: 'agente', mensajes: agenteHistorial }) });
     const data = await res.json();
-    const respuesta = data.content && data.content[0] ? data.content[0].text : 'No pude responder, intenta de nuevo.';
+    const respuesta = (data && data.ok && data.respuesta) ? data.respuesta : ((data && data.error) || 'No pude responder, intenta de nuevo.');
 
     // Agregar al historial
     agenteHistorial.push({ role: 'assistant', content: respuesta });
@@ -3192,26 +3158,9 @@ async function agenteEnviarAdm() {
   agenteHistorialAdm.push({ role: 'user', content: texto });
 
   try {
-    const baseDocAdm = await fetchBaseConocimiento();
-    const systemAdm = AGENTE_SYSTEM + (baseDocAdm ? ('\n\n════════════════════════════════════════\nBASE DE CONOCIMIENTO OFICIAL GYM FACTORY:\n════════════════════════════════════════\n' + baseDocAdm) : '');
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': AGENTE_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5',
-        max_tokens: 600,
-        system: systemAdm,
-        messages: agenteHistorialAdm
-      })
-    });
+    const res = await fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify({ accion: 'agente', mensajes: agenteHistorialAdm }) });
     const data = await res.json();
-    const respuesta = (data.content && data.content[0]) ? data.content[0].text : (data.error ? JSON.stringify(data.error) : 'No pude responder.');
+    const respuesta = (data && data.ok && data.respuesta) ? data.respuesta : ((data && data.error) || 'No pude responder.');
     agenteHistorialAdm.push({ role: 'assistant', content: respuesta });
     burbujaTyping.className = 'agente-burbuja ia';
     burbujaTyping.innerHTML = respuesta.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
@@ -3339,7 +3288,7 @@ function chkRender() {
 }
 
 function chkCargar() {
-  fetch(WEBAPP_URL + '?accion=checklistHoy').then(function (r) { return r.json(); }).then(function (j) {
+  fetch(conTok(WEBAPP_URL + '?accion=checklistHoy')).then(function (r) { return r.json(); }).then(function (j) {
     if (j && j.ok) { chkEstado = j; chkRender(); }
   }).catch(function () {
     document.getElementById('chk-lista').innerHTML = '<div style="color:#888;text-align:center;padding:18px">No se pudo cargar. Recarga la página.</div>';
@@ -3352,7 +3301,7 @@ function chkMarcar(i) {
   if (!confirm('¿Confirmas que "' + item.item + '" ya está HECHA hoy?')) return;
   var btn = document.getElementById('chk-btn-' + i);
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
-  fetch(WEBAPP_URL, { method: 'POST', body: JSON.stringify({ accion: 'marcarChecklist', item: item.item, quien: chkQuien() }) })
+  fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify({ accion: 'marcarChecklist', item: item.item, quien: chkQuien() }) })
     .then(function (r) { return r.json(); })
     .then(function (j) {
       if (j && j.ok) { chkEstado = j; chkRender(); }
