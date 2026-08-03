@@ -113,6 +113,15 @@ try { db = (window.supabase || supabase).createClient(SUPABASE_URL, SUPABASE_KEY
 let socios = [];
 let filtro = 'pendientes'; // pendientes | todos
 
+// SEGURIDAD 02-ago-2026: el /exec ahora exige el token de la sesión.
+let TOK = '';
+async function refrescarTok() {
+  try { const { data } = await db.auth.getSession(); TOK = (data && data.session) ? data.session.access_token : ''; }
+  catch (e) { TOK = ''; }
+}
+setInterval(refrescarTok, 10 * 60 * 1000);
+function conTok(url) { return url + (url.indexOf('?') >= 0 ? '&' : '?') + 'tok=' + encodeURIComponent(TOK); }
+
 document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
 async function doLogin() {
@@ -123,6 +132,7 @@ async function doLogin() {
   btn.disabled = true; btn.textContent = 'Ingresando...'; err.style.display = 'none';
   const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
   if (error) { err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Ingresar'; return; }
+  await refrescarTok();
   iniciar();
 }
 
@@ -131,7 +141,7 @@ async function doLogout() { try { await db.auth.signOut(); } catch(e){} location
 async function checkSesion() {
   try {
     const { data } = await db.auth.getSession();
-    if (data && data.session && data.session.user) { iniciar(); }
+    if (data && data.session && data.session.user) { TOK = data.session.access_token; iniciar(); }
   } catch(e){}
 }
 checkSesion();
@@ -145,7 +155,7 @@ function iniciar() {
 async function cargar() {
   document.getElementById('lista').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando socios...</div>';
   try {
-    const r = await fetch(API + '?accion=listarActivacion');
+    const r = await fetch(conTok(API + '?accion=listarActivacion'));
     const j = await r.json();
     socios = (j.socios || []).sort((a,b) => (b.frio - a.frio) || (b.dia - a.dia));
     render();
@@ -155,7 +165,7 @@ async function cargar() {
 }
 
 function post(payload) {
-  return fetch(API, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
+  return fetch(conTok(API), { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json());
 }
 
 function toast(msg) {
