@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocolos PT · Gym Factory</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111110;
+    color: #14140f;
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 20px 14px 60px;
+  }
+  .card {
+    max-width: 700px; margin: 0 auto;
+    background: #fbfbf8;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  }
+  header {
+    background: #14140f;
+    color: #fff;
+    padding: 28px 26px 24px;
+    border-bottom: 4px solid #C0392B;
+  }
+  .kicker { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #e05545; font-weight: 700; }
+  h1 { font-size: 27px; line-height: 1.15; margin-top: 8px; letter-spacing: -0.02em; font-weight: 750; }
+  .lede { color: #d8d6cc; font-size: 14.5px; margin-top: 12px; }
+  main { padding: 14px 16px 30px; }
+
+  details {
+    border: 1px solid #ece9e0;
+    border-radius: 14px;
+    margin: 10px 0;
+    background: #fff;
+    overflow: hidden;
+  }
+  details[open] { border-color: #C0392B33; }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px 16px;
+    font-weight: 700; font-size: 16px;
+    user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .n {
+    flex: 0 0 34px; height: 34px;
+    background: #14140f; color: #fff;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    font-size: 15px; font-weight: 750;
+  }
+  details[open] summary .n { background: #C0392B; }
+  summary .chev { margin-left: auto; color: #C0392B; transition: transform .2s; font-size: 13px; }
+  details[open] summary .chev { transform: rotate(90deg); }
+  .inner { padding: 2px 18px 18px; }
+
+  h2 { font-size: 15.5px; color: #C0392B; margin: 16px 0 6px; letter-spacing: -0.01em; }
+  .inner > p, .box p { font-size: 14.5px; color: #45443d; margin-bottom: 8px; }
+  ul, ol { margin: 4px 0 10px 2px; list-style: none; }
+  li { font-size: 14.5px; color: #45443d; padding: 3px 0 3px 22px; position: relative; }
+  ul li::before { content: "•"; position: absolute; left: 6px; color: #C0392B; font-weight: 700; }
+  ol { counter-reset: paso; }
+  ol li::before {
+    counter-increment: paso; content: counter(paso) ".";
+    position: absolute; left: 0; color: #C0392B; font-weight: 750;
+  }
+  b { color: #14140f; }
+  .key { background: #f2eddc; color: #6b5a1e; border-radius: 6px; padding: 1px 7px; font-weight: 600; white-space: nowrap; }
+
+  .box {
+    border-radius: 11px; padding: 13px 15px; margin: 10px 0;
+    font-size: 14px;
+  }
+  .box > b:first-child { display: block; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+  .box.rojo   { background: #fbe9ec; border-left: 4px solid #C0392B; }
+  .box.rojo > b:first-child { color: #C0392B; }
+  .box.verde  { background: #e9f5ec; border-left: 4px solid #2E7D32; }
+  .box.verde > b:first-child { color: #2E7D32; }
+  .box.ambar  { background: #fff3e0; border-left: 4px solid #b8860b; }
+  .box.ambar > b:first-child { color: #9a7009; }
+  .box.negro  { background: #14140f; color: #e8e6dc; }
+  .box.negro p, .box.negro li { color: #e8e6dc; }
+  .box.negro b { color: #e05545; }
+
+  .msg {
+    text-align: center; font-weight: 750; color: #C0392B;
+    font-size: 17px; padding: 8px 0 2px;
+  }
+  footer { text-align: center; color: #9b9a90; font-size: 12px; padding: 8px 22px 24px; }
+  footer b { color: #C0392B; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card { box-shadow: none; max-width: 100%; }
+    details { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <div class="kicker">Gym Factory · Personal Trainers</div>
+    <h1>Manual y Protocolos del PT</h1>
+    <p class="lede">Todo lo que un Personal Trainer de Gym Factory tiene que saber y hacer en su turno: apertura, funciones en sala, trato con el cliente, servicios, ventas y cierre. Léelo completo, anota tus dudas y después lo revisamos juntos.</p>
+  </header>
+
+  <main>
+
+  <details open>
+    <summary><span class="n">1</span> Tu rol y nuestra cultura <span class="chev">▶</span></summary>
+    <div class="inner">
+      <h2>1.1 Qué hace un PT en Gym Factory</h2>
+      <ul>
+        <li><b>Trainer de sala:</b> presente en el piso, ayudando, corrigiendo técnica, ordenando y cuidando el ambiente premium.</li>
+        <li><b>Venta de suplementos:</b> recomendar el adecuado a cada cliente (la venta pasa por caja).</li>
+        <li><b>Evaluaciones:</b> toma de InBody y evaluación antropométrica.</li>
+        <li><b>Personalizados:</b> fuera de tu horario de atención, como servicio propio (ver sección 5).</li>
+      </ul>
+      <p>El detalle contractual (horarios, remuneración, split) va en tu contrato. Este manual es lo otro: todo lo que haces, y cómo, cuando estás en tu turno.</p>
+
+      <h2>1.2 La filosofía</h2>
+      <p>Nunca nos vendemos como el gimnasio "barato": somos una <b>experiencia premium accesible</b>. Dos pilares dependen de ti:</p>
+      <ul>
+        <li><b>Orden y limpieza por sobre todo</b> — es nuestro diferenciador.</li>
+        <li><b>Somos su lugar de desconexión</b> — el cliente tiene que sentirse querido, no atendido por una máquina.</li>
+      </ul>
+
+      <h2>1.3 Actitud — lee esto dos veces</h2>
+      <div class="box verde">
+        <b>Lo que esperamos de ti, siempre</b>
+        <p><b>Buena disposición y buena postura.</b> Tu lenguaje corporal comunica tanto como tus palabras: nada de brazos cruzados ni cara larga. Sonríe, mira a la gente, muéstrate disponible.</p>
+        <p><b>Habilidades blandas.</b> Saluda, conversa, apréndete los nombres, pregunta por la vida de la gente. La cercanía genuina es el corazón del servicio premium.</p>
+        <p><b>Respeto al equipo y a la autoridad.</b> Hay momentos para ser informales, pero en el trabajo hay estándares de respeto que se cumplen.</p>
+      </div>
+      <p>Al mismo tiempo: pregunta con confianza, aporta ideas nuevas y corrígenos si crees que estamos haciendo algo mal — no somos perfectos y nos encanta aprender. La regla es simple: puedes cuestionar y proponer con respeto, pero una instrucción de trabajo no se discute con malas respuestas ni se ignora. <b>"No quiero hacerlo" no es una opción.</b></p>
+      <div class="box rojo">
+        <b>Qué no toleramos</b>
+        <ul>
+          <li>Mala actitud o malas respuestas hacia la jefatura o los compañeros.</li>
+          <li>Hacerse el/la desentendido/a o no hacer una tarea encomendada.</li>
+          <li>Trato frío, seco o de mala gana con los clientes.</li>
+          <li>Faltar el respeto o pasar a llevar a un compañero.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">2</span> Protocolo de apertura (turno AM) <span class="chev">▶</span></summary>
+    <div class="inner">
+      <div class="box ambar">
+        <b>Responsabilidad mayor</b>
+        <p>Debemos estar funcionando a las <b>06:00 en punto</b>, por obligación. En el turno AM se llega con anticipación. Abrir tarde es una <b>falta grave</b>.</p>
+      </div>
+
+      <h2>2.1 Acceso y seguridad</h2>
+      <ol>
+        <li>Abrir la reja de Av. Membrillar con la <span class="key">llave morada</span>.</li>
+        <li>Mantener siempre <b>cerrada</b> la reja que da a Membrillar.</li>
+        <li>Abrir la reja de la mampara con la <span class="key">llave transparente</span>.</li>
+        <li>Abrir la mampara de vidrio con la <span class="key">llave celeste</span>.</li>
+        <li>Encender la <b>luz general</b> (interruptor al lado del reconocimiento facial).</li>
+        <li>Desde recepción, activar el <b>switch principal</b> en la caja de electricidad para dar corriente al primer piso (ON – OFF).</li>
+      </ol>
+
+      <h2>2.2 Iluminación</h2>
+      <ol>
+        <li>Encender las luces hacia camarines y entrada de la escalera (pilar pasando el torniquete).</li>
+        <li>Subir y encender las luces del segundo piso completo (arriba de la escalera y detrás de la muralla de la zona de trotadoras).</li>
+      </ol>
+
+      <h2>2.3 Climatización — anticiparse, no reaccionar</h2>
+      <ul>
+        <li><b>Invierno:</b> encender calefacción y aires con anticipación para recibir con ambiente grato.</li>
+        <li><b>Verano — regla clave:</b> encender el aire del 2° piso <b>JUSTO ANTES</b> de que empiece a pegar el sol, con las turbinas de cada sector. Si esperas al calor, cuesta muchísimo enfriar y gasta el doble.</li>
+        <li><b>Cuando el sol pega fuerte:</b> cerrar todas las ventanas y bajar todas las cortinas del 2° piso.</li>
+        <li><b>Ventiladores:</b> prender todos, abajo y arriba. Con poca gente, ir apagando — atento al ahorro sin sacrificar comodidad.</li>
+        <li><b>Corriente natural:</b> saber decidir cuándo apagar los aires y abrir todo para que corra aire.</li>
+        <li><b>Primer piso:</b> aire solo cuando lo pidan o sea muy notorio (gastan más y se enfría rápido).</li>
+        <li><b>Al prender el aire arriba:</b> cerrar la mampara de la escalera para mantener el aire.</li>
+      </ul>
+      <div class="box negro">
+        <b>Regla de oro de la energía</b>
+        <p>Siempre pendiente del gasto de luz Y de la comodidad de los clientes al mismo tiempo. Ninguno se sacrifica por el otro — se administra con criterio.</p>
+      </div>
+
+      <h2>2.4 Música y ambientación</h2>
+      <ol>
+        <li>Encender los parlantes del primer y segundo piso.</li>
+        <li>Reproducir la <b>playlist oficial</b> desde la apertura.</li>
+      </ol>
+
+      <h2>2.5 Aromatización</h2>
+      <p>Revisar que los vaporizadores estén botando aroma en: sala de máquinas 1° piso, sala de máquinas 2° piso, camarín de hombres y camarín de mujeres.</p>
+
+      <h2>2.6 Revisión rápida de limpieza</h2>
+      <ol>
+        <li>Los 3 baños del 2° piso y los 3 del 1° limpios, con insumos (papel, jabón, toallas desechables) y en orden.</li>
+        <li>Lockers sin candados ni objetos olvidados.</li>
+        <li>Cerrar ambas puertas de los camarines (en el cierre quedan abiertas por la humedad; en la apertura se cierran).</li>
+      </ol>
+
+      <h2>2.7 Recepción lista</h2>
+      <ol>
+        <li>Encender computador y abrir: EVO, Shopify, correo y WhatsApp Web.</li>
+        <li>Revisar que el sistema de pago esté cargado; si no, conectarlo.</li>
+        <li>Apertura de caja con firma en el libro (le corresponde a la recepcionista de turno).</li>
+        <li>Entregar las radios al personal (cargadas la noche anterior) en la frecuencia de recepción.</li>
+      </ol>
+
+      <h2>2.8 Toque final</h2>
+      <p>Áreas limpias y despejadas, máquinas, lockers y espejos en orden, y <b>sonrisa lista en recepción</b>: la primera impresión siempre de exclusividad y excelencia.</p>
+
+      <h2>2.9 Registro y aviso</h2>
+      <ol>
+        <li>Firmar la apertura de tu turno al ingresar (y la salida al retirarte).</li>
+        <li>Con todo abierto, avisar al grupo de WhatsApp:</li>
+      </ol>
+      <p class="msg">"Apertura Realizada"</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">3</span> Durante tu turno — funciones permanentes <span class="chev">▶</span></summary>
+    <div class="inner">
+      <h2>3.1 Orden y limpieza continua</h2>
+      <ul>
+        <li><b>Discos, mancuernas, accesorios y bandas:</b> ordenar constantemente en sus lugares.</li>
+        <li><b>Suciedad a la vista:</b> aspirar y/o limpiar apenas la veas.</li>
+        <li><b>Manchas notorias en la pared:</b> es lavable — pasar un paño mojado.</li>
+        <li><b>Lockers:</b> cada vez que pases, ir cerrándolos.</li>
+        <li><b>Basura:</b> botarla cuando sea necesario y cambiar bolsas (salas de máquinas y pasillo).</li>
+        <li><b>Olor extraño:</b> echar aerosol.</li>
+        <li><b>Cortinas:</b> cuando se vaya el sol, subirlas.</li>
+        <li><b>Ventanas:</b> al cerrarlas, dejarlas con seguro para que los clientes no las manipulen.</li>
+      </ul>
+
+      <h2>3.2 Máquinas</h2>
+      <ul>
+        <li>Revisar constantemente las máquinas y apretarlas de forma periódica.</li>
+        <li>Avisar cualquier desperfecto en el grupo de WhatsApp de inmediato.</li>
+      </ul>
+
+      <h2>3.3 Insumos y baños</h2>
+      <ul>
+        <li>Aprender a hacer las mezclas de líquidos para reponer cuando sea necesario.</li>
+        <li>Reponer tork y papel higiénico en los baños constantemente.</li>
+      </ul>
+
+      <h2>3.4 Circulación entre pisos</h2>
+      <p>Tenemos dos plantas: estar constantemente subiendo y bajando, <b>sin quedarse pegado mucho rato en un piso</b>. Los clientes no deberían tener que ir a buscarte al otro piso.</p>
+
+      <h2>3.5 Radio y comunicación</h2>
+      <ul>
+        <li>Al entrar, tomar la radio en la frecuencia de recepción.</li>
+        <li>Puedes compartir en recepción, pero solo cuando se pueda: tu lugar de trabajo es el piso.</li>
+      </ul>
+
+      <h2>3.6 Áreas comunes y cocina</h2>
+      <ul>
+        <li>Guardar lo máximo en tu locker de trabajador; lo que no quepa, ordenado en colgadores de recepción o cocina (no amontonado).</li>
+        <li>Lavar de inmediato la loza que uses, secarla y guardarla. Restos de la rejilla al basurero.</li>
+        <li>Sacar la basura según los días del camión — le corresponde al turno AM del día que toque.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">4</span> Trato con el cliente <span class="chev">▶</span></summary>
+    <div class="inner">
+      <h2>4.1 Conexión genuina</h2>
+      <ul>
+        <li>Siempre dispuesto/a a ayudar. Sonreír.</li>
+        <li>Aprenderte los nombres en la medida de lo posible.</li>
+        <li>Conversar cuando tengas tiempo, preguntar por su vida.</li>
+        <li>Si alguien lleva tiempo sin venir, preguntarle por qué — <b>con preocupación real, no de cobranza</b>.</li>
+      </ul>
+      <h2>4.2 Corregir y mostrar</h2>
+      <ul>
+        <li>Corregir a los clientes siempre que sea necesario (técnica, uso de máquinas, convivencia).</li>
+        <li>Mostrar el gimnasio con el protocolo de recorrido establecido.</li>
+        <li>Velar por el respeto entre clientes y con tus compañeros.</li>
+      </ul>
+      <div class="box rojo">
+        <b>Imagen y visión por sobre todo</b>
+        <p>Si ves clientes rompiendo el reglamento interno, díselos. Es más importante que se cumplan las reglas y se respete la imagen del gimnasio, que tener clientes que no calzan con nuestro perfil.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">5</span> Servicios y ventas del PT <span class="chev">▶</span></summary>
+    <div class="inner">
+      <h2>5.1 Suplementos</h2>
+      <p>Recomienda el adecuado según el cliente y su objetivo. <b>La venta siempre pasa por caja.</b></p>
+
+      <h2>5.2 Personalizados — flujo obligatorio</h2>
+      <ol>
+        <li>El cliente te paga por <b>transferencia a tu cuenta</b>.</li>
+        <li>Tú transfieres al gimnasio la parte que corresponde (split del contrato).</li>
+        <li>Nos avisas de la venta.</li>
+        <li>Cargas el personalizado en la <b>app de comisiones</b>.</li>
+      </ol>
+      <div class="box verde">
+        <b>Regla entre compañeros</b>
+        <p>No pasar por encima de tus compañeros en personalizados. Siempre preguntar antes — los turnos son rotativos y lo toma quien realmente pueda por horarios, no el que llegó primero.</p>
+      </div>
+
+      <h2>5.3 Rutinas en la app Fiti</h2>
+      <ul>
+        <li>Crear rutinas a los alumnos <b>solo por una vez</b>; modificaciones cada cierto tiempo, marcando límites.</li>
+        <li>¿Por qué? Porque ofreces personalizados y rutinas de 3 meses a $50.000. La rutina gratis es un gancho; el servicio se cobra.</li>
+      </ul>
+
+      <h2>5.4 InBody y antropometría</h2>
+      <p>Son parte de tus funciones. Se agendan al inicio del plan del socio, así que no se usan como gancho de reactivación.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">6</span> Protocolo de cierre <span class="chev">▶</span></summary>
+    <div class="inner">
+      <div class="box ambar">
+        <b>Tan importante como la apertura</b>
+        <p><b>Dejar mal cerrado es una falta grave.</b> No te lleves las llaves a la casa. El cierre se hace por horarios y en orden.</p>
+      </div>
+
+      <h2>6.1 Durante la tarde / noche</h2>
+      <ul>
+        <li>Prender la luz del estacionamiento cuando empiece a oscurecer; dejarla apagada cuando se vayan.</li>
+      </ul>
+
+      <h2>6.2 Desde las 22:30</h2>
+      <ul>
+        <li>Comenzar a ordenar discos y barras.</li>
+        <li>Revisar accesorios (ligas, bandas, colchonetas) y dejarlos en su lugar.</li>
+        <li>Nada en el suelo en las zonas de pasto sintético.</li>
+        <li>Revisar el área de lockers y cerrarlos.</li>
+      </ul>
+
+      <h2>6.3 Desde las 22:50</h2>
+      <ul>
+        <li>Avisar a todos los clientes que <b>en 10 minutos se cierra</b>.</li>
+        <li>Revisar ambos camarines y <b>dejar las puertas abiertas</b> (así no se acumula el vapor ni queda olor a humedad).</li>
+        <li>Revisar los 3 baños de cada piso (papel, jabón, orden).</li>
+        <li>Ningún ventilador encendido.</li>
+        <li>Máquinas ordenadas y listas para mañana.</li>
+        <li>Todas las ventanas cerradas con seguro.</li>
+        <li>Cerrar portón de estacionamiento con candado — <span class="key">llave roja</span> — y apagar su luz.</li>
+        <li>Cerrar reja del comedor / área de trabajadores con candado — <span class="key">llave roja</span>.</li>
+      </ul>
+
+      <h2>6.4 Registro de turno</h2>
+      <ul><li>Firmar la salida de tu turno al retirarte.</li></ul>
+
+      <h2>6.5 Última revisión y cierre final</h2>
+      <ol>
+        <li>Imagen general: salas, espejos, máquinas y áreas comunes limpias y ordenadas.</li>
+        <li>Gimnasio vacío, sin clientes ni pertenencias. <b>Cosas de valor → recepción; lo demás → cajón de objetos perdidos</b> de recepción.</li>
+        <li>Apagar luces del 2° piso (switches arriba de la escalera: lado cardio y lado escalera).</li>
+        <li>Apagar luces del pilar tras el torniquete (lockers y bajo la escalera).</li>
+        <li>Cortar la energía del 1° piso en el tablero detrás de recepción (switch OFF).</li>
+        <li>Apagar el switch al lado del reconocimiento facial.</li>
+        <li>Cerrar la mampara de vidrio — <span class="key">llave celeste</span>.</li>
+        <li>Cerrar la reja de la mampara — <span class="key">llave transparente</span>.</li>
+        <li>Cerrar el portón de entrada solo con la mano (no necesita llave).</li>
+      </ol>
+
+      <h2>6.6 Aviso de turno</h2>
+      <p>Con todo cerrado, avisar al grupo de WhatsApp:</p>
+      <p class="msg">"Cierre Realizado"</p>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">7</span> Faltas graves y reglas de oro <span class="chev">▶</span></summary>
+    <div class="inner">
+      <div class="box rojo">
+        <b>Faltas graves</b>
+        <ul>
+          <li>Abrir tarde en el turno AM (funcionando a las 06:00 en punto, sí o sí).</li>
+          <li>Dejar mal cerrado el gimnasio.</li>
+          <li>Llevarse las llaves para la casa.</li>
+          <li>Ignorar una instrucción de trabajo o responder de mala manera.</li>
+        </ul>
+      </div>
+      <h2>Reglas de oro del día a día</h2>
+      <ul>
+        <li>Llegar con anticipación en el turno AM.</li>
+        <li>Orden y limpieza por sobre todo.</li>
+        <li>Trato cálido y genuino con cada cliente.</li>
+        <li>Respeto al equipo y a la jefatura, incluso al corregir o proponer.</li>
+        <li>Cuidar el gasto de energía sin sacrificar la comodidad del cliente.</li>
+        <li>Ante cualquier duda, preguntar con confianza.</li>
+      </ul>
+    </div>
+  </details>
+
+  </main>
+  <footer>
+    <b>GYM FACTORY</b> · Fitness, el lujo de la nueva era. · Membrillar 266, Rancagua<br>
+    Documento interno del equipo. La constancia de recepción se firma en papel con Talo.
+  </footer>
+</div>
+</body>
+</html>
