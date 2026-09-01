@@ -3325,7 +3325,7 @@ chkCargar();
         <button onclick="dlcCerrar()" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer">✕</button>
       </div>
     </div>
-    <div style="font-size:.75rem;color:#999;margin-bottom:6px">Cada trabajador debe venir al menos <b>6 veces al mes</b>. Marca "Vino hoy", o <b>toca un nombre</b> para abrir sus días del mes y llenarlo todo de una vez. Al cierre, baja el Excel y se envía a la empresa.</div>
+    <div style="font-size:.75rem;color:#999;margin-bottom:6px;line-height:1.5"><b>A fin de mes:</b> entra a EVO, mira cuántas veces vino cada trabajador del convenio y <b>anota el número aquí</b> (se guarda solo; verde = cumple el mínimo de <b>6</b>). Después toca <b>⬇ Bajar Excel</b> y se envía a la empresa.</div>
     <div id="dlc-resumen" style="font-size:.8rem;color:#ccc;margin-bottom:12px"></div>
     <div id="dlc-lista"><div style="color:#888;text-align:center;padding:18px">Cargando…</div></div>
     <div style="display:flex;gap:8px;margin-top:14px">
@@ -3338,7 +3338,7 @@ chkCargar();
 <script>
 var dlcEstado = null;
 var dlcMes = null;
-var dlcExp = -1; // fila expandida (grilla de días)
+var dlcGuardando = false;
 
 function dlcQuien() {
   if (typeof currentUserPersona !== 'undefined' && currentUserPersona) return currentUserPersona;
@@ -3360,26 +3360,6 @@ function dlcBadge() {
   fab.style.background = (c === t && t > 0) ? '#1D9E75' : '#2C5AA0';
 }
 
-// Días que tiene el mes seleccionado ("9-2026" → 30)
-function dlcDiasDelMes() {
-  var p = dlcEstado.mes.split('-');
-  return new Date(+p[1], +p[0], 0).getDate();
-}
-// "dd-MM-yyyy" para un día del mes seleccionado
-function dlcFechaDe(dia) {
-  var p = dlcEstado.mes.split('-');
-  return ('0' + dia).slice(-2) + '-' + ('0' + p[0]).slice(-2) + '-' + p[1];
-}
-// día de hoy (número) si el mes seleccionado es el actual
-function dlcHoyDia() {
-  return dlcEstado.esMesActual ? parseInt(dlcEstado.hoy.split('-')[0], 10) : 99;
-}
-
-function dlcExpandir(i) {
-  dlcExp = (dlcExp === i) ? -1 : i;
-  dlcRender();
-}
-
 function dlcRender() {
   if (!dlcEstado) return;
   var sel = document.getElementById('dlc-mes');
@@ -3393,40 +3373,25 @@ function dlcRender() {
     '<b style="color:#1D9E75">' + dlcEstado.resumen.cumplen + '</b> de ' + dlcEstado.resumen.total +
     (dlcEstado.resumen.noCumplen ? ' · <span style="color:#EF9F27">' + dlcEstado.resumen.noCumplen + ' aún no</span>' : '');
 
-  var esActual = dlcEstado.esMesActual;
-  var hoyDia = dlcHoyDia();
-  var nDias = dlcDiasDelMes();
-
   document.getElementById('dlc-lista').innerHTML = dlcEstado.personas.map(function (p, i) {
     var col = p.cumple ? '#1D9E75' : (p.visitas > 0 ? '#EF9F27' : '#C0392B');
     var badge = '<span style="display:inline-flex;min-width:42px;justify-content:center;background:' + col + ';color:#fff;border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:700;flex-shrink:0">' + p.visitas + '/' + dlcEstado.min + '</span>';
-    var btn = '';
-    if (esActual && !p.pendiente) {
-      btn = p.hoy
-        ? '<button id="dlc-btn-' + i + '" onclick="event.stopPropagation();dlcToggle(' + i + ')" style="background:#1D9E75;color:#fff;border:none;border-radius:8px;padding:8px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:sans-serif;flex-shrink:0">✓ Vino hoy</button>'
-        : '<button id="dlc-btn-' + i + '" onclick="event.stopPropagation();dlcToggle(' + i + ')" style="background:#333;color:#fff;border:1px solid #555;border-radius:8px;padding:8px 10px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:sans-serif;flex-shrink:0">Vino hoy</button>';
-    } else if (p.pendiente) {
-      btn = '<span style="font-size:.68rem;color:#C0392B;flex-shrink:0">sin RUT</span>';
+    var control;
+    if (p.pendiente) {
+      control = '<span style="font-size:.68rem;color:#C0392B;flex-shrink:0">sin RUT</span>';
+    } else {
+      control =
+        '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0">' +
+        '<button onclick="dlcPaso(' + i + ',-1)" style="width:34px;height:34px;border-radius:8px;border:1px solid #555;background:#333;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:sans-serif">−</button>' +
+        '<input id="dlc-in-' + i + '" type="number" inputmode="numeric" min="0" max="31" value="' + p.visitas + '" onchange="dlcFijar(' + i + ', this.value)" style="width:46px;height:34px;text-align:center;background:#111;color:#fff;border:1px solid #555;border-radius:8px;font-size:.9rem;font-weight:700;font-family:sans-serif">' +
+        '<button onclick="dlcPaso(' + i + ',1)" style="width:34px;height:34px;border-radius:8px;border:1px solid #555;background:#333;color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:sans-serif">+</button>' +
+        '</div>';
     }
-    var fila = '<div onclick="dlcExpandir(' + i + ')" style="display:flex;align-items:center;gap:10px;cursor:pointer">' +
+    return '<div style="display:flex;align-items:center;gap:10px;background:#111;border:1px solid ' + (p.cumple ? 'rgba(29,158,117,.4)' : '#2C2C2C') + ';border-radius:10px;padding:10px 12px;margin-bottom:7px">' +
       badge +
-      '<div style="flex:1;min-width:0"><div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.n + '. ' + dlcEsc(p.nombre) + ' <span style="color:#666;font-size:.68rem">' + (dlcExp === i ? '▲' : '▼') + '</span></div>' +
+      '<div style="flex:1;min-width:0"><div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.n + '. ' + dlcEsc(p.nombre) + '</div>' +
       '<div style="font-size:.68rem;color:#777">' + dlcEsc(p.rut || '—') + '</div></div>' +
-      btn + '</div>';
-    var grilla = '';
-    if (dlcExp === i && !p.pendiente) {
-      var chips = '';
-      for (var d = 1; d <= nDias; d++) {
-        var f = dlcFechaDe(d);
-        var marcado = p.dias.indexOf(f) >= 0;
-        var futuro = esActual && d > hoyDia;
-        chips += '<button ' + (futuro ? 'disabled' : 'onclick="event.stopPropagation();dlcDia(' + i + ',' + d + ')"') +
-          ' style="width:34px;height:32px;border-radius:8px;font-size:.72rem;font-weight:600;font-family:sans-serif;cursor:' + (futuro ? 'default' : 'pointer') + ';border:1px solid ' + (marcado ? '#1D9E75' : '#3a3a3a') + ';background:' + (marcado ? '#1D9E75' : (futuro ? '#181818' : '#242424')) + ';color:' + (futuro ? '#555' : '#fff') + '">' + d + '</button>';
-      }
-      grilla = '<div id="dlc-grilla-' + i + '" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;padding-top:10px;border-top:1px solid #2C2C2C">' + chips + '</div>' +
-        '<div style="font-size:.66rem;color:#777;margin-top:6px">Toca los días que vino ' + dlcEsc((p.nombre.split(' ')[0] || '')) + ' este mes (verde = vino). Se guarda solo.</div>';
-    }
-    return '<div style="background:#111;border:1px solid ' + (p.cumple ? 'rgba(29,158,117,.4)' : '#2C2C2C') + ';border-radius:10px;padding:10px 12px;margin-bottom:7px">' + fila + grilla + '</div>';
+      control + '</div>';
   }).join('');
   dlcBadge();
 }
@@ -3434,39 +3399,39 @@ function dlcRender() {
 function dlcCargar(mes) {
   var url = WEBAPP_URL + '?accion=dialceMes' + (mes ? '&mes=' + encodeURIComponent(mes) : '');
   fetch(conTok(url) + '&t=' + Date.now()).then(function (r) { return r.json(); }).then(function (j) {
-    if (j && j.ok) { if (dlcMes !== j.mes) dlcExp = -1; dlcEstado = j; dlcMes = j.mes; dlcRender(); }
+    if (j && j.ok) { dlcEstado = j; dlcMes = j.mes; dlcRender(); }
     else { document.getElementById('dlc-lista').innerHTML = '<div style="color:#888;text-align:center;padding:18px">No se pudo cargar.</div>'; }
   }).catch(function () {
     document.getElementById('dlc-lista').innerHTML = '<div style="color:#888;text-align:center;padding:18px">No se pudo cargar. Recarga la página.</div>';
   });
 }
 
-function dlcPost(payload) {
-  return fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify(payload) })
+// Anota el total del mes de una persona (lo que vieron en EVO)
+function dlcFijar(i, valor) {
+  var p = dlcEstado.personas[i];
+  if (!p || p.pendiente || dlcGuardando) { dlcRender(); return; }
+  var n = parseInt(valor, 10);
+  if (isNaN(n) || n < 0) { dlcRender(); return; }
+  if (n > 31) n = 31;
+  dlcGuardando = true;
+  var inp = document.getElementById('dlc-in-' + i);
+  if (inp) { inp.disabled = true; inp.style.opacity = '.5'; }
+  fetch(conTok(WEBAPP_URL), { method: 'POST', body: JSON.stringify({ accion: 'fijarDialce', rut: p.rut, mes: dlcEstado.mes, visitas: n, quien: dlcQuien() }) })
     .then(function (r) { return r.json(); })
     .then(function (j) {
+      dlcGuardando = false;
       if (j && j.ok) { dlcEstado = j; dlcMes = j.mes; dlcRender(); }
       else { alert('No se pudo guardar: ' + ((j && j.error) || 'intenta de nuevo')); dlcRender(); }
     })
-    .catch(function () { alert('No se pudo guardar. Revisa tu conexión.'); dlcRender(); });
+    .catch(function () { dlcGuardando = false; alert('No se pudo guardar. Revisa tu conexión.'); dlcRender(); });
 }
 
-// Botón "Vino hoy"
-function dlcToggle(i) {
+function dlcPaso(i, delta) {
   var p = dlcEstado.personas[i];
   if (!p || p.pendiente) return;
-  var btn = document.getElementById('dlc-btn-' + i);
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
-  dlcPost({ accion: p.hoy ? 'quitarDialce' : 'marcarDialce', rut: p.rut, quien: dlcQuien() });
-}
-
-// Chip de un día del mes (modo "llenar el mes de una vez")
-function dlcDia(i, dia) {
-  var p = dlcEstado.personas[i];
-  if (!p || p.pendiente) return;
-  var f = dlcFechaDe(dia);
-  var marcado = p.dias.indexOf(f) >= 0;
-  dlcPost({ accion: marcado ? 'quitarDialce' : 'marcarDialce', rut: p.rut, fecha: f, quien: dlcQuien() });
+  var n = p.visitas + delta;
+  if (n < 0) n = 0;
+  dlcFijar(i, n);
 }
 
 // SheetJS bajo demanda (solo al primer Excel)
@@ -3489,15 +3454,15 @@ function dlcExcel() {
     aoa.push(['Informe de asistencia mensual — ' + e.mesLabel]);
     aoa.push(['Mínimo exigido: ' + e.min + ' visitas/mes', '', '', 'Generado: ' + hoy]);
     aoa.push([]);
-    aoa.push(['N°', 'Trabajador', 'RUT', 'Visitas del mes', 'Cumple (mín. ' + e.min + ')', 'Días asistidos']);
+    aoa.push(['N°', 'Trabajador', 'RUT', 'Visitas del mes', 'Cumple (mín. ' + e.min + ')']);
     e.personas.forEach(function (p) {
-      var dias = (p.dias || []).map(function (d) { return parseInt(d.split('-')[0], 10); }).join(', ');
-      aoa.push([p.n, p.nombre, p.rut, p.visitas, p.cumple ? 'SÍ' : 'NO', dias]);
+      aoa.push([p.n, p.nombre, p.rut, p.visitas, p.cumple ? 'SÍ' : 'NO']);
     });
     aoa.push([]);
     aoa.push(['Cumplen el mínimo:', e.resumen.cumplen + ' de ' + e.resumen.total]);
+    aoa.push(['Fuente: registro de accesos EVO · Gym Factory, Membrillar 266, Rancagua']);
     var ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{ wch: 4 }, { wch: 34 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 30 }];
+    ws['!cols'] = [{ wch: 4 }, { wch: 36 }, { wch: 14 }, { wch: 14 }, { wch: 16 }];
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'DIALCE ' + e.mes);
     var nombre = 'Informe_DIALCE_' + e.mesLabel.replace(/ /g, '_') + '.xlsx';
