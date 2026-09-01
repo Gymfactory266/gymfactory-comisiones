@@ -3325,7 +3325,7 @@ chkCargar();
         <button onclick="dlcCerrar()" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer">✕</button>
       </div>
     </div>
-    <div style="font-size:.75rem;color:#999;margin-bottom:6px;line-height:1.5"><b>A fin de mes:</b> entra a EVO, mira cuántas veces vino cada trabajador del convenio y <b>anota el número aquí</b> (se guarda solo; verde = cumple el mínimo de <b>6</b>). Después toca <b>⬇ Bajar Excel</b> y se envía a la empresa.</div>
+    <div style="font-size:.75rem;color:#999;margin-bottom:6px;line-height:1.5"><b>A fin de mes:</b> entra a EVO y mira cuántos <b>DÍAS</b> vino cada trabajador del convenio (si entró 2 veces el mismo día, cuenta 1 solo). <b>Anota el número aquí</b> — se guarda solo; verde = cumple el mínimo de <b>6 días al mes</b>. Después toca <b>⬇ Bajar Excel</b> y se envía a la empresa.</div>
     <div id="dlc-resumen" style="font-size:.8rem;color:#ccc;margin-bottom:12px"></div>
     <div id="dlc-lista"><div style="color:#888;text-align:center;padding:18px">Cargando…</div></div>
     <div style="display:flex;gap:8px;margin-top:14px">
@@ -3369,7 +3369,7 @@ function dlcRender() {
   }).join('');
 
   document.getElementById('dlc-resumen').innerHTML =
-    '<b>' + dlcEsc(dlcEstado.mesLabel) + '</b> · Cumplen el mínimo (' + dlcEstado.min + '): ' +
+    '<b>' + dlcEsc(dlcEstado.mesLabel) + '</b> · Cumplen el mínimo (' + dlcEstado.min + ' días): ' +
     '<b style="color:#1D9E75">' + dlcEstado.resumen.cumplen + '</b> de ' + dlcEstado.resumen.total +
     (dlcEstado.resumen.noCumplen ? ' · <span style="color:#EF9F27">' + dlcEstado.resumen.noCumplen + ' aún no</span>' : '');
 
@@ -3452,9 +3452,9 @@ function dlcExcel() {
     var aoa = [];
     aoa.push(['GYM FACTORY — Convenio ' + e.empresa]);
     aoa.push(['Informe de asistencia mensual — ' + e.mesLabel]);
-    aoa.push(['Mínimo exigido: ' + e.min + ' visitas/mes', '', '', 'Generado: ' + hoy]);
+    aoa.push(['Mínimo exigido: ' + e.min + ' días de asistencia al mes', '', '', 'Generado: ' + hoy]);
     aoa.push([]);
-    aoa.push(['N°', 'Trabajador', 'RUT', 'Visitas del mes', 'Cumple (mín. ' + e.min + ')']);
+    aoa.push(['N°', 'Trabajador', 'RUT', 'Días de asistencia', 'Cumple (mín. ' + e.min + ' días)']);
     e.personas.forEach(function (p) {
       aoa.push([p.n, p.nombre, p.rut, p.visitas, p.cumple ? 'SÍ' : 'NO']);
     });
