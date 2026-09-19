@@ -711,6 +711,7 @@ const EMAIL_MAP = {
   'cami_olivos@outlook.es': 'Camila',
   'luis.caceres.martinez@gmail.com': 'Luis',
   'diegomunozchacon@gmail.com': 'Diego',
+  'e.brionespf@gmail.com': 'Elias',
 };
 
 const PERSONAS = {
@@ -719,6 +720,7 @@ const PERSONAS = {
   Camila:  { color: '#EF9F27', bg: 'rgba(239,159,39,0.2)', rol: 'Recepcion' },
   Luis:    { color: '#7F77DD', bg: 'rgba(127,119,221,0.2)', rol: 'Profesor/PT' },
   Diego:   { color: '#D85A30', bg: 'rgba(216,90,48,0.2)', rol: 'Profesor/PT' },
+  Elias:   { color: '#159A8C', bg: 'rgba(21,154,140,0.2)', rol: 'Profesor/PT' },
 };
 
 const COM_PLANES = {
@@ -807,7 +809,7 @@ async function loadData() {
     });
     const filaDe = k => porEtiqueta[k] ? porEtiqueta[k].row : null;
 
-    const names = ['Massiel','Sara','Camila','Luis','Diego'];
+    const names = ['Massiel','Sara','Camila','Luis','Diego','Elias'];
     const data = names.map(name => { const f = filaDe(name); return {
       name,
       comisiones:        getV(f, 1),
