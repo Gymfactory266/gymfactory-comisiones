@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#C0392B">
+<title>SOS Emergencias · Gym Factory</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #111110;
+    color: #14140f;
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding: 14px 10px 60px;
+  }
+  .card {
+    max-width: 760px; margin: 0 auto;
+    background: #fbfbf8;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,.35);
+  }
+  header {
+    background: #14140f;
+    color: #fff;
+    padding: 22px 20px 20px;
+    border-bottom: 4px solid #C0392B;
+  }
+  .kicker { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: #e05545; font-weight: 700; }
+  h1 { font-size: 30px; line-height: 1.1; margin-top: 6px; letter-spacing: -0.02em; font-weight: 800; }
+  h1 .sos { color: #e8102e; }
+  .lede { color: #d8d6cc; font-size: 14px; margin-top: 8px; }
+
+  /* Botón de llamada */
+  .call {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    margin: 16px 0 10px;
+    background: #e8102e; color: #fff; text-decoration: none;
+    border-radius: 16px; padding: 16px 18px;
+    box-shadow: 0 6px 22px rgba(232,16,46,.45);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .call:active { transform: scale(.985); }
+  .call .num { font-size: 46px; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+  .call .txt { font-size: 14px; line-height: 1.25; font-weight: 700; }
+  .call .txt small { display: block; font-weight: 600; opacity: .9; font-size: 12.5px; }
+  .say { background: #2a2925; border-radius: 10px; padding: 10px 12px; font-size: 14px; color: #fff; }
+  .say b { color: #ffd166; }
+
+  main { padding: 12px 12px 26px; }
+
+  /* Triage siempre visible */
+  .triage { border: 2px solid #14140f; border-radius: 14px; background: #fff; overflow: hidden; margin: 2px 0 12px; }
+  .triage h3 { background: #14140f; color: #fff; font-size: 13.5px; letter-spacing: .04em; padding: 10px 14px; text-transform: uppercase; }
+  .triage h3 + .trow { border-top: 0; }
+  .trow { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; padding: 9px 12px; border-top: 1px solid #ece9e0; font-size: 14px; }
+  .trow .tag { color: #fff; font-weight: 800; font-size: 12.5px; padding: 6px 8px; border-radius: 7px; text-align: center; line-height: 1.2; }
+  .tag.r { background: #C0392B; } .tag.a { background: #e0a800; color: #14140f; } .tag.v { background: #2E7D32; }
+  .trow p b { color: #C0392B; }
+  .triage .tareas { padding: 10px 14px 12px; border-top: 1px solid #ece9e0; }
+  .triage .tareas > b { display: block; font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+  .triage .tareas li { padding: 2px 0 2px 20px; }
+
+  details {
+    border: 1px solid #ece9e0;
+    border-radius: 14px;
+    margin: 10px 0;
+    background: #fff;
+    overflow: hidden;
+  }
+  details[open] { border-color: #C0392B33; }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 14px;
+    font-weight: 750; font-size: 16px;
+    user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .n {
+    flex: 0 0 34px; height: 34px;
+    background: #14140f; color: #fff;
+    border-radius: 9px;
+    display: grid; place-items: center;
+    font-size: 15px; font-weight: 750;
+  }
+  details[open] summary .n { background: #C0392B; }
+  summary small { display: block; font-weight: 500; font-size: 12.5px; color: #77766c; }
+  summary .chev { margin-left: auto; color: #C0392B; transition: transform .2s; font-size: 13px; }
+  details[open] summary .chev { transform: rotate(90deg); }
+  .inner { padding: 2px 12px 14px; }
+
+  h2 { font-size: 15.5px; color: #C0392B; margin: 14px 0 6px; letter-spacing: -0.01em; }
+  .inner > p, .box p { font-size: 14.5px; color: #45443d; margin-bottom: 8px; }
+  ul, ol { margin: 4px 0 8px 2px; list-style: none; }
+  li { font-size: 14.5px; color: #45443d; padding: 3px 0 3px 22px; position: relative; }
+  ul li::before { content: "•"; position: absolute; left: 6px; color: #C0392B; font-weight: 700; }
+  ol { counter-reset: paso; }
+  ol li::before {
+    counter-increment: paso; content: counter(paso) ".";
+    position: absolute; left: 0; color: #C0392B; font-weight: 750;
+  }
+  b { color: #14140f; }
+  a.tel { color: #C0392B; font-weight: 750; text-decoration: none; white-space: nowrap; }
+
+  /* Bandas semáforo + tarjetas */
+  .banda { display: flex; align-items: center; gap: 10px; margin: 14px 0 8px; font-size: 13.5px; color: #45443d; }
+  .banda .lbl { color: #fff; font-weight: 800; font-size: 12px; letter-spacing: .08em; padding: 5px 10px; border-radius: 7px; flex: 0 0 auto; }
+  .banda.rojo .lbl { background: #C0392B; } .banda.ambar .lbl { background: #e0a800; color: #14140f; } .banda.verde .lbl { background: #2E7D32; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  .t { border: 1.5px solid #e2dfd4; border-radius: 12px; overflow: hidden; background: #fff; }
+  .t .th { display: flex; align-items: center; gap: 10px; padding: 9px 12px; color: #fff; font-weight: 800; font-size: 14px; line-height: 1.2; }
+  .t .th .num { flex: 0 0 28px; height: 28px; border-radius: 7px; background: rgba(255,255,255,.22); display: grid; place-items: center; font-size: 15px; }
+  .t.rojo .th { background: #C0392B; } .t.ambar .th { background: #e0a800; color: #14140f; } .t.verde .th { background: #2E7D32; }
+  .t.ambar .th .num { background: rgba(0,0,0,.14); }
+  .t .tb { padding: 8px 12px 10px; }
+  .t ol { margin: 0 0 6px; }
+  .t li { padding: 2px 0 2px 20px; font-size: 14.5px; }
+  .t .nota { font-size: 13.5px; color: #45443d; border-top: 1px dashed #e2dfd4; padding-top: 7px; margin-top: 4px; }
+  .t .nota.l131 { color: #C0392B; font-weight: 700; }
+  .t .nota.l131 b { color: #C0392B; }
+
+  /* Botiquín */
+  .item { padding: 8px 0; border-bottom: 1px solid #f0ede4; }
+  .item:last-child { border-bottom: 0; }
+  .item b { display: block; font-size: 14.5px; margin-bottom: 2px; }
+  .item p { font-size: 14px; color: #45443d; margin: 0; }
+  .item p span { color: #C0392B; font-weight: 700; }
+
+  /* Presión */
+  .pres { display: grid; gap: 8px; margin: 8px 0 10px; }
+  .pres .fila { border-radius: 10px; overflow: hidden; border: 1.5px solid #e2dfd4; }
+  .pres .fila .h { padding: 7px 12px; font-weight: 800; font-size: 13.5px; color: #fff; }
+  .pres .fila.rojo .h { background: #C0392B; } .pres .fila.ambar .h { background: #e0a800; color: #14140f; } .pres .fila.verde .h { background: #2E7D32; }
+  .pres .fila p { padding: 8px 12px; font-size: 14px; color: #45443d; margin: 0; }
+  .pill { display: inline-block; color: #fff; font-weight: 800; font-size: 12.5px; padding: 3px 9px; border-radius: 6px; margin: 6px 0 4px; }
+  .pill.r { background: #C0392B; } .pill.a { background: #e0a800; color: #14140f; } .pill.v { background: #2E7D32; }
+
+  .box {
+    border-radius: 11px; padding: 12px 14px; margin: 10px 0;
+    font-size: 14px;
+  }
+  .box > b:first-child { display: block; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+  .box.rojo   { background: #fbe9ec; border-left: 4px solid #C0392B; }
+  .box.rojo > b:first-child { color: #C0392B; }
+  .box.verde  { background: #e9f5ec; border-left: 4px solid #2E7D32; }
+  .box.verde > b:first-child { color: #2E7D32; }
+  .box.ambar  { background: #fff3e0; border-left: 4px solid #b8860b; }
+  .box.ambar > b:first-child { color: #9a7009; }
+  .box.negro  { background: #14140f; color: #e8e6dc; }
+  .box.negro p, .box.negro li { color: #e8e6dc; }
+  .box.negro b { color: #e05545; }
+  .box.negro a.tel { color: #ffd166; }
+  .blank { border-bottom: 1.5px solid #e8e6dc; display: inline-block; min-width: 120px; }
+
+  .pdfs { display: grid; gap: 8px; margin: 6px 0 10px; }
+  .pdfs a { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #14140f; background: #fff; border: 1.5px solid #e2dfd4; border-radius: 12px; padding: 11px 13px; font-size: 14.5px; }
+  .pdfs a .ic { flex: 0 0 38px; height: 38px; border-radius: 9px; background: #C0392B; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+  .pdfs a small { display: block; color: #77766c; font-size: 12.5px; }
+
+  footer { text-align: center; color: #9b9a90; font-size: 12px; padding: 8px 22px 24px; }
+  footer b { color: #C0392B; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card { box-shadow: none; max-width: 100%; }
+    details { break-inside: avoid; }
+    .call { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <div class="kicker">Gym Factory · Protocolos de emergencia</div>
+    <h1><span class="sos">SOS</span> EMERGENCIAS</h1>
+    <p class="lede">Qué hacer paso a paso, cómo usar el botiquín y cómo medir presión y pulso. Las 3 hojas impresas están al final.</p>
+    <a class="call" href="tel:131">
+      <span class="num">131</span>
+      <span class="txt">LLAMAR AL SAMU<small>Gratis · 24/7 · toca para llamar</small></span>
+    </a>
+    <p class="say">Al llamar di: <b>«Gym Factory, Membrillar 266, Rancagua»</b>. No cortes tú primero.</p>
+  </header>
+
+  <main>
+
+  <section class="triage">
+    <h3>Paso 1 · Mírala 10 segundos: ¿responde? ¿respira?</h3>
+    <div class="trow"><span class="tag r">NO responde<br>NO respira</span><p>Llama al <b>131</b> y anda a la <b>tarjeta 1</b>.</p></div>
+    <div class="trow"><span class="tag a">NO responde<br>SÍ respira</span><p><b>Tarjeta 4</b>. Si no despierta en 1 minuto: <b>131</b> y ponla de lado (Hoja 3).</p></div>
+    <div class="trow"><span class="tag v">SÍ responde</span><p>Busca abajo lo que ves y sigue los pasos.</p></div>
+    <div class="tareas">
+      <b>Paso 2 · Reparte tareas</b>
+      <ul>
+        <li><b>Uno atiende</b> y no se despega.</li>
+        <li><b>Otro llama</b> al 131.</li>
+        <li><b>Otro trae el botiquín</b> y espera la ambulancia en la puerta.</li>
+      </ul>
+    </div>
+  </section>
+
+  <details open>
+    <summary><span class="n">1</span> <span>Qué hacer, paso a paso<small>Hoja 1 · 9 situaciones por color</small></span> <span class="chev">▶</span></summary>
+    <div class="inner">
+
+      <div class="banda rojo"><span class="lbl">ROJO</span><span><b>Llama al 131 ahora</b> — mientras llega, haz esto:</span></div>
+      <div class="grid">
+        <div class="t rojo">
+          <div class="th"><span class="num">1</span>No responde y no respira</div>
+          <div class="tb">
+            <ol>
+              <li><b>Boca arriba</b>, en el suelo.</li>
+              <li><b>Dos manos</b> al centro del pecho, brazos rectos.</li>
+              <li><b>Empuja</b> fuerte y rápido: hunde 5 cm, 2 por segundo.</li>
+              <li><b>No pares.</b> Cambien cada 2 minutos.</li>
+            </ol>
+            <p class="nota">No hace falta dar respiración boca a boca.</p>
+          </div>
+        </div>
+        <div class="t rojo">
+          <div class="th"><span class="num">2</span>Se ahoga: no habla ni tose</div>
+          <div class="tb">
+            <ol>
+              <li><b>Inclínala</b> y dale 5 golpes fuertes entre los omóplatos.</li>
+              <li><b>Abrázala por detrás:</b> puño sobre el ombligo y aprieta 5 veces hacia adentro y arriba.</li>
+              <li><b>Repite</b> hasta que salga.</li>
+              <li>Si se desmaya: <b>tarjeta 1</b>.</li>
+            </ol>
+            <p class="nota">Si tose fuerte: solo anímala a toser.</p>
+          </div>
+        </div>
+        <div class="t rojo">
+          <div class="th"><span class="num">3</span>Dolor de pecho, cara torcida o habla raro</div>
+          <div class="tb">
+            <ol>
+              <li><b>Siéntala.</b> Que no camine ni haga fuerza.</li>
+              <li><b>No le des</b> remedios, agua ni comida.</li>
+              <li><b>Mira:</b> ¿sonrisa chueca? ¿brazo caído? ¿habla enredado?</li>
+              <li><b>Anota la hora</b> en que empezó.</li>
+            </ol>
+            <p class="nota">Puede ser infarto, ACV o presión muy alta.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="banda ambar"><span class="lbl">AMARILLO</span><span><b>Actúa primero</b> — llama al 131 si pasa lo que dice en rojo:</span></div>
+      <div class="grid">
+        <div class="t ambar">
+          <div class="th"><span class="num">4</span>Se desmayó o está mareada</div>
+          <div class="tb">
+            <ol>
+              <li><b>Acuéstala</b> boca arriba.</li>
+              <li><b>Súbele las piernas</b> sobre un banco o silla.</li>
+              <li><b>Suéltale</b> la ropa apretada y dale aire.</li>
+              <li>Al despertar: <b>sentada 10 minutos</b>, agua de a poco.</li>
+            </ol>
+            <p class="nota l131">131 si: no despierta en 1 minuto o se golpeó la cabeza.</p>
+          </div>
+        </div>
+        <div class="t ambar">
+          <div class="th"><span class="num">5</span>Tiembla y suda frío (azúcar baja)</div>
+          <div class="tb">
+            <ol>
+              <li>Despierta: <b>un vaso de jugo o bebida con azúcar</b> (no light).</li>
+              <li><b>Espera</b> 15 minutos sentada.</li>
+              <li>Si mejora, <b>que coma algo</b> antes de irse.</li>
+              <li>Desmayada: <b>nada por la boca</b>; ponla de lado.</li>
+            </ol>
+            <p class="nota l131">131 si: no mejora en 15 min o se desmaya.</p>
+          </div>
+        </div>
+        <div class="t ambar">
+          <div class="th"><span class="num">6</span>Convulsiona (se sacude sin control)</div>
+          <div class="tb">
+            <ol>
+              <li><b>Aleja</b> lo que pueda golpearla.</li>
+              <li><b>Algo blando</b> bajo la cabeza.</li>
+              <li><b>No la sujetes.</b> Nada en la boca.</li>
+              <li><b>Mira la hora:</b> ¿cuánto dura?</li>
+              <li>Cuando pare: <b>ponla de lado</b>.</li>
+            </ol>
+            <p class="nota l131">131 si: dura más de 5 min, se repite o es la primera vez.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="banda verde"><span class="lbl">VERDE</span><span><b>Se atiende acá</b> — llama al 131 solo si pasa lo que dice en rojo:</span></div>
+      <div class="grid">
+        <div class="t verde">
+          <div class="th"><span class="num">7</span>Crisis de pánico: respira muy rápido</div>
+          <div class="tb">
+            <ol>
+              <li><b>Llévala</b> a un lugar tranquilo.</li>
+              <li><b>Dile:</b> «estás a salvo, ya va a pasar».</li>
+              <li><b>Respiren juntos:</b> aire en 4 segundos, fuera en 6.</li>
+              <li><b>No la dejes sola.</b></li>
+            </ol>
+            <p class="nota l131">131 si: le aprieta el pecho o no se le pasa en 30 min.</p>
+          </div>
+        </div>
+        <div class="t verde">
+          <div class="th"><span class="num">8</span>Se golpeó o se torció algo</div>
+          <div class="tb">
+            <ol>
+              <li><b>Que pare</b> de entrenar y se siente.</li>
+              <li><b>Hielo</b> envuelto en paño, 15 a 20 minutos.</li>
+              <li><b>Levanta</b> la parte lesionada.</li>
+              <li>¿Deforme o no puede apoyar? <b>No lo enderece:</b> a urgencias.</li>
+            </ol>
+            <p class="nota l131">131 si: golpe en cabeza, cuello o espalda. No la muevas.</p>
+          </div>
+        </div>
+        <div class="t verde">
+          <div class="th"><span class="num">9</span>Está sangrando</div>
+          <div class="tb">
+            <ol>
+              <li><b>Ponte guantes.</b></li>
+              <li><b>Aprieta fuerte</b> con gasa o paño limpio, 10 minutos.</li>
+              <li>¿Se empapa? <b>Otra gasa encima;</b> no saques la primera.</li>
+              <li>Algo clavado: <b>no lo saques.</b></li>
+            </ol>
+            <p class="nota l131">131 si: sale a chorro o no para en 10 minutos.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="box negro">
+        <b>Nunca</b>
+        <p><b>NUNCA:</b> remedios, comida ni agua a alguien confundido o desmayado · <b>NUNCA</b> la dejes sola.</p>
+        <p><b>DESPUÉS:</b> anota qué pasó y avisa a administración · El botiquín está en: <span class="blank">&nbsp;</span></p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">2</span> <span>Botiquín: qué es cada cosa<small>Hoja 2 · cuándo y cómo se usa · pégala junto al botiquín</small></span> <span class="chev">▶</span></summary>
+    <div class="inner">
+      <div class="box rojo">
+        <b>Antes de tocar sangre</b>
+        <p><b>Ponte guantes.</b> NUNCA le des remedios a un socio (ni paracetamol).</p>
+        <p><b>Orden en una herida:</b> 1 parar la sangre → 2 lavar → 3 desinfectar → 4 tapar.</p>
+      </div>
+
+      <h2>A · Protégete primero</h2>
+      <div class="item"><b>Guantes de nitrilo</b><p><span>Cuándo:</span> antes de tocar sangre, vómito o heridas.</p><p><span>Cómo:</span> póntelos antes de ayudar. Al terminar, sácalos dándolos vuelta y bótalos.</p></div>
+      <div class="item"><b>Mascarilla de RCP</b><p><span>Cuándo:</span> solo si sabes dar respiración boca a boca.</p><p><span>Cómo:</span> cubre boca y nariz y sopla por la válvula. Si no sabes, solo empuja el pecho.</p></div>
+      <div class="item"><b>Alcohol gel y bolsa de desechos</b><p><span>Cuándo:</span> al terminar de atender.</p><p><span>Cómo:</span> gasas sucias y guantes a la bolsa, bien cerrada. Luego, gel en tus manos.</p></div>
+
+      <h2>B · Heridas y sangre (en este orden)</h2>
+      <div class="item"><b>1 · Gasas estériles — parar la sangre</b><p><span>Cuándo:</span> herida que sangra.</p><p><span>Cómo:</span> aprieta fuerte 10 minutos sin soltar. Si se empapa, pon otra encima.</p></div>
+      <div class="item"><b>2 · Suero fisiológico — lavar</b><p><span>Cuándo:</span> herida con tierra o mugre; algo en el ojo.</p><p><span>Cómo:</span> chorro directo para lavar. No frotes.</p></div>
+      <div class="item"><b>3 · Clorhexidina o povidona — desinfectar</b><p><span>Cuándo:</span> herida ya lavada, antes de taparla.</p><p><span>Cómo:</span> en una gasa, del centro hacia afuera. Povidona: no si es alérgica al yodo.</p></div>
+      <div class="item"><b>4 · Apósitos y tela adhesiva — tapar</b><p><span>Cuándo:</span> para tapar la herida ya limpia.</p><p><span>Cómo:</span> no toques el lado que va a la herida. Fija los bordes con la tela.</p></div>
+      <div class="item"><b>Parches curita</b><p><span>Cuándo:</span> cortes chicos y ampollas.</p><p><span>Cómo:</span> sobre la piel limpia y seca.</p></div>
+      <div class="item"><b>Cintas de sutura (steri-strip)</b><p><span>Cuándo:</span> corte chico y limpio que se abre.</p><p><span>Cómo:</span> junta los bordes y pega las cintas cruzadas. Corte largo o profundo: a urgencias.</p></div>
+      <div class="item"><b>Tijera y pinza</b><p><span>Cuándo:</span> cortar ropa o vendas; astilla que sobresale.</p><p><span>Cómo:</span> punta roma hacia la piel. Nunca saques algo clavado profundo.</p></div>
+
+      <h2>C · Golpes y torceduras</h2>
+      <div class="item"><b>Frío instantáneo</b><p><span>Cuándo:</span> golpe, torcedura o hinchazón.</p><p><span>Cómo:</span> aprieta la bolsa hasta que reviente por dentro y agítala. Envuelta en paño, 15–20 min.</p></div>
+      <div class="item"><b>Venda elástica</b><p><span>Cuándo:</span> después del hielo: tobillo, rodilla, muñeca.</p><p><span>Cómo:</span> desde los dedos hacia arriba, firme sin apretar. Dedos morados o fríos: suéltala.</p></div>
+      <div class="item"><b>Venda cohesiva</b><p><span>Cuándo:</span> para sujetar una gasa o el hielo.</p><p><span>Cómo:</span> se pega sola, no necesita tela. No la estires al máximo.</p></div>
+      <div class="item"><b>Férula moldeable</b><p><span>Cuándo:</span> se ve deforme o no puede moverlo.</p><p><span>Cómo:</span> dale la forma del brazo o pierna tal como está y fíjala con venda. No enderezar.</p></div>
+
+      <h2>D · Azúcar baja y frío</h2>
+      <div class="item"><b>Gel de glucosa o azúcar</b><p><span>Cuándo:</span> tiembla, suda frío y se confunde.</p><p><span>Cómo:</span> solo despierta y si puede tragar: un sobre de gel o 3 cucharaditas de azúcar en agua.</p></div>
+      <div class="item"><b>Manta térmica</b><p><span>Cuándo:</span> pálida, fría o tiritando; esperando al SAMU.</p><p><span>Cómo:</span> envuélvela entera, con el lado plateado hacia el cuerpo.</p></div>
+
+      <h2>E · Para medir (pasos en la Hoja 3)</h2>
+      <div class="item"><b>Tensiómetro (presión)</b><p><span>Cuándo:</span> mareo, dolor de cabeza, tras un desmayo.</p><p><span>Cómo:</span> solo despierta y sentada. Pasos en la Hoja 3.</p></div>
+      <div class="item"><b>Termómetro</b><p><span>Cuándo:</span> se siente afiebrada o con escalofríos.</p><p><span>Cómo:</span> 38 °C o más es fiebre: hoy no entrena.</p></div>
+      <div class="item"><b>Oxímetro (si hay)</b><p><span>Cuándo:</span> le cuesta respirar.</p><p><span>Cómo:</span> en un dedo, mano quieta. Marca bajo 92: llama al 131.</p></div>
+
+      <div class="box negro">
+        <b>Después de usarlo</b>
+        <p>Anota en la planilla <b>fecha, hora, nombre, qué pasó y qué hiciste</b>. Avisa a administración.</p>
+        <p><b>REPONER:</b> anota lo que gastaste · Revisión completa una vez al mes · Responsable: <span class="blank">&nbsp;</span></p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">3</span> <span>Presión, pulso y de lado<small>Hoja 3 · cuándo medir, cómo y qué significa · pégala junto al tensiómetro</small></span> <span class="chev">▶</span></summary>
+    <div class="inner">
+      <h2>1 · ¿Le tomo la presión?</h2>
+      <span class="pill v">SÍ, tómala</span>
+      <p>Está <b>despierta y puede sentarse</b>, y además:</p>
+      <ul>
+        <li>tiene mareo o dolor de cabeza,</li>
+        <li>siente palpitaciones o «se siente rara»,</li>
+        <li>se desmayó y ya despertó,</li>
+        <li>quiere volver a entrenar después de un episodio.</li>
+      </ul>
+      <span class="pill r">NO: primero llama al 131</span>
+      <ul>
+        <li>le duele o le aprieta el pecho,</li>
+        <li>cara torcida, brazo caído o habla enredado,</li>
+        <li>no responde.</li>
+      </ul>
+
+      <h2>2 · Cómo se toma</h2>
+      <ol>
+        <li><b>Siéntala 5 minutos:</b> espalda apoyada, pies en el suelo.</li>
+        <li><b>Brazo desnudo</b> sobre una mesa, a la altura del corazón.</li>
+        <li><b>Brazalete</b> dos dedos arriba del codo, firme sin apretar.</li>
+        <li><b>Aprieta START.</b> Que no hable ni se mueva.</li>
+        <li><b>Repite</b> a los 2 minutos. Anota los dos resultados y la hora.</li>
+      </ol>
+
+      <h2>Pulso (sin aparato)</h2>
+      <ol>
+        <li><b>Dos dedos</b> (índice y medio) en la muñeca, del lado del pulgar.</li>
+        <li><b>Cuenta</b> los latidos 15 segundos y multiplica por 4.</li>
+      </ol>
+      <span class="pill v">60 a 100 en reposo</span>
+      <p>Normal. Recién entrenó: alto es normal y baja en 5–10 minutos.</p>
+      <span class="pill r">Menos de 40 · Más de 130 en reposo</span>
+      <p>Con mareo o dolor de pecho: <b>llama al 131</b>.</p>
+
+      <h2>3 · Qué significa el número</h2>
+      <p>El aparato muestra dos números: <b>ARRIBA (SYS)</b> y <b>ABAJO (DIA)</b>. Si caen en filas distintas, usa la más grave.</p>
+      <div class="pres">
+        <div class="fila rojo"><div class="h">ROJO · Arriba 180 o más · Abajo 120 o más</div><p>Con dolor de pecho, dolor de cabeza fuerte, visión borrosa o debilidad: <b>131 ya</b>. Sin síntomas: reposo 10 minutos y repite; si sigue igual, a urgencias hoy.</p></div>
+        <div class="fila ambar"><div class="h">AMARILLO · Arriba 140–179 · Abajo 90–119</div><p><b>Alta.</b> Reposo 10 minutos y repite. Si sigue alta: hoy no entrena y que consulte en médico o SAPU.</p></div>
+        <div class="fila verde"><div class="h">VERDE · Arriba 90–139 · Abajo 60–89</div><p><b>Normal.</b> Si igual se siente mal: reposo y obsérvala.</p></div>
+        <div class="fila ambar"><div class="h">AMARILLO · Arriba menos de 90 · Abajo menos de 60</div><p><b>Baja.</b> Con mareo o palidez: acuéstala con las piernas en alto (Hoja 1, tarjeta 4). Si no mejora en 10 minutos: <b>131</b>.</p></div>
+      </div>
+
+      <h2>Ponerla de lado (posición de recuperación)</h2>
+      <p><b>Cuándo:</b> no responde pero respira, después de una convulsión, o si vomita.</p>
+      <ol>
+        <li><b>Arrodíllate</b> a su lado. Su brazo más cercano, en ángulo recto hacia arriba.</li>
+        <li><b>El otro brazo</b> cruzado, con el dorso de la mano en su mejilla.</li>
+        <li><b>Dobla</b> la rodilla más lejana y tira de ella para girarla hacia ti.</li>
+        <li><b>Cabeza</b> algo hacia atrás y boca hacia abajo, para que respire.</li>
+        <li><b>Vigila</b> que siga respirando hasta que llegue la ambulancia.</li>
+      </ol>
+      <div class="box rojo">
+        <b>Ojo</b>
+        <p>Golpe en cuello o espalda: <b>no la gires</b>, espera al SAMU.</p>
+      </div>
+
+      <div class="box negro">
+        <b>Medir nunca atrasa la llamada</b>
+        <p>Ante signos graves, primero el <b>131</b> y después se mide.</p>
+        <p>Dudas que no son urgencia: Salud Responde <a class="tel" href="tel:6003607777">600 360 7777</a>.</p>
+        <p>Esta hoja orienta: no reemplaza al médico ni el curso de primeros auxilios.</p>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary><span class="n">🖨</span> <span>Imprimir las 3 hojas<small>PDF tamaño carta/A4, para pegar en el local</small></span> <span class="chev">▶</span></summary>
+    <div class="inner">
+      <div class="pdfs">
+        <a href="SOS1-urgencias.pdf" target="_blank" rel="noopener"><span class="ic">H1</span><span>Hoja 1 — Urgencias: qué hacer<small>Pégala en recepción, a la vista.</small></span></a>
+        <a href="SOS2-botiquin.pdf" target="_blank" rel="noopener"><span class="ic">H2</span><span>Hoja 2 — Botiquín: cuándo y cómo<small>Pégala junto al botiquín.</small></span></a>
+        <a href="SOS3-presion-pulso.pdf" target="_blank" rel="noopener"><span class="ic">H3</span><span>Hoja 3 — Presión, pulso y de lado<small>Pégala junto al tensiómetro.</small></span></a>
+      </div>
+      <p>Imprímelas a color: los colores rojo / amarillo / verde son parte del protocolo.</p>
+    </div>
+  </details>
+
+  </main>
+  <footer>
+    <b>GYM FACTORY</b> · Fitness, el lujo de la nueva era. · Membrillar 266, Rancagua<br>
+    Protocolo interno del equipo. En una emergencia real, el 131 va primero.
+  </footer>
+</div>
+</body>
+</html>
